@@ -1,5 +1,5 @@
 import { databaseService } from './database.service';
-import { SavingsGoal, Category, Liability, Mission, Achievement } from '../types';
+import { SavingsGoal, Category, Liability, Mission, Achievement, Transaction, RecurringTransaction } from '../types';
 
 export class FinancialService {
   // SAVINGS GOALS

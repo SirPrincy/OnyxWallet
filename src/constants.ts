@@ -130,6 +130,7 @@ export const MISSIONS: Mission[] = [
     total: 100,
     icon: 'auto_graph',
     type: 'growth',
+    level: 1,
   },
   {
     id: '2',
@@ -139,6 +140,7 @@ export const MISSIONS: Mission[] = [
     total: 1,
     icon: 'account_balance',
     type: 'audit',
+    level: 1,
   },
   {
     id: '3',
@@ -148,6 +150,7 @@ export const MISSIONS: Mission[] = [
     total: 1,
     icon: 'diamond',
     type: 'appraisal',
+    level: 1,
   },
 ];
 
