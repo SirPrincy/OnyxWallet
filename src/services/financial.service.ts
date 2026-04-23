@@ -1,7 +1,17 @@
 import { databaseService } from './database.service';
-import { SavingsGoal, Category, Liability, Mission, Achievement, Transaction, RecurringTransaction } from '../types';
+import { SavingsGoal, Category, Liability, Mission, Achievement, Transaction, RecurringTransaction, Profile, GoalContribution } from '../types';
 
 export class FinancialService {
+  // PROFILE
+  async updateProfile(id: string, updates: Partial<Profile>): Promise<void> {
+    const entries = Object.entries(updates);
+    if (entries.length === 0) return;
+    const setClause = entries.map(([key]) => `"${key}" = ?`).join(', ');
+    const values = entries.map(([, value]) => value);
+    await databaseService.run(`UPDATE profiles SET ${setClause} WHERE id = ?`, [...values, id]);
+    await databaseService.saveToStore();
+  }
+
   // SAVINGS GOALS
   async getSavingsGoals(profileId: string): Promise<SavingsGoal[]> {
     const res = await databaseService.query('SELECT * FROM savings_goals WHERE profileId = ?', [profileId]);
@@ -13,8 +23,8 @@ export class FinancialService {
     const id = crypto.randomUUID();
     const newGoal: SavingsGoal = { ...goal, id, isCompleted: goal.current >= goal.target };
     await databaseService.run(
-      'INSERT INTO savings_goals (id, title, desc, current, target, isCompleted, profileId) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [id, newGoal.title, newGoal.desc, newGoal.current, newGoal.target, newGoal.isCompleted ? 1 : 0, profileId]
+      'INSERT INTO savings_goals (id, title, desc, current, target, isCompleted, targetDate, priority, icon, color, category, inflationRate, autoAllocationPercent, linkedWalletId, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, newGoal.title, newGoal.desc, newGoal.current, newGoal.target, newGoal.isCompleted ? 1 : 0, newGoal.targetDate, newGoal.priority, newGoal.icon, newGoal.color, newGoal.category, newGoal.inflationRate || 0, newGoal.autoAllocationPercent || 0, newGoal.linkedWalletId, profileId]
     );
     await databaseService.saveToStore();
     return newGoal;
@@ -27,6 +37,20 @@ export class FinancialService {
     const values = entries.map(([key, value]) => key === 'isCompleted' ? (value ? 1 : 0) : value);
     await databaseService.run(`UPDATE savings_goals SET ${setClause} WHERE id = ?`, [...values, id]);
     await databaseService.saveToStore();
+  }
+
+  async addGoalContribution(contribution: Omit<GoalContribution, 'id'>, profileId: string): Promise<void> {
+    const id = crypto.randomUUID();
+    await databaseService.run(
+      'INSERT INTO goal_contributions (id, goalId, amount, date, timestamp, walletId, profileId) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [id, contribution.goalId, contribution.amount, contribution.date, contribution.timestamp, contribution.walletId, profileId]
+    );
+    await databaseService.saveToStore();
+  }
+
+  async getGoalContributions(goalId: string): Promise<GoalContribution[]> {
+    const res = await databaseService.query('SELECT * FROM goal_contributions WHERE goalId = ? ORDER BY timestamp DESC', [goalId]);
+    return res.values || [];
   }
 
   // LIABILITIES
@@ -74,8 +98,8 @@ export class FinancialService {
     const id = crypto.randomUUID();
     const newMission = { ...mission, id };
     await databaseService.run(
-      'INSERT INTO missions (id, title, description, progress, total, icon, type, level, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [id, newMission.title, newMission.description, newMission.progress, newMission.total, newMission.icon, newMission.type, newMission.level || 1, profileId]
+      'INSERT INTO missions (id, title, description, progress, total, icon, type, category, level, maxLevel, status, unlockedAtLevel, path, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, newMission.title, newMission.description, newMission.progress, newMission.total, newMission.icon, newMission.type, newMission.category || 'growth', newMission.level || 1, newMission.maxLevel, newMission.status || 'active', newMission.unlockedAtLevel || 1, newMission.path || 'neutral', profileId]
     );
     await databaseService.saveToStore();
     return newMission;
@@ -100,17 +124,19 @@ export class FinancialService {
     const id = crypto.randomUUID();
     const newAchievement = { ...achievement, id };
     await databaseService.run(
-      'INSERT INTO achievements (id, title, icon, earned, profileId) VALUES (?, ?, ?, ?, ?)',
-      [id, newAchievement.title, newAchievement.icon, newAchievement.earned ? 1 : 0, profileId]
+      'INSERT INTO achievements (id, title, icon, earned, rarity, description, earnedDate, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, newAchievement.title, newAchievement.icon, newAchievement.earned ? 1 : 0, newAchievement.rarity || 'common', newAchievement.description, newAchievement.earnedDate, profileId]
     );
     await databaseService.saveToStore();
     return newAchievement;
   }
 
   async updateAchievement(id: string, earned: boolean): Promise<void> {
-    await databaseService.run('UPDATE achievements SET earned = ? WHERE id = ?', [earned ? 1 : 0, id]);
+    const earnedDate = earned ? new Date().toISOString() : null;
+    await databaseService.run('UPDATE achievements SET earned = ?, earnedDate = ? WHERE id = ?', [earned ? 1 : 0, earnedDate, id]);
     await databaseService.saveToStore();
   }
+
   calculateIncomeStatement(
     transactions: Transaction[], 
     recurringTransactions: RecurringTransaction[], 
