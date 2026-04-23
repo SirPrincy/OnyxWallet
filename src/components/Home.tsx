@@ -17,6 +17,12 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
   const budgets = useFinancialStore(s => s.budgets);
   const wallets = useWalletStore(s => s.wallets);
   const totalLiquidity = useWalletStore(s => s.totalLiquidity);
+
+  const formatNumber = (val: number) => {
+    const parts = val.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return parts.join('.');
+  };
   const tierData = useGamificationStore(s => s.tierData);
   const missions = useGamificationStore(s => s.missions);
 
@@ -132,7 +138,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           </div>
           <span className="text-primary-container font-headline text-5xl md:text-7xl">{primaryCurrencySymbol}</span>
           <span className="text-on-surface font-headline text-6xl md:text-8xl tracking-tight">
-            {totalLiquidity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {formatNumber(totalLiquidity)}
           </span>
         </div>
         {transactions.length > 0 && (
@@ -195,11 +201,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           
           <div className="flex items-center justify-between mb-8">
             <div className="space-y-1">
-              <p className="text-5xl font-headline text-on-surface tracking-tight">{primaryCurrencySymbol}{safeToSpend.monthly.toLocaleString()}</p>
+              <p className="text-5xl font-headline text-on-surface tracking-tight">{primaryCurrencySymbol}{formatNumber(safeToSpend.monthly)}</p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-[0.3em] font-bold">Remaining in your vault</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-headline text-primary">{primaryCurrencySymbol}{safeToSpend.daily.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+              <p className="text-2xl font-headline text-primary">{primaryCurrencySymbol}{formatNumber(safeToSpend.daily).split('.')[0]}</p>
               <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Per day limit</p>
             </div>
           </div>
@@ -219,7 +225,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           </div>
 
           <p className="mt-6 text-[10px] text-on-surface-variant/60 italic leading-relaxed">
-            Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">${safeToSpend.daily.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
+            Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">{primaryCurrencySymbol}{formatNumber(safeToSpend.daily).split('.')[0]}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
           </p>
         </div>
       </section>
@@ -239,7 +245,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-start mb-6">
             <div>
               <p className="text-on-surface-variant text-[10px] uppercase tracking-widest mb-1">Total Invested Assets</p>
-              <h4 className="text-3xl font-headline">{primaryCurrencySymbol}{totalInvested.toLocaleString()}</h4>
+              <h4 className="text-3xl font-headline">{primaryCurrencySymbol}{formatNumber(totalInvested)}</h4>
             </div>
             <div className="text-right">
               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Daily Yield</p>
@@ -332,12 +338,12 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <p className="text-2xl font-headline">
-                {primaryCurrencySymbol}{Math.abs(transactions
+                {primaryCurrencySymbol}{formatNumber(Math.abs(transactions
                   .filter(tx => tx.type === 'expense' && 
                     new Date(tx.timestamp).getMonth() === new Date().getMonth() &&
                     new Date(tx.timestamp).getFullYear() === new Date().getFullYear())
                   .reduce((sum, tx) => sum + tx.amount, 0)
-                ).toLocaleString()}
+                ))}
               </p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Expenses This Month</p>
             </div>
@@ -397,7 +403,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold">{tx.amount < 0 ? '-' : '+'}{primaryCurrencySymbol}{Math.abs(tx.amount).toLocaleString()}</p>
+                    <p className="text-sm font-semibold">{tx.amount < 0 ? '-' : '+'}{primaryCurrencySymbol}{formatNumber(Math.abs(tx.amount))}</p>
                     <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{tx.date}</p>
                   </div>
                 </div>

@@ -131,7 +131,7 @@ export interface Profile {
   image?: string;
   color: string;
   currency: string;
-  path?: 'investor' | 'frugal' | 'neutral';
+  path?: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
 }
 
 export interface TierData {

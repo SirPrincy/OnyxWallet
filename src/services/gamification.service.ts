@@ -5,7 +5,7 @@ export interface GamificationData {
   transactions: Transaction[];
   savingsGoals: SavingsGoal[];
   currentLevel: number;
-  path?: 'investor' | 'frugal' | 'neutral';
+  path?: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
 }
 
 export const ALL_ACHIEVEMENTS: Omit<Achievement, 'earned' | 'earnedDate'>[] = [

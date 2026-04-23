@@ -12,11 +12,11 @@ interface GamificationState {
   achievements: Achievement[];
   xp: number;
   tierData: TierData;
-  path: 'investor' | 'frugal' | 'neutral';
+  path: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
 
   setMissions: (m: Mission[]) => void;
   setAchievements: (a: Achievement[]) => void;
-  setPath: (path: 'investor' | 'frugal' | 'neutral') => Promise<void>;
+  setPath: (path: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy') => Promise<void>;
   
   updateMission: (id: string, progress: number, total: number, level?: number, description?: string) => Promise<void>;
   updateAchievement: (id: string, earned: boolean) => Promise<void>;
