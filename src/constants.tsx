@@ -129,8 +129,11 @@ export const MISSIONS: Mission[] = [
     progress: 65,
     total: 100,
     icon: 'auto_graph',
-    type: 'growth',
+    type: 'short',
+    category: 'growth',
     level: 1,
+    status: 'active',
+    unlockedAtLevel: 1
   },
   {
     id: '2',
@@ -139,8 +142,11 @@ export const MISSIONS: Mission[] = [
     progress: 0,
     total: 1,
     icon: 'account_balance',
-    type: 'audit',
+    type: 'medium',
+    category: 'audit',
     level: 1,
+    status: 'active',
+    unlockedAtLevel: 1
   },
   {
     id: '3',
@@ -149,8 +155,11 @@ export const MISSIONS: Mission[] = [
     progress: 0,
     total: 1,
     icon: 'diamond',
-    type: 'appraisal',
+    type: 'flash',
+    category: 'appraisal',
     level: 1,
+    status: 'active',
+    unlockedAtLevel: 1
   },
 ];
 
@@ -186,14 +195,32 @@ export const BUDGETS: Budget[] = [
 ];
 
 export const ACHIEVEMENTS: Achievement[] = [
-  { id: '1', title: 'First $10k', icon: 'star', earned: true },
-  { id: '2', title: '30 Day Streak', icon: 'local_fire_department', earned: true },
-  { id: '3', title: 'Master Saver', icon: 'workspace_premium', earned: true },
-  { id: '4', title: 'Fast Starter', icon: 'rocket_launch', earned: true },
-  { id: '5', title: 'Century Club', icon: 'diamond', earned: false },
-  { id: '6', title: 'Safe Guard', icon: 'shield', earned: false },
-  { id: '7', title: 'Globalist', icon: 'public', earned: false },
-  { id: '8', title: 'Alchemist', icon: 'auto_awesome', earned: false },
+  // These will be overridden by the store's initial state from gamificationService.ALL_ACHIEVEMENTS
+  { id: 'first_10k', title: 'Premier $10k', icon: 'trending-up', earned: false, rarity: 'common' },
+  { id: 'saver_initiation', title: 'Initié de l\'Épargne', icon: 'target', earned: false, rarity: 'common' },
+  { id: 'tx_starter', title: 'Explorateur', icon: 'zap', earned: false, rarity: 'common' },
+  { id: 'wallet_duo', title: 'Diversificateur Junior', icon: 'wallet', earned: false, rarity: 'common' },
+  { id: 'milestone_50k', title: 'Cap des 50k', icon: 'award', earned: false, rarity: 'rare' },
+  { id: 'goal_slayer', title: 'Réalisateur d\'Elite', icon: 'check-circle', earned: false, rarity: 'rare' },
+  { id: 'global_investor', title: 'Investisseur Global', icon: 'globe', earned: false, rarity: 'rare' },
+  { id: 'six_figure_club', title: 'Club des 6 Chiffres', icon: 'diamond', earned: false, rarity: 'epic' },
+  { id: 'luxury_collector', title: 'Collectionneur de Luxe', icon: 'shopping-bag', earned: false, rarity: 'epic' },
+  { id: 'portfolio_pro', title: 'Portfolio Pro', icon: 'bar-chart', earned: false, rarity: 'epic' },
+  { id: 'investment_whale', title: 'Baleine d\'Investissement', icon: 'trending-up', earned: false, rarity: 'epic' },
+  { id: 'half_millionaire', title: 'Demi-Millionnaire', icon: 'star', earned: false, rarity: 'legendary' },
+  { id: 'onyx_titan', title: 'Titan d\'Onyx', icon: 'crown', earned: false, rarity: 'legendary' },
+  { id: 'wealth_architect', title: 'Architecte de Fortune', icon: 'building', earned: false, rarity: 'legendary' },
+  { id: 'legacy_builder', title: 'Bâtisseur d\'Héritage', icon: 'landmark', earned: false, rarity: 'legendary' },
+  { id: 'early_adopter', title: 'Early Adopter', icon: 'rocket', earned: false, rarity: 'common' },
+  { id: 'frugal_master', title: 'Maître de la Frugalité', icon: 'shield', earned: false, rarity: 'rare' },
+  { id: 'crypto_pioneer', title: 'Pionnier Crypto', icon: 'bitcoin', earned: false, rarity: 'rare' },
+  { id: 'diversified_king', title: 'Roi de la Diversification', icon: 'globe', earned: false, rarity: 'epic' },
+  { id: 'emergency_proof', title: 'Preuve d\'Urgence', icon: 'shield', earned: false, rarity: 'rare' },
+  { id: 'jet_setter', title: 'Jet Setter', icon: 'plane', earned: false, rarity: 'epic' },
+  { id: 'inflation_fighter', title: 'Combattant de l\'Inflation', icon: 'trending-up', earned: false, rarity: 'rare' },
+  { id: 'auto_pilot', title: 'Auto-Pilote', icon: 'settings', earned: false, rarity: 'common' },
+  { id: 'high_roller', title: 'High Roller', icon: 'diamond', earned: false, rarity: 'epic' },
+  { id: 'philanthropist', title: 'Philanthrope', icon: 'heart', earned: false, rarity: 'rare' }
 ];
 
 export const ICON_OPTIONS = [
@@ -249,6 +276,7 @@ export const ICON_MAP: Record<string, React.ElementType> = {
   local_fire_department: Flame,
   workspace_premium: Award,
   rocket_launch: Rocket,
+  rocket: Rocket,
   auto_awesome: Sparkles,
   public: Globe,
   savings: Wallet,

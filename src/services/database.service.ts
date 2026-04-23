@@ -101,6 +101,14 @@ class DatabaseService {
         current REAL NOT NULL DEFAULT 0,
         target REAL NOT NULL,
         isCompleted INTEGER DEFAULT 0,
+        targetDate TEXT,
+        priority TEXT DEFAULT 'medium',
+        icon TEXT,
+        color TEXT,
+        category TEXT DEFAULT 'other',
+        inflationRate REAL DEFAULT 0,
+        autoAllocationPercent REAL DEFAULT 0,
+        linkedWalletId TEXT,
         profileId TEXT
       );
 
@@ -145,7 +153,12 @@ class DatabaseService {
         total REAL NOT NULL DEFAULT 100,
         icon TEXT NOT NULL,
         type TEXT NOT NULL,
+        category TEXT DEFAULT 'growth',
         level INTEGER DEFAULT 1,
+        maxLevel INTEGER,
+        status TEXT DEFAULT 'active',
+        unlockedAtLevel INTEGER DEFAULT 1,
+        path TEXT DEFAULT 'neutral',
         profileId TEXT
       );
 
@@ -154,6 +167,9 @@ class DatabaseService {
         title TEXT NOT NULL,
         icon TEXT NOT NULL,
         earned INTEGER DEFAULT 0,
+        rarity TEXT DEFAULT 'common',
+        description TEXT,
+        earnedDate TEXT,
         profileId TEXT
       );
 
@@ -166,7 +182,8 @@ class DatabaseService {
         status TEXT,
         lastActive TEXT,
         image TEXT,
-        color TEXT
+        color TEXT,
+        path TEXT DEFAULT 'neutral'
       );
     `;
 
@@ -197,7 +214,66 @@ class DatabaseService {
         if (table === 'missions') {
           if (res.values && !res.values.some((col: any) => col.name === 'level')) {
             await this.db.execute(`ALTER TABLE missions ADD COLUMN level INTEGER DEFAULT 1`);
-            console.log(`Added level column to missions`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'category')) {
+            await this.db.execute(`ALTER TABLE missions ADD COLUMN category TEXT DEFAULT 'growth'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'maxLevel')) {
+            await this.db.execute(`ALTER TABLE missions ADD COLUMN maxLevel INTEGER`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'status')) {
+            await this.db.execute(`ALTER TABLE missions ADD COLUMN status TEXT DEFAULT 'active'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'unlockedAtLevel')) {
+            await this.db.execute(`ALTER TABLE missions ADD COLUMN unlockedAtLevel INTEGER DEFAULT 1`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'path')) {
+            await this.db.execute(`ALTER TABLE missions ADD COLUMN path TEXT DEFAULT 'neutral'`);
+          }
+        }
+
+        if (table === 'achievements') {
+          if (res.values && !res.values.some((col: any) => col.name === 'rarity')) {
+            await this.db.execute(`ALTER TABLE achievements ADD COLUMN rarity TEXT DEFAULT 'common'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'description')) {
+            await this.db.execute(`ALTER TABLE achievements ADD COLUMN description TEXT`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'earnedDate')) {
+            await this.db.execute(`ALTER TABLE achievements ADD COLUMN earnedDate TEXT`);
+          }
+        }
+
+        if (table === 'savings_goals') {
+          if (res.values && !res.values.some((col: any) => col.name === 'targetDate')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN targetDate TEXT`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'priority')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN priority TEXT DEFAULT 'medium'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'icon')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN icon TEXT`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'color')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN color TEXT`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'category')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN category TEXT DEFAULT 'other'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'inflationRate')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN inflationRate REAL DEFAULT 0`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'autoAllocationPercent')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN autoAllocationPercent REAL DEFAULT 0`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'linkedWalletId')) {
+            await this.db.execute(`ALTER TABLE savings_goals ADD COLUMN linkedWalletId TEXT`);
+          }
+        }
+
+        if (table === 'profiles') {
+           if (res.values && !res.values.some((col: any) => col.name === 'path')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN path TEXT DEFAULT 'neutral'`);
           }
         }
 
