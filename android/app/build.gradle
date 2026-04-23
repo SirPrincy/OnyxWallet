@@ -31,15 +31,15 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+            // libsqlcipher.so is already stripped or should not be stripped to avoid build warnings
+            doNotStrip "**/libsqlcipher.so"
         }
     }
 }
 
-repositories {
-    flatDir{
-        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
-    }
-}
+// flatDir is removed to avoid Gradle warnings.
+// If you need to include local .aar files, use implementation fileTree(dir: 'libs', include: ['*.aar']) instead.
+
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
