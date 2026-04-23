@@ -206,6 +206,9 @@ export default function Onboarding() {
     // Auto-login using context
     await login(newProfile);
 
+    // Apply the recommended path to gamification store
+    await setPath(recommendedPath as any);
+
     // 2. Create Wallet
     const balance = walletType === 'Crypto'
       ? (parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)
@@ -427,7 +430,11 @@ export default function Onboarding() {
                 </div>
 
                 <button
-                  onClick={() => setSetupStep('quiz')}
+                  onClick={() => {
+                    setQuizStep(0);
+                    setQuizAnswers([]);
+                    setSetupStep('quiz');
+                  }}
                   className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-primary transition-colors"
                 >
                   Retake assessment

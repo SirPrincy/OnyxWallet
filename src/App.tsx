@@ -52,7 +52,9 @@ function AppContent() {
 
   useEffect(() => {
     initApp();
+  }, []);
 
+  useEffect(() => {
     const backButtonHandler = CapApp.addListener('backButton', ({ canGoBack }) => {
       if (showNewTransaction) {
         setShowNewTransaction(false);
