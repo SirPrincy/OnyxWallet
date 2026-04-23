@@ -121,7 +121,8 @@ export default function IncomeStatement() {
         name: newCatName,
         icon: newCatIcon,
         color: newCatColor,
-        type: newCatType
+        type: newCatType,
+        subcategories: []
       });
     } else if (editingCategory) {
       updateCategory(editingCategory.id, {

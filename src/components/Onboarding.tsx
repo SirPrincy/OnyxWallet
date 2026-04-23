@@ -88,7 +88,11 @@ export default function Onboarding() {
     };
     
     // Save profile to SQLite using context
-    await addProfile(newProfile);
+    await addProfile(newProfile, [
+      { name: 'Housing', icon: 'home', color: '#f2ca50', type: 'expense', subcategories: [] },
+      { name: 'Transport', icon: 'local_taxi', color: '#ffffff', type: 'expense', subcategories: [] },
+      { name: 'Salary', icon: 'payments', color: '#f2ca50', type: 'income', subcategories: [] }
+    ]);
     
     // Auto-login using context
     await login(newProfile);
