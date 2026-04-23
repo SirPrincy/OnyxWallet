@@ -2,10 +2,19 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { TrendingUp, ArrowRight, Wallet, Check, ChevronRight, X, Sparkles, AlertCircle, Info, Building2, Coins, Plus, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { budgetService } from '../services/budget.service';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
 
 export default function Budget() {
-  const { transactions, budgets, updateBudgetWallets, updateBudgetLimit, wallets, addBudget, deleteBudget, categories } = useTransactions();
+  const transactions = useFinancialStore(s => s.transactions);
+  const budgets = useFinancialStore(s => s.budgets);
+  const updateBudgetWallets = useFinancialStore(s => s.updateBudgetWallets);
+  const updateBudgetLimit = useFinancialStore(s => s.updateBudgetLimit);
+  const addBudget = useFinancialStore(s => s.addBudget);
+  const deleteBudget = useFinancialStore(s => s.deleteBudget);
+  const categories = useFinancialStore(s => s.categories);
+
+  const wallets = useWalletStore(s => s.wallets);
   const [selectedBudget, setSelectedBudget] = useState<string | null>(null);
   const [editingLimit, setEditingLimit] = useState<string>('');
   const [projectionAdjustment, setProjectionAdjustment] = useState<number>(0);

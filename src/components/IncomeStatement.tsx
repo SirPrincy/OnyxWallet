@@ -8,24 +8,22 @@ import {
   Plane, Car, Hotel, CreditCard, RefreshCcw, Layers
 } from 'lucide-react';
 import { financialService } from '../services/financial.service';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
 import { Category, RecurringTransaction } from '../types';
 import { ICON_OPTIONS, COLOR_OPTIONS } from '../constants';
 
 type Period = 'Monthly' | 'Quarterly' | 'Annually';
 
 export default function IncomeStatement() {
-  const { 
-    transactions, 
-    categories, 
-    addCategory, 
-    updateCategory, 
-    deleteCategory,
-    recurringTransactions,
-    addRecurringTransaction,
-    updateRecurringTransaction,
-    deleteRecurringTransaction
-  } = useTransactions();
+  const transactions = useFinancialStore(s => s.transactions);
+  const categories = useFinancialStore(s => s.categories);
+  const addCategory = useFinancialStore(s => s.addCategory);
+  const updateCategory = useFinancialStore(s => s.updateCategory);
+  const deleteCategory = useFinancialStore(s => s.deleteCategory);
+  const recurringTransactions = useFinancialStore(s => s.recurringTransactions);
+  const addRecurringTransaction = useFinancialStore(s => s.addRecurringTransaction);
+  const updateRecurringTransaction = useFinancialStore(s => s.updateRecurringTransaction);
+  const deleteRecurringTransaction = useFinancialStore(s => s.deleteRecurringTransaction);
   const [period, setPeriod] = useState<Period>('Monthly');
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
   const [showManageDrawer, setShowManageDrawer] = useState(false);
@@ -123,7 +121,8 @@ export default function IncomeStatement() {
         name: newCatName,
         icon: newCatIcon,
         color: newCatColor,
-        type: newCatType
+        type: newCatType,
+        subcategories: []
       });
     } else if (editingCategory) {
       updateCategory(editingCategory.id, {

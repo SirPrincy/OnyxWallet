@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, TrendingUp, AlertCircle, RefreshCw, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { aiService, AISuggestion } from '../services/ai.service';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
 
 export default function SafeToSpendAI() {
-  const { transactions, wallets, budgets } = useTransactions();
+  const transactions = useFinancialStore(s => s.transactions);
+  const budgets = useFinancialStore(s => s.budgets);
+  const wallets = useWalletStore(s => s.wallets);
   const [loading, setLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<AISuggestion | null>(null);
 

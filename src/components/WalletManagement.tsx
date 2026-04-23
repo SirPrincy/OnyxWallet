@@ -7,14 +7,18 @@ import {
   TrendingUp, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
-import { useTransactions } from '../context/useTransactions';
+import { useWalletStore } from '../store/useWalletStore';
 import { Wallet } from '../types';
 
 type WalletType = 'Credit Card' | 'Bank Account' | 'Crypto' | 'Investment' | 'Cash';
 type Currency = 'USD' | 'EUR' | 'BTC';
 
 export default function WalletManagement() {
-  const { wallets, addWallet, updateWallet, deleteWallet, reorderWallets } = useTransactions();
+  const wallets = useWalletStore(s => s.wallets);
+  const addWallet = useWalletStore(s => s.addWallet);
+  const updateWallet = useWalletStore(s => s.updateWallet);
+  const deleteWallet = useWalletStore(s => s.deleteWallet);
+  const reorderWallets = useWalletStore(s => s.reorderWallets);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);

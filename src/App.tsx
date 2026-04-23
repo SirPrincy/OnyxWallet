@@ -15,8 +15,8 @@ const WalletManagement = React.lazy(() => import('./components/WalletManagement'
 const Login = React.lazy(() => import('./components/Login'));
 const Onboarding = React.lazy(() => import('./components/Onboarding'));
 import NavigationDrawer from './components/NavigationDrawer';
-import { TransactionProvider } from './context/TransactionContext';
-import { useTransactions } from './context/useTransactions';
+import { useAuthStore } from './store/useAuthStore';
+import { initApp } from './store/appInit';
 import { Profile as ProfileType } from './types';
 
 type Screen = 'home' | 'history' | 'budget' | 'growth' | 'settings' | 'investing' | 'wallet' | 'profile' | 'debt';
@@ -24,21 +24,23 @@ type Screen = 'home' | 'history' | 'budget' | 'growth' | 'settings' | 'investing
 const PROFILE_IMAGE = "https://lh3.googleusercontent.com/aida-public/AB6AXuCcc7sVLbIEsC6jX2qV0QnosQxuaMBipKUciaVSyEjoFWvKacXxdAhtcJksFdTrkEcM9ZyoO1TZQ5utfhy2GSmu_ZBAPsaEvyHYbGHqKU9qkeW4LJi8FsjYTCTP0IpUYYxA-PY3JZOf1jKL_5_dCubD5hDqlDMFSonirymzzqEIXp45AxNSCoA7888jm5szoufJTJb0sJFllM4djAOta2Fh96j8ZxSOtosAmIhDc_HceulCBd29kiOZIqXl86aYARqt3gtY8JhKMoo";
 
 function AppContent() {
-  const { 
-    isPasscodeEnabled, 
-    hasCompletedOnboarding, 
-    isLoading, 
-    isAuthenticated, 
-    currentUser,
-    login,
-    logout,
-    resetOnboarding
-  } = useTransactions();
+  const isPasscodeEnabled = useAuthStore(s => s.isPasscodeEnabled);
+  const hasCompletedOnboarding = useAuthStore(s => s.hasCompletedOnboarding);
+  const isLoading = useAuthStore(s => s.isLoading);
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
+  const currentUser = useAuthStore(s => s.currentUser);
+  const login = useAuthStore(s => s.login);
+  const logout = useAuthStore(s => s.logout);
+  const resetOnboarding = useAuthStore(s => s.resetOnboarding);
 
   const [activeScreen, setActiveScreen] = useState<Screen>('home');
   const [showNewTransaction, setShowNewTransaction] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+
+  useEffect(() => {
+    initApp();
+  }, []);
 
   if (isLoading) {
     return (
@@ -195,8 +197,6 @@ function AppContent() {
 
 export default function App() {
   return (
-    <TransactionProvider>
-      <AppContent />
-    </TransactionProvider>
+    <AppContent />
   );
 }

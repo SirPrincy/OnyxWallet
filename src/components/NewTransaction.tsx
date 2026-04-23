@@ -9,12 +9,19 @@ import {
   ArrowLeft, Check, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
 import { Transaction } from '../types';
 import { ICON_MAP } from '../constants';
 
 export default function NewTransaction({ onClose, editTransaction }: { onClose: () => void, editTransaction?: Transaction }) {
-  const { addTransaction, updateTransaction, categories, wallets, liabilities, savingsGoals } = useTransactions();
+  const addTransaction = useFinancialStore(s => s.addTransaction);
+  const updateTransaction = useFinancialStore(s => s.updateTransaction);
+  const categories = useFinancialStore(s => s.categories);
+  const liabilities = useFinancialStore(s => s.liabilities);
+  const savingsGoals = useFinancialStore(s => s.savingsGoals);
+
+  const wallets = useWalletStore(s => s.wallets);
   const [selectedLiabilityId, setSelectedLiabilityId] = useState<string>(editTransaction?.liabilityId || '');
   const [selectedGoalId, setSelectedGoalId] = useState<string>(editTransaction?.goalId || '');
   

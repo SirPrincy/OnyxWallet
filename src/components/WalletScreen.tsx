@@ -5,10 +5,10 @@ import {
   Stars, LineChart, Building2, ChevronRight, X, ArrowRight, CheckCircle, Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
 
 export default function WalletScreen() {
-  const { transactions } = useTransactions();
+  const transactions = useFinancialStore(s => s.transactions);
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [transferAmount, setTransferAmount] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);

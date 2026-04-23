@@ -5,10 +5,10 @@ import {
   ShoppingBag, Smartphone, Utensils, Plane, Car, Hotel, 
   Heart, Award, TrendingUp, CreditCard, DollarSign,
   Dumbbell, Fuel, Landmark, Briefcase, Car as TaxiIcon,
-  ArrowLeftRight, Activity, Building, BarChart3, Bitcoin,
+  ArrowLeftRight, Activity, Building, BarChart, Bitcoin,
   Coffee, Code, Cpu, Diamond, GlassWater, Home, Palmtree,
   Settings, Star, User, UserCheck, Sparkles, Banknote,
-  Sofa
+  Sofa, Flame, Rocket, Globe, Wallet
 } from 'lucide-react';
 import React from 'react';
 import { APP_COLORS } from './constants/colors';
@@ -215,7 +215,7 @@ export const ICON_OPTIONS = [
   { id: 'swap_horiz', icon: ArrowLeftRight },
   { id: 'activity', icon: Activity },
   { id: 'building', icon: Building },
-  { id: 'bar-chart', icon: BarChart3 },
+  { id: 'bar-chart', icon: BarChart },
   { id: 'bitcoin', icon: Bitcoin },
   { id: 'coffee', icon: Coffee },
   { id: 'code', icon: Code },
@@ -244,8 +244,14 @@ export const ICON_MAP: Record<string, React.ElementType> = {
     </svg>
   ),
   payments: TrendingUp,
-  auto_graph: BarChart3,
+  auto_graph: BarChart,
   account_balance: Landmark,
+  local_fire_department: Flame,
+  workspace_premium: Award,
+  rocket_launch: Rocket,
+  auto_awesome: Sparkles,
+  public: Globe,
+  savings: Wallet,
 };
 
 export const COLOR_OPTIONS = APP_COLORS.categories;

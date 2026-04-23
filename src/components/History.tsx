@@ -7,7 +7,7 @@ import {
   Star, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
 import { Transaction } from '../types';
 import NewTransaction from './NewTransaction';
 import { ICON_MAP } from '../constants';
@@ -15,7 +15,8 @@ import { ICON_MAP } from '../constants';
 type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest';
 
 export default function History() {
-  const { transactions, deleteTransaction } = useTransactions();
+  const transactions = useFinancialStore(s => s.transactions);
+  const deleteTransaction = useFinancialStore(s => s.deleteTransaction);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'income' | 'transfer'>('all');
