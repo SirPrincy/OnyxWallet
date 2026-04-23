@@ -17,6 +17,7 @@ const Onboarding = React.lazy(() => import('./components/Onboarding'));
 import NavigationDrawer from './components/NavigationDrawer';
 import { useAuthStore } from './store/useAuthStore';
 import { initApp } from './store/appInit';
+import { Profile as ProfileType } from './types';
 
 type Screen = 'home' | 'history' | 'budget' | 'growth' | 'settings' | 'investing' | 'wallet' | 'profile' | 'debt';
 
