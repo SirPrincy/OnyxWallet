@@ -4,7 +4,7 @@ import {
   X, Plus, Edit3, Trash2, ChevronRight, 
   ShoppingBag, Palette, LayoutGrid, ArrowLeft, Star
 } from 'lucide-react';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
 import { Category } from '../types';
 import { ICON_OPTIONS, COLOR_OPTIONS } from '../constants';
 
@@ -13,12 +13,10 @@ interface CategoryManagerProps {
 }
 
 export default function CategoryManager({ onBack }: CategoryManagerProps) {
-  const { 
-    categories, 
-    addCategory, 
-    updateCategory, 
-    deleteCategory 
-  } = useTransactions();
+  const categories = useFinancialStore(s => s.categories);
+  const addCategory = useFinancialStore(s => s.addCategory);
+  const updateCategory = useFinancialStore(s => s.updateCategory);
+  const deleteCategory = useFinancialStore(s => s.deleteCategory);
 
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
   const [isAdding, setIsAdding] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Lock, Fingerprint, PlusCircle } from 'lucide-react';
-import { useTransactions } from '../context/useTransactions';
+import { useAuthStore } from '../store/useAuthStore';
 
 interface LoginProps {
   onLogin: (passcode: string | null, userProfile: any) => void;
@@ -10,7 +10,8 @@ interface LoginProps {
 }
 
 export default function Login({ onLogin, onAddProfile, isPasscodeEnabled }: LoginProps) {
-  const { profiles, hashPasscode } = useTransactions();
+  const profiles = useAuthStore(s => s.profiles);
+  const hashPasscode = useAuthStore(s => s.hashPasscode);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(profiles[0] || null);
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState(false);

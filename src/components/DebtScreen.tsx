@@ -4,10 +4,14 @@ import {
   Award, ChevronRight, ArrowDown, X, Wallet, ArrowRight, CheckCircle, Plus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
 
 export default function DebtScreen() {
-  const { liabilities, payLiability, addLiability, wallets } = useTransactions();
+  const liabilities = useFinancialStore(s => s.liabilities);
+  const payLiability = useFinancialStore(s => s.payLiability);
+  const addLiability = useFinancialStore(s => s.addLiability);
+  const wallets = useWalletStore(s => s.wallets);
   const [selectedDebtId, setSelectedDebtId] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);

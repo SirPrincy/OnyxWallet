@@ -10,7 +10,8 @@ import {
   User,
   CheckCircle2
 } from 'lucide-react';
-import { useTransactions } from '../context/useTransactions';
+import { useAuthStore } from '../store/useAuthStore';
+import { useWalletStore } from '../store/useWalletStore';
 
 interface OnboardingStep {
   title: string;
@@ -40,7 +41,11 @@ const STEPS: OnboardingStep[] = [
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
   const [setupStep, setSetupStep] = useState<'info' | 'identity' | 'wallet' | 'finish'>('info');
-  const { completeOnboarding, addWallet, completeSetup, login, addProfile } = useTransactions();
+  const completeOnboarding = useAuthStore(s => s.completeOnboarding);
+  const completeSetup = useAuthStore(s => s.completeSetup);
+  const login = useAuthStore(s => s.login);
+  const addProfile = useAuthStore(s => s.addProfile);
+  const addWallet = useWalletStore(s => s.addWallet);
   const [direction, setDirection] = useState(0);
 
   // Identity state

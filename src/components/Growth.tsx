@@ -4,7 +4,9 @@ import {
   Sparkles, Landmark, Wallet, Plus, ChevronRight, CheckCircle2,
   TrendingUp, Target, Zap, X, Calendar, ArrowRight
 } from 'lucide-react';
-import { useTransactions } from '../context/useTransactions';
+import { useFinancialStore } from '../store/useFinancialStore';
+import { useGamificationStore } from '../store/useGamificationStore';
+import { useWalletStore } from '../store/useWalletStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { ICON_MAP } from '../constants';
 
@@ -23,11 +25,19 @@ const IconMap: Record<string, React.ElementType> = {
 };
 
 export default function Growth() {
-  const { 
-    savingsGoals, contributeToGoal, addSavingsGoal, wallets, transactions,
-    missions, achievements, updateMission, updateAchievement,
-    tierData, xp
-  } = useTransactions();
+  const savingsGoals = useFinancialStore(s => s.savingsGoals);
+  const contributeToGoal = useFinancialStore(s => s.contributeToGoal);
+  const addSavingsGoal = useFinancialStore(s => s.addSavingsGoal);
+  const transactions = useFinancialStore(s => s.transactions);
+  
+  const wallets = useWalletStore(s => s.wallets);
+  
+  const missions = useGamificationStore(s => s.missions);
+  const achievements = useGamificationStore(s => s.achievements);
+  const updateMission = useGamificationStore(s => s.updateMission);
+  const updateAchievement = useGamificationStore(s => s.updateAchievement);
+  const tierData = useGamificationStore(s => s.tierData);
+  const xp = useGamificationStore(s => s.xp);
   
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
