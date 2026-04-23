@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 
 interface OnboardingStep {
   title: string;
@@ -56,6 +57,7 @@ export default function Onboarding() {
   const [walletName, setWalletName] = useState('');
   const [walletBalance, setWalletBalance] = useState('');
   const [walletType, setWalletType] = useState<any>('Bank Account');
+  const [walletCurrency, setWalletCurrency] = useState('USD');
 
   const nextStep = () => {
     if (setupStep === 'info') {
@@ -103,7 +105,7 @@ export default function Onboarding() {
       name: walletName,
       balance: parseFloat(walletBalance),
       type: walletType,
-      currency: 'USD',
+      currency: walletCurrency,
       color: '#B4947C',
       icon: 'landmark',
       provider: 'Onyx Reserve',
@@ -275,6 +277,20 @@ export default function Onboarding() {
                           className={`px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${walletType === type ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-on-surface-variant hover:bg-white/10'}`}
                         >
                           {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Currency</label>
+                    <div className="flex flex-wrap gap-2">
+                      {SUPPORTED_CURRENCIES.map(curr => (
+                        <button
+                          key={curr.code}
+                          onClick={() => setWalletCurrency(curr.code)}
+                          className={`px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${walletCurrency === curr.code ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-on-surface-variant hover:bg-white/10'}`}
+                        >
+                          {curr.code} ({curr.symbol})
                         </button>
                       ))}
                     </div>

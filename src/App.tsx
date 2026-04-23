@@ -197,9 +197,11 @@ function AppContent() {
 
             <AnimatePresence>
               {showNewTransaction && (
-                <NewTransaction 
-                  onClose={() => setShowNewTransaction(false)} 
-                />
+                <React.Suspense fallback={null}>
+                  <NewTransaction
+                    onClose={() => setShowNewTransaction(false)}
+                  />
+                </React.Suspense>
               )}
             </AnimatePresence>
           </motion.div>

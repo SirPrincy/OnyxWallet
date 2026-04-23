@@ -11,7 +11,7 @@ import { useWalletStore } from '../store/useWalletStore';
 import { Wallet } from '../types';
 
 type WalletType = 'Credit Card' | 'Bank Account' | 'Crypto' | 'Investment' | 'Cash' | 'Mobile Money';
-type Currency = 'USD' | 'EUR' | 'BTC';
+type Currency = 'USD' | 'EUR' | 'MGA' | 'BTC' | 'ETH';
 
 export default function WalletManagement() {
   const wallets = useWalletStore(s => s.wallets);
@@ -29,6 +29,7 @@ export default function WalletManagement() {
   const [modalBalance, setModalBalance] = useState('');
   const [modalProvider, setModalProvider] = useState('');
   const [modalLastFour, setModalLastFour] = useState('');
+  const [modalCurrency, setModalCurrency] = useState<Currency>('USD');
 
   const [currency, setCurrency] = useState<Currency>('USD');
 
@@ -53,11 +54,19 @@ export default function WalletManagement() {
     wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0),
   [wallets]);
 
-  const rates = { USD: 1, EUR: 0.92, BTC: 0.000015 };
+  const rates = { USD: 1, EUR: 0.92, MGA: 4500, BTC: 0.000015, ETH: 0.00038 };
   const formatValue = (usdAmount: number, cur: Currency) => {
-    const value = usdAmount * rates[cur];
+    const value = usdAmount * (rates[cur as keyof typeof rates] || 1);
     if (cur === 'BTC') return `₿ ${value.toFixed(6)}`;
-    const symbol = cur === 'USD' ? '$' : '€';
+    if (cur === 'ETH') return `Ξ ${value.toFixed(6)}`;
+
+    const symbols: Record<string, string> = {
+      USD: '$',
+      EUR: '€',
+      MGA: 'Ar'
+    };
+    const symbol = symbols[cur] || '$';
+
     return `${symbol} ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
@@ -70,7 +79,7 @@ export default function WalletManagement() {
       balance: parseFloat(modalBalance),
       provider: modalProvider,
       lastFour: modalLastFour,
-      currency: 'USD',
+      currency: modalCurrency,
       color: '#B4947C',
       icon: 'landmark',
       isVisible: true
@@ -92,6 +101,7 @@ export default function WalletManagement() {
     setModalBalance('');
     setModalProvider('');
     setModalLastFour('');
+    setModalCurrency('USD');
   };
 
   const openEdit = (w: Wallet) => {
@@ -101,6 +111,7 @@ export default function WalletManagement() {
     setModalType(w.type as WalletType);
     setModalProvider(w.provider || '');
     setModalLastFour(w.lastFour || '');
+    setModalCurrency(w.currency as Currency);
     setShowAddWallet(true);
   };
 
@@ -231,17 +242,32 @@ export default function WalletManagement() {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Current Liquidity ($)</label>
-                  <div className="relative">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-headline text-4xl font-sans">$</span>
-                    <input 
-                      type="number"
-                      value={modalBalance}
-                      onChange={(e) => setModalBalance(e.target.value)}
-                      className="w-full bg-surface-container-low border border-white/5 rounded-3xl py-10 pl-14 pr-6 text-on-surface text-5xl font-headline focus:ring-0 focus:border-primary/50"
-                      placeholder="0.00"
-                    />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Currency</label>
+                    <select
+                      value={modalCurrency}
+                      onChange={(e) => setModalCurrency(e.target.value as Currency)}
+                      className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-6 px-6 text-on-surface focus:ring-1 focus:ring-primary/40 text-lg appearance-none"
+                    >
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="MGA">MGA (Ar)</option>
+                      <option value="BTC">BTC (₿)</option>
+                      <option value="ETH">ETH (Ξ)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Current Liquidity</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={modalBalance}
+                        onChange={(e) => setModalBalance(e.target.value)}
+                        className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-6 px-6 text-on-surface text-lg focus:ring-1 focus:ring-primary/40"
+                        placeholder="0.00"
+                      />
+                    </div>
                   </div>
                 </div>
 
