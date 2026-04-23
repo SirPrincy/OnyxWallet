@@ -30,7 +30,7 @@ export interface Mission {
   maxLevel?: number;
   status: 'active' | 'completed' | 'locked';
   unlockedAtLevel: number;
-  path?: 'investor' | 'frugal' | 'neutral';
+  path?: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
 }
 
 export interface Budget {
