@@ -1,7 +1,10 @@
 import React, { useMemo } from 'react';
 import { TrendingUp, CreditCard, ShoppingBag, Car, Hotel, Fuel, Landmark, Diamond, BarChart3, Clock, Wallet, Rocket } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useTransactions } from '../context/useTransactions';
+import { useAuthStore } from '../store/useAuthStore';
+import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
+import { useGamificationStore } from '../store/useGamificationStore';
 import IncomeStatement from './IncomeStatement';
 
 const IconMap: Record<string, React.ElementType> = {
@@ -21,10 +24,15 @@ const IconMap: Record<string, React.ElementType> = {
 };
 
 export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'history' | 'budget' | 'growth' | 'investing') => void }) {
-  const { 
-    transactions, recurringTransactions, savingsGoals, budgets, wallets, currentUser,
-    totalLiquidity, tierData, missions
-  } = useTransactions();
+  const currentUser = useAuthStore(s => s.currentUser);
+  const transactions = useFinancialStore(s => s.transactions);
+  const recurringTransactions = useFinancialStore(s => s.recurringTransactions);
+  const savingsGoals = useFinancialStore(s => s.savingsGoals);
+  const budgets = useFinancialStore(s => s.budgets);
+  const wallets = useWalletStore(s => s.wallets);
+  const totalLiquidity = useWalletStore(s => s.totalLiquidity);
+  const tierData = useGamificationStore(s => s.tierData);
+  const missions = useGamificationStore(s => s.missions);
 
   const growthPercent = useMemo(() => {
     const now = new Date();

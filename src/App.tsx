@@ -15,8 +15,8 @@ const WalletManagement = React.lazy(() => import('./components/WalletManagement'
 const Login = React.lazy(() => import('./components/Login'));
 const Onboarding = React.lazy(() => import('./components/Onboarding'));
 import NavigationDrawer from './components/NavigationDrawer';
-import { TransactionProvider } from './context/TransactionContext';
-import { useTransactions } from './context/useTransactions';
+import { useAuthStore } from './store/useAuthStore';
+import { initApp } from './store/appInit';
 
 type Screen = 'home' | 'history' | 'budget' | 'growth' | 'settings' | 'investing' | 'wallet' | 'profile' | 'debt';
 
@@ -32,12 +32,16 @@ function AppContent() {
     login,
     logout,
     resetOnboarding
-  } = useTransactions();
+  } = useAuthStore();
 
   const [activeScreen, setActiveScreen] = useState<Screen>('home');
   const [showNewTransaction, setShowNewTransaction] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+
+  useEffect(() => {
+    initApp();
+  }, []);
 
   if (isLoading) {
     return (
@@ -194,8 +198,6 @@ function AppContent() {
 
 export default function App() {
   return (
-    <TransactionProvider>
-      <AppContent />
-    </TransactionProvider>
+    <AppContent />
   );
 }

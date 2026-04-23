@@ -6,7 +6,7 @@ import {
   ChevronRight, ArrowUpRight, Lock, Plus, Edit3, Trash2, X,
   ShoppingBag, LayoutGrid
 } from 'lucide-react';
-import { useTransactions } from '../context/useTransactions';
+import { useAuthStore } from '../store/useAuthStore';
 import CategoryManager from './CategoryManager';
 import ColorLibrary from './ColorLibrary';
 import { Palette } from 'lucide-react';
@@ -17,10 +17,8 @@ interface SettingsProps {
 }
 
 export default function Settings({ profile, onLogout }: SettingsProps) {
-  const { 
-    isPasscodeEnabled, 
-    setIsPasscodeEnabled
-  } = useTransactions();
+  const isPasscodeEnabled = useAuthStore(s => s.isPasscodeEnabled);
+  const setIsPasscodeEnabled = useAuthStore(s => s.setIsPasscodeEnabled);
 
   const [showCategoryHub, setShowCategoryHub] = useState(false);
   const [showColorLibrary, setShowColorLibrary] = useState(false);
