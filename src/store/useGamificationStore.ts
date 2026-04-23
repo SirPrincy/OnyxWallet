@@ -4,6 +4,7 @@ import { gamificationService } from '../services/gamification.service';
 import { financialService } from '../services/financial.service';
 import { useFinancialStore } from './useFinancialStore';
 import { useWalletStore } from './useWalletStore';
+import { useAuthStore } from './useAuthStore';
 import { getThresholds } from '../constants/thresholds';
 
 interface GamificationState {
@@ -11,9 +12,11 @@ interface GamificationState {
   achievements: Achievement[];
   xp: number;
   tierData: TierData;
+  path: 'investor' | 'frugal' | 'neutral';
 
   setMissions: (m: Mission[]) => void;
   setAchievements: (a: Achievement[]) => void;
+  setPath: (path: 'investor' | 'frugal' | 'neutral') => Promise<void>;
   
   updateMission: (id: string, progress: number, total: number, level?: number, description?: string) => Promise<void>;
   updateAchievement: (id: string, earned: boolean) => Promise<void>;
@@ -25,6 +28,7 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
   missions: [],
   achievements: [],
   xp: 0,
+  path: 'neutral',
   tierData: {
     tierName: 'Bronze',
     level: 1,
@@ -35,11 +39,19 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
 
   setMissions: (m) => set({ missions: m }),
   setAchievements: (a) => set({ achievements: a }),
+  setPath: async (path) => {
+    const profileId = useAuthStore.getState().currentUser?.id;
+    if (!profileId) return;
+    await financialService.updateProfile(profileId, { path });
+    set({ path });
+    get().syncGamification(profileId);
+  },
 
   calculateXP: () => {
     const wallets = useWalletStore.getState().wallets;
     const transactions = useFinancialStore.getState().transactions;
     const savingsGoals = useFinancialStore.getState().savingsGoals;
+    const path = get().path;
 
     // Get currency from primary wallet or default to USD
     const primaryCurrency = wallets[0]?.currency || 'USD';
@@ -57,9 +69,20 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
 
     // XP Calculation
-    const xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
-    const xpFromTx = transactions.length * 50;
-    const xpFromGoals = savingsGoals.filter(g => g.current >= g.target).length * 500;
+    let xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
+    let xpFromTx = transactions.length * 50;
+    let xpFromGoals = savingsGoals.filter(g => g.current >= g.target).length * 500;
+
+    // Passive Bonuses
+    if (path === 'investor') {
+      const investmentTxs = transactions.filter(t => t.category === 'Investment' || t.category === 'Transfer' && t.goalId);
+      xpFromTx += investmentTxs.length * 25; // +50% XP for investment related actions
+    } else if (path === 'frugal') {
+      const expenseTxs = transactions.filter(t => t.type === 'expense');
+      // Reward lower number of transactions (discipline)
+      xpFromTx += Math.max(0, (100 - expenseTxs.length)) * 10;
+    }
+
     const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
 
     // Stability Bonus (Runway)
@@ -141,13 +164,15 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     const wallets = useWalletStore.getState().wallets;
     const transactions = useFinancialStore.getState().transactions;
     const savingsGoals = useFinancialStore.getState().savingsGoals;
+    const currentLevel = get().tierData.level;
+    const path = get().path;
 
-    const data = { wallets, transactions, savingsGoals };
+    const data = { wallets, transactions, savingsGoals, currentLevel, path };
     const missions = get().missions;
     const achievements = get().achievements;
 
     const missionUpdates = gamificationService.evaluateMissions(data, missions);
-    const achievementUpdates = gamificationService.evaluateAchievements(data, achievements);
+    const achievementUpdates = await gamificationService.evaluateAchievements(data, achievements);
     
     let needsRefresh = false;
     if (missionUpdates.length > 0) {

@@ -39,6 +39,7 @@ interface FinancialState {
   updateSavingsGoal: (id: string, updates: Partial<SavingsGoal>) => Promise<void>;
   deleteSavingsGoal: (id: string) => Promise<void>;
   contributeToGoal: (goalId: string, amount: number, walletId?: string) => Promise<void>;
+  getGoalHistory: (goalId: string) => Promise<any[]>;
 
   addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
   updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
@@ -75,6 +76,35 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     if (!profileId) return;
 
     await transactionService.addTransaction(newTx as any, profileId);
+
+    // Auto-Allocation Logic
+    if (newTx.type === 'income') {
+      const goals = get().savingsGoals;
+      const incomeAmount = newTx.amount;
+
+      for (const goal of goals) {
+        if (goal.autoAllocationPercent && goal.autoAllocationPercent > 0 && !goal.isCompleted) {
+          const allocationAmount = (incomeAmount * goal.autoAllocationPercent) / 100;
+          if (allocationAmount > 0) {
+            // Trigger contribution without a recursive transaction call to avoid loops
+            // We just update the goal balance
+            const newCurrent = goal.current + allocationAmount;
+            await financialService.updateSavingsGoal(goal.id, {
+              current: newCurrent,
+              isCompleted: newCurrent >= goal.target
+            });
+
+            await financialService.addGoalContribution({
+              goalId: goal.id,
+              amount: allocationAmount,
+              date: new Date().toISOString().split('T')[0],
+              timestamp: Date.now(),
+              walletId: newTx.walletId
+            }, profileId);
+          }
+        }
+      }
+    }
     
     const [updatedTransactions, updatedLiabilities, updatedGoals] = await Promise.all([
       transactionService.getTransactions(profileId),
@@ -182,6 +212,10 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     const updated = get().savingsGoals.filter(g => g.id !== id);
     set({ savingsGoals: updated });
     useGamificationStore.getState().syncGamification(profileId);
+  },
+
+  getGoalHistory: async (goalId) => {
+    return await financialService.getGoalContributions(goalId);
   },
 
   contributeToGoal: async (goalId, amount, walletId) => {

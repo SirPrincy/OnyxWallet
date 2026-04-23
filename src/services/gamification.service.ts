@@ -4,15 +4,67 @@ export interface GamificationData {
   wallets: Wallet[];
   transactions: Transaction[];
   savingsGoals: SavingsGoal[];
+  currentLevel: number;
+  path?: 'investor' | 'frugal' | 'neutral';
 }
 
+export const ALL_ACHIEVEMENTS: Omit<Achievement, 'earned' | 'earnedDate'>[] = [
+  // COMMON
+  { id: 'first_10k', title: 'Premier $10k', icon: 'trending-up', rarity: 'common', description: 'Atteindre un capital de 10 000 $' },
+  { id: 'saver_initiation', title: 'Initié de l\'Épargne', icon: 'target', rarity: 'common', description: 'Créer votre premier objectif' },
+  { id: 'tx_starter', title: 'Explorateur', icon: 'zap', rarity: 'common', description: 'Enregistrer 10 transactions' },
+  { id: 'wallet_duo', title: 'Diversificateur Junior', icon: 'wallet', rarity: 'common', description: 'Posséder 2 portefeuilles actifs' },
+
+  // RARE
+  { id: 'milestone_50k', title: 'Cap des 50k', icon: 'award', rarity: 'rare', description: 'Atteindre un capital de 50 000 $' },
+  { id: 'goal_slayer', title: 'Réalisateur d\'Elite', icon: 'check-circle', rarity: 'rare', description: 'Compléter 3 objectifs d\'épargne' },
+  { id: 'global_investor', title: 'Investisseur Global', icon: 'globe', rarity: 'rare', description: 'Posséder des actifs dans 3 devises différentes' },
+
+  // EPIC
+  { id: 'six_figure_club', title: 'Club des 6 Chiffres', icon: 'diamond', rarity: 'epic', description: 'Atteindre un capital de 100 000 $' },
+  { id: 'luxury_collector', title: 'Collectionneur de Luxe', icon: 'shopping-bag', rarity: 'epic', description: 'Dépenser plus de 10 000 $ dans la catégorie Luxe' },
+  { id: 'portfolio_pro', title: 'Portfolio Pro', icon: 'bar-chart', rarity: 'epic', description: 'Avoir 5 types de portefeuilles différents' },
+  { id: 'investment_whale', title: 'Baleine d\'Investissement', icon: 'trending-up', rarity: 'epic', description: 'Avoir plus de 50 000 $ en investissements' },
+
+  // LEGENDARY
+  { id: 'half_millionaire', title: 'Demi-Millionnaire', icon: 'star', rarity: 'legendary', description: 'Atteindre un capital de 500 000 $' },
+  { id: 'onyx_titan', title: 'Titan d\'Onyx', icon: 'crown', rarity: 'legendary', description: 'Atteindre le niveau maximum (Archon)' },
+  { id: 'wealth_architect', title: 'Architecte de Fortune', icon: 'building', rarity: 'legendary', description: 'Avoir un patrimoine net de 1 000 000 $' },
+  { id: 'legacy_builder', title: 'Bâtisseur d\'Héritage', icon: 'landmark', rarity: 'legendary', description: 'Posséder des actifs immobiliers' },
+
+  // NEW ACHIEVEMENTS (To reach 25)
+  { id: 'early_adopter', title: 'Early Adopter', icon: 'rocket', rarity: 'common', description: 'Utiliser l\'application pendant 7 jours' },
+  { id: 'frugal_master', title: 'Maître de la Frugalité', icon: 'shield', rarity: 'rare', description: 'Dépenser moins de 50% de ses revenus ce mois-ci' },
+  { id: 'crypto_pioneer', title: 'Pionnier Crypto', icon: 'bitcoin', rarity: 'rare', description: 'Posséder un portefeuille de cryptomonnaies' },
+  { id: 'diversified_king', title: 'Roi de la Diversification', icon: 'globe', rarity: 'epic', description: 'Posséder des actifs sur 5 types de portefeuilles différents' },
+  { id: 'emergency_proof', title: 'Preuve d\'Urgence', icon: 'shield', rarity: 'rare', description: 'Atteindre son objectif de fonds d\'urgence' },
+  { id: 'jet_setter', title: 'Jet Setter', icon: 'plane', rarity: 'epic', description: 'Dépenser plus de 20 000 $ en voyages' },
+  { id: 'inflation_fighter', title: 'Combattant de l\'Inflation', icon: 'trending-up', rarity: 'rare', description: 'Avoir un objectif d\'épargne avec ajustement d\'inflation' },
+  { id: 'auto_pilot', title: 'Auto-Pilote', icon: 'settings', rarity: 'common', description: 'Activer l\'auto-allocation sur un objectif' },
+  { id: 'high_roller', title: 'High Roller', icon: 'diamond', rarity: 'epic', description: 'Effectuer une transaction de plus de 10 000 $' },
+  { id: 'philanthropist', title: 'Philanthrope', icon: 'heart', rarity: 'rare', description: 'Faire un don ou un cadeau de plus de 1 000 $' }
+];
+
+export const INITIAL_MISSIONS: Omit<Mission, 'id'>[] = [
+  { title: 'Security Buffer I', description: 'Save 1 month of salary', progress: 0, total: 3000, icon: 'shield', type: 'short', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
+  { title: 'Diversification', description: 'Own 3 different wallets', progress: 0, total: 3, icon: 'wallet', type: 'medium', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
+  { title: 'Positive Cashflow', description: 'Earn more than you spend this month', progress: 0, total: 1, icon: 'trending-up', type: 'short', category: 'audit', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
+  { title: 'Wealth Architect', description: 'Reach $50,000 in total assets', progress: 0, total: 50000, icon: 'landmark', type: 'long', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 2, path: 'neutral' },
+
+  // Investor Path
+  { title: 'Market Entrant', description: 'Invest $1000 in volatile assets', progress: 0, total: 1000, icon: 'trending-up', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'investor' },
+  { title: 'Yield Hunter', description: 'Earn $10 in passive income', progress: 0, total: 10, icon: 'sparkles', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'investor' },
+
+  // Frugal Path
+  { title: 'Budget Ninja', description: 'Stay under budget for 3 categories', progress: 0, total: 3, icon: 'shield', type: 'short', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' },
+  { title: 'Minimalist', description: 'Reduce monthly expenses by 10%', progress: 0, total: 10, icon: 'target', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' }
+];
+
 export class GamificationService {
-  evaluateMissions(data: GamificationData, currentMissions: Mission[]): Partial<Mission>[] {
-    const { wallets, transactions } = data;
+  evaluateMissions(data: GamificationData, currentMissions: Mission[]): (Partial<Mission> & { id: string })[] {
+    const { wallets, transactions, currentLevel, path } = data;
     
-    // Calculate metrics
     const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
-    
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const averageMonthlyIncome = totalIncome > 0 ? Math.max(3000, totalIncome / 3) : 3000;
     
@@ -28,16 +80,24 @@ export class GamificationService {
       let newTotal = m.total;
       let newLevel = m.level || 1;
       let newDesc = m.description;
+      let newStatus = m.status;
       let changed = false;
 
-      if (m.title === 'Security Buffer' || m.title === 'Emergency Fund' || m.title === 'Security Buffer I' || m.title === 'Financial Fortress') {
+      // Unlock logic based on level and path
+      if (m.status === 'locked' && currentLevel >= m.unlockedAtLevel) {
+        if (!m.path || m.path === 'neutral' || m.path === path) {
+          newStatus = 'active';
+          changed = true;
+        }
+      }
+
+      if (m.title.includes('Security Buffer') || m.title.includes('Emergency Fund')) {
         const MULTIPLIERS = [1, 1.5, 2, 3, 6];
         const currentMult = MULTIPLIERS[Math.min(newLevel - 1, MULTIPLIERS.length - 1)];
         
         newTotal = averageMonthlyIncome * currentMult;
         newProgress = Math.min(totalLiquidity, newTotal);
         newDesc = `Save ${currentMult} month${currentMult > 1 ? 's' : ''} of salary`;
-        if (currentMult === 6) newDesc += ' (Ultimate Security)';
 
         if (totalLiquidity >= newTotal && newLevel < MULTIPLIERS.length) {
           newLevel += 1;
@@ -45,7 +105,6 @@ export class GamificationService {
           newTotal = averageMonthlyIncome * nextMult;
           newProgress = Math.min(totalLiquidity, newTotal);
           newDesc = `Save ${nextMult} month${nextMult > 1 ? 's' : ''} of salary`;
-          if (nextMult === 6) newDesc += ' (Ultimate Security)';
         }
         changed = true;
       } else if (m.title === 'Diversification') {
@@ -60,17 +119,23 @@ export class GamificationService {
         newTotal = 1;
         newProgress = monthlyIncome > monthlyExpense ? 1 : 0;
         changed = true;
+      } else if (m.title === 'Market Entrant') {
+        const investmentTotal = wallets
+          .filter(w => w.type === 'Investment' || w.type === 'Crypto')
+          .reduce((sum, w) => sum + w.balance, 0);
+        newProgress = Math.min(m.total, investmentTotal);
+        changed = true;
       }
 
-      if (changed && (newProgress !== m.progress || newTotal !== m.total || newLevel !== m.level || newDesc !== m.description)) {
-        updates.push({ id: m.id, progress: newProgress, total: newTotal, level: newLevel, description: newDesc });
+      if (changed && (newProgress !== m.progress || newTotal !== m.total || newLevel !== m.level || newDesc !== m.description || newStatus !== m.status)) {
+        updates.push({ id: m.id, progress: newProgress, total: newTotal, level: newLevel, description: newDesc, status: newStatus });
       }
     });
 
     return updates;
   }
 
-  evaluateAchievements(data: GamificationData, currentAchievements: Achievement[]): string[] {
+  async evaluateAchievements(data: GamificationData, currentAchievements: Achievement[]): Promise<string[]> {
     const { wallets, transactions, savingsGoals } = data;
     const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
     
@@ -80,14 +145,62 @@ export class GamificationService {
       if (a.earned) return;
       let earned = false;
       
-      if (a.title === 'First $10k') {
-        earned = totalLiquidity >= 10000;
-      } else if (a.title === 'Master Saver') {
-        earned = savingsGoals.some(g => g.current >= g.target);
-      } else if (a.title === 'Globalist') {
-        earned = wallets.length > 2;
-      } else if (a.title === 'Fast Starter') {
-        earned = transactions.length >= 10;
+      const luxuryTxs = transactions.filter(t => t.category === 'Luxury Goods');
+      const totalLuxurySpent = Math.abs(luxuryTxs.reduce((sum, t) => sum + t.amount, 0));
+      const investments = wallets.filter(w => w.type === 'Investment' || w.type === 'Crypto' || w.type === 'Property');
+      const totalInvestments = investments.reduce((sum, w) => sum + w.balance, 0);
+
+      switch (a.id) {
+        case 'first_10k': earned = totalLiquidity >= 10000; break;
+        case 'saver_initiation': earned = savingsGoals.length >= 1; break;
+        case 'tx_starter': earned = transactions.length >= 10; break;
+        case 'wallet_duo': earned = wallets.length >= 2; break;
+        case 'milestone_50k': earned = totalLiquidity >= 50000; break;
+        case 'goal_slayer': earned = savingsGoals.filter(g => g.isCompleted).length >= 3; break;
+        case 'global_investor': earned = new Set(wallets.map(w => w.currency)).size >= 3; break;
+        case 'six_figure_club': earned = totalLiquidity >= 100000; break;
+        case 'luxury_collector': earned = totalLuxurySpent >= 10000; break;
+        case 'portfolio_pro': earned = new Set(wallets.map(w => w.type)).size >= 5; break;
+        case 'investment_whale': earned = totalInvestments >= 50000; break;
+        case 'half_millionaire': earned = totalLiquidity >= 500000; break;
+        case 'onyx_titan': earned = data.currentLevel >= 6; break;
+        case 'wealth_architect': earned = totalLiquidity >= 1000000; break;
+        case 'legacy_builder': earned = wallets.some(w => w.type === 'Property'); break;
+
+        // NEW EVALUATION LOGIC
+        case 'early_adopter': {
+          // Use transactions date as proxy for age
+          if (transactions.length > 0) {
+            const oldestTx = Math.min(...transactions.map(t => t.timestamp));
+            earned = (Date.now() - oldestTx) > (7 * 24 * 60 * 60 * 1000);
+          }
+          break;
+        }
+        case 'frugal_master': {
+          const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
+          const currentMonthTxs = transactions.filter(t => t.timestamp >= startOfMonth);
+          const income = currentMonthTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+          const expense = Math.abs(currentMonthTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0));
+          earned = income > 0 && (expense / income) < 0.5;
+          break;
+        }
+        case 'crypto_pioneer': earned = wallets.some(w => w.type === 'Crypto'); break;
+        case 'diversified_king': earned = new Set(wallets.map(w => w.type)).size >= 5; break;
+        case 'emergency_proof': earned = savingsGoals.some(g => g.category === 'emergency' && g.isCompleted); break;
+        case 'jet_setter': {
+          const travelSpent = Math.abs(transactions.filter(t => t.category === 'Travel' || t.category === 'Hospitality' || t.category === 'Private Aviation').reduce((sum, t) => sum + t.amount, 0));
+          earned = travelSpent >= 20000;
+          break;
+        }
+        case 'inflation_fighter': earned = savingsGoals.some(g => (g.inflationRate || 0) > 0); break;
+        case 'auto_pilot': earned = savingsGoals.some(g => (g.autoAllocationPercent || 0) > 0); break;
+        case 'high_roller': earned = transactions.some(t => Math.abs(t.amount) >= 10000); break;
+        case 'philanthropist': {
+          const gifts = transactions.filter(t => t.category === 'Gifts');
+          const totalGifts = Math.abs(gifts.reduce((sum, t) => sum + t.amount, 0));
+          earned = totalGifts >= 1000;
+          break;
+        }
       }
 
       if (earned) {

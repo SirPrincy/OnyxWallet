@@ -24,9 +24,13 @@ export interface Mission {
   progress: number;
   total: number;
   icon: string;
-  type: 'growth' | 'audit' | 'appraisal';
+  type: 'short' | 'medium' | 'long' | 'flash';
+  category: 'growth' | 'audit' | 'appraisal';
   level: number;
   maxLevel?: number;
+  status: 'active' | 'completed' | 'locked';
+  unlockedAtLevel: number;
+  path?: 'investor' | 'frugal' | 'neutral';
 }
 
 export interface Budget {
@@ -42,6 +46,9 @@ export interface Achievement {
   title: string;
   icon: string;
   earned: boolean;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  description?: string;
+  earnedDate?: string;
 }
 
 export interface Wallet {
@@ -76,6 +83,23 @@ export interface SavingsGoal {
   current: number;
   target: number;
   isCompleted: boolean;
+  targetDate?: string;
+  priority: 'low' | 'medium' | 'high';
+  icon: string;
+  color: string;
+  category: 'emergency' | 'luxury' | 'travel' | 'investment' | 'other';
+  inflationRate?: number;
+  autoAllocationPercent?: number;
+  linkedWalletId?: string;
+}
+
+export interface GoalContribution {
+  id: string;
+  goalId: string;
+  amount: number;
+  date: string;
+  timestamp: number;
+  walletId?: string;
 }
 
 export interface Category {
@@ -106,6 +130,7 @@ export interface Profile {
   lastActive: string | number;
   image?: string;
   color: string;
+  path?: 'investor' | 'frugal' | 'neutral';
   currency?: string;
 }
 
