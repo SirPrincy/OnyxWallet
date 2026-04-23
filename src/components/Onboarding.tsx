@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 
 interface OnboardingStep {
   title: string;
@@ -55,6 +56,12 @@ export default function Onboarding() {
   // Wallet state
   const [walletName, setWalletName] = useState('');
   const [walletBalance, setWalletBalance] = useState('');
+  const [cryptoQuantity, setCryptoQuantity] = useState('');
+  const [cryptoPrice, setCryptoPrice] = useState('');
+  const [walletType, setWalletType] = useState<
+    'Bank Account' | 'Credit Card' | 'Cash' | 'Mobile Money' | 'Crypto'
+  >('Bank Account');
+  const [walletCurrency, setWalletCurrency] = useState('USD');
 
   const nextStep = () => {
     if (setupStep === 'info') {
@@ -98,11 +105,15 @@ export default function Onboarding() {
     await login(newProfile);
 
     // 2. Create Wallet
+    const balance = walletType === 'Crypto'
+      ? (parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)
+      : parseFloat(walletBalance);
+
     await addWallet({
       name: walletName,
-      balance: parseFloat(walletBalance),
-      type: 'Bank Account',
-      currency: 'USD',
+      balance: balance || 0,
+      type: walletType,
+      currency: walletCurrency,
       color: '#B4947C',
       icon: 'landmark',
       provider: 'Onyx Reserve',
@@ -265,6 +276,34 @@ export default function Onboarding() {
                 </div>
                 <div className="space-y-4">
                   <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Wallet Type</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['Bank Account', 'Credit Card', 'Cash', 'Mobile Money', 'Crypto'].map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setWalletType(type)}
+                          className={`px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${walletType === type ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-on-surface-variant hover:bg-white/10'}`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Currency</label>
+                    <div className="flex flex-wrap gap-2">
+                      {SUPPORTED_CURRENCIES.map(curr => (
+                        <button
+                          key={curr.code}
+                          onClick={() => setWalletCurrency(curr.code)}
+                          className={`px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${walletCurrency === curr.code ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-on-surface-variant hover:bg-white/10'}`}
+                        >
+                          {curr.code} ({curr.symbol})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Wallet Label</label>
                     <input 
                       autoFocus
@@ -274,16 +313,46 @@ export default function Onboarding() {
                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Initial Balance ($)</label>
-                    <input 
-                      type="number"
-                      value={walletBalance}
-                      onChange={e => setWalletBalance(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
-                    />
-                  </div>
+                  {walletType === 'Crypto' ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Quantity</label>
+                        <input
+                          type="number"
+                          value={cryptoQuantity}
+                          onChange={e => setCryptoQuantity(e.target.value)}
+                          placeholder="0.5"
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Price (USD)</label>
+                        <input
+                          type="number"
+                          value={cryptoPrice}
+                          onChange={e => setCryptoPrice(e.target.value)}
+                          placeholder="70000"
+                          className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
+                        />
+                      </div>
+                      <div className="col-span-2 mt-2 px-1">
+                        <p className="text-[10px] text-primary uppercase tracking-widest font-bold">
+                          Total Value: ${((parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)).toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Initial Balance ($)</label>
+                      <input
+                        type="number"
+                        value={walletBalance}
+                        onChange={e => setWalletBalance(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -327,7 +396,13 @@ export default function Onboarding() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={nextStep}
-            disabled={(setupStep === 'identity' && (!name || !passcode)) || (setupStep === 'wallet' && (!walletName || !walletBalance))}
+            disabled={
+              (setupStep === 'identity' && (!name || !passcode)) ||
+              (setupStep === 'wallet' && (
+                !walletName ||
+                (walletType === 'Crypto' ? (!cryptoQuantity || !cryptoPrice) : !walletBalance)
+              ))
+            }
             className="w-full max-w-sm metallic-gradient py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_20px_40px_-10px_rgba(242,202,80,0.3)] group disabled:opacity-50"
           >
             <span className="font-bold uppercase tracking-[0.2em] text-[11px] text-on-primary">

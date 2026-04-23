@@ -47,7 +47,7 @@ export interface Achievement {
 export interface Wallet {
   id: string;
   name: string;
-  type: 'Credit Card' | 'Bank Account' | 'Cash' | 'Crypto' | 'Investment' | 'Property';
+  type: 'Credit Card' | 'Bank Account' | 'Cash' | 'Crypto' | 'Investment' | 'Property' | 'Mobile Money';
   balance: number;
   currency: string;
   color: string;

@@ -59,7 +59,15 @@ function AppContent() {
   const shouldShowLogin = !currentUser || (isPasscodeEnabled && !isAuthenticated);
 
   if (!hasCompletedOnboarding) {
-    return <Onboarding />;
+    return (
+      <React.Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+        </div>
+      }>
+        <Onboarding />
+      </React.Suspense>
+    );
   }
 
   const handleLogin = async (_passcode: string | null, profile: ProfileType) => {
@@ -73,15 +81,12 @@ function AppContent() {
     await logout();
   };
 
-  const handleNavigation = (screen: Screen, source: 'bottom-nav' | 'drawer' | 'internal') => {
+  const handleNavigation = (screen: Screen, _source: 'bottom-nav' | 'drawer' | 'internal') => {
     setActiveScreen(screen);
-    if (['history', 'budget', 'growth', 'settings', 'investing', 'wallet', 'debt'].includes(screen) && source === 'drawer') {
-      setIsBottomNavVisible(false);
-    } else if (screen === 'profile') {
-      setIsBottomNavVisible(false);
-    } else {
-      setIsBottomNavVisible(true);
-    }
+
+    // Bottom nav is visible for main dashboard screens
+    const mainScreens: Screen[] = ['home', 'history', 'budget', 'growth'];
+    setIsBottomNavVisible(mainScreens.includes(screen));
   };
 
   const getTitle = () => {
@@ -115,23 +120,24 @@ function AppContent() {
   };
 
   return (
-    <React.Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    }>
-      <AnimatePresence mode="wait">
-        {shouldShowLogin ? (
-          <motion.div
-            key="login"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+    <AnimatePresence mode="wait">
+      {shouldShowLogin ? (
+        <motion.div
+          key="login"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <React.Suspense fallback={
+            <div className="min-h-screen bg-background flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+            </div>
+          }>
             <Login onLogin={handleLogin} onAddProfile={resetOnboarding} isPasscodeEnabled={isPasscodeEnabled} />
-          </motion.div>
-        ) : (
+          </React.Suspense>
+        </motion.div>
+      ) : (
           <motion.div
             key="app"
             initial={{ opacity: 0 }}
@@ -160,7 +166,13 @@ function AppContent() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3, ease: 'easeOut' }}
                 >
-                  {renderScreen()}
+                  <React.Suspense fallback={
+                    <div className="flex items-center justify-center py-20">
+                      <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    </div>
+                  }>
+                    {renderScreen()}
+                  </React.Suspense>
                 </motion.div>
               </AnimatePresence>
             </main>
@@ -185,15 +197,16 @@ function AppContent() {
 
             <AnimatePresence>
               {showNewTransaction && (
-                <NewTransaction 
-                  onClose={() => setShowNewTransaction(false)} 
-                />
+                <React.Suspense fallback={null}>
+                  <NewTransaction
+                    onClose={() => setShowNewTransaction(false)}
+                  />
+                </React.Suspense>
               )}
             </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
-    </React.Suspense>
   );
 }
 
