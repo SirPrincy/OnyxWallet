@@ -5,7 +5,6 @@ import { financialService } from '../services/financial.service';
 import { useFinancialStore } from './useFinancialStore';
 import { useWalletStore } from './useWalletStore';
 import { useAuthStore } from './useAuthStore';
-import { getThresholds } from '../constants/thresholds';
 
 interface GamificationState {
   missions: Mission[];
@@ -53,22 +52,7 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     const savingsGoals = useFinancialStore.getState().savingsGoals;
     const path = get().path;
 
-    // Get currency from primary wallet or default to USD
-    const primaryCurrency = wallets[0]?.currency || 'USD';
-    const thresholds = getThresholds(primaryCurrency);
-
-    const TIERS = [
-      { level: 1, name: 'Bronze', threshold: 0 },
-      { level: 2, name: 'Silver', threshold: thresholds.silverXP },
-      { level: 3, name: 'Gold', threshold: thresholds.goldXP },
-      { level: 4, name: 'Platinum', threshold: thresholds.platinumXP },
-      { level: 5, name: 'Diamond', threshold: thresholds.diamondXP },
-      { level: 6, name: 'Archon', threshold: thresholds.archonXP }
-    ];
-
     const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
-
-    // XP Calculation
     let xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
     let xpFromTx = transactions.length * 50;
     let xpFromGoals = savingsGoals.filter(g => g.current >= g.target).length * 500;
