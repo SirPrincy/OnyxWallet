@@ -26,7 +26,7 @@ const STEPS: OnboardingStep[] = [
   {
     title: "Welcome to",
     subtitle: "ONYX WALLET",
-    description: "Experience the ultimate private wealth management interface. Designed for precision, built for discretion.",
+    description: "Experience the ultimate wealth management interface. Designed for precision, built for your progress.",
     icon: <Sparkles className="w-12 h-12 text-primary" strokeWidth={1} />,
     color: "from-primary/20 to-transparent"
   },
@@ -87,7 +87,7 @@ export default function Onboarding() {
       name,
       passcode,
       role: 'Owner',
-      tier: 'Elite',
+      tier: 'Bronze',
       status: 'Active',
       lastActive: 'Now',
       image: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${name}`,
@@ -95,11 +95,10 @@ export default function Onboarding() {
     };
     
     // Save profile to SQLite using context
-    await addProfile(newProfile, [
-      { name: 'Housing', icon: 'home', color: '#f2ca50', type: 'expense', subcategories: [] },
-      { name: 'Transport', icon: 'local_taxi', color: '#ffffff', type: 'expense', subcategories: [] },
-      { name: 'Salary', icon: 'payments', color: '#f2ca50', type: 'income', subcategories: [] }
-    ]);
+    // We use the INITIAL_CATEGORIES from useFinancialStore which are now STANDARD
+    const { INITIAL_CATEGORIES } = await import('../store/useFinancialStore');
+
+    await addProfile(newProfile, INITIAL_CATEGORIES);
     
     // Auto-login using context
     await login(newProfile);
@@ -125,6 +124,12 @@ export default function Onboarding() {
   };
 
   const handleComplete = async () => {
+    // Force a gamification sync to calculate the initial tier based on the deposit
+    const profileId = useAuthStore.getState().currentUser?.id;
+    if (profileId) {
+      const { useGamificationStore } = await import('../store/useGamificationStore');
+      await useGamificationStore.getState().syncGamification(profileId);
+    }
     await completeSetup();
     await completeOnboarding();
     // This will trigger App.tsx to show the main app since isAuthenticated is true
@@ -369,7 +374,7 @@ export default function Onboarding() {
               <div className="space-y-4">
                 <h1 className="text-4xl font-headline italic text-on-surface">Vault Ready</h1>
                 <p className="text-sm text-on-surface-variant/80 leading-relaxed max-w-[280px] mx-auto">
-                  Your identity is secured and your reserve is initialized. Welcome to the elite.
+                  Your identity is secured and your reserve is initialized. Let the growth begin.
                 </p>
               </div>
             </motion.div>

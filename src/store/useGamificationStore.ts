@@ -23,15 +23,6 @@ interface GamificationState {
   calculateXP: () => void;
 }
 
-const TIERS = [
-  { level: 1, name: 'Bronze', threshold: 0 },
-  { level: 2, name: 'Silver', threshold: 5000 },
-  { level: 3, name: 'Gold', threshold: 15000 },
-  { level: 4, name: 'Platinum', threshold: 50000 },
-  { level: 5, name: 'Diamond', threshold: 150000 },
-  { level: 6, name: 'Archon', threshold: 500000 }
-];
-
 export const useGamificationStore = create<GamificationState>((set, get) => ({
   missions: [],
   achievements: [],
@@ -78,24 +69,47 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
 
     const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
 
+    // Stability Bonus (Runway)
+    const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const averageMonthlyIncome = totalIncome > 0 ? Math.max(thresholds.avgMonthlyIncome, totalIncome / 3) : thresholds.avgMonthlyIncome;
+    const runwayMonths = totalLiquidity / averageMonthlyIncome;
+
     let currentTier = TIERS[0];
     let next = TIERS[1];
     
+    // Calculate Tier based on XP
     for (let i = 0; i < TIERS.length; i++) {
       if (xp >= TIERS[i].threshold) {
         currentTier = TIERS[i];
         next = TIERS[i+1] || TIERS[i];
       }
     }
+
+    // Bump Tier based on Stability (Runway)
+    // 1 month = at least Silver (2)
+    // 3 months = at least Gold (3)
+    // 6 months = at least Platinum (4)
+    if (runwayMonths >= 6 && currentTier.level < 4) {
+      currentTier = TIERS[3];
+      next = TIERS[4];
+    } else if (runwayMonths >= 3 && currentTier.level < 3) {
+      currentTier = TIERS[2];
+      next = TIERS[3];
+    } else if (runwayMonths >= 1 && currentTier.level < 2) {
+      currentTier = TIERS[1];
+      next = TIERS[2];
+    }
     
     let progress = 100;
     let left = 0;
     if (currentTier !== next) {
       const range = next.threshold - currentTier.threshold;
-      const currentXPInTier = xp - currentTier.threshold;
+      const currentXPInTier = Math.max(0, xp - currentTier.threshold);
       progress = (currentXPInTier / range) * 100;
-      left = next.threshold - xp;
+      left = Math.max(0, next.threshold - xp);
     }
+
+    const oldLevel = get().tierData.level;
 
     set({
       xp,
@@ -107,6 +121,11 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
         nextTier: next.name
       }
     });
+
+    // If upgraded to Platinum (4) or higher, trigger category upgrades
+    if (oldLevel < 4 && currentTier.level >= 4) {
+      useFinancialStore.getState().upgradeToEliteCategories();
+    }
   },
 
   updateMission: async (id, progress, total, level, description) => {
