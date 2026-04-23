@@ -18,7 +18,9 @@ export default function BottomNav({ active, onChange, onPlusClick }: { active: N
         <button
           key={item.id}
           onClick={() => onChange(item.id)}
-          className={`flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
+          aria-label={item.label}
+          aria-current={active === item.id ? 'page' : undefined}
+          className={`flex flex-col items-center justify-center transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] rounded-xl px-2 ${
             active === item.id 
               ? 'text-[#D4AF37]' 
               : 'text-white/40 active:text-[#D4AF37] hover:text-[#D4AF37]/80'
@@ -32,7 +34,8 @@ export default function BottomNav({ active, onChange, onPlusClick }: { active: N
       <div className="relative -top-4">
         <button 
           onClick={onPlusClick}
-          className="w-14 h-14 rounded-2xl bg-[#D4AF37] flex items-center justify-center text-background shadow-lg shadow-[#D4AF37]/20 active:scale-90 transition-transform"
+          aria-label="Add new transaction"
+          className="w-14 h-14 rounded-2xl bg-[#D4AF37] flex items-center justify-center text-background shadow-lg shadow-[#D4AF37]/20 active:scale-90 transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ring-offset-2 ring-offset-[#D4AF37]"
         >
           <Plus className="w-8 h-8" />
         </button>
@@ -42,7 +45,9 @@ export default function BottomNav({ active, onChange, onPlusClick }: { active: N
         <button
           key={item.id}
           onClick={() => onChange(item.id)}
-          className={`flex flex-col items-center justify-center transition-all duration-200 active:scale-95 ${
+          aria-label={item.label}
+          aria-current={active === item.id ? 'page' : undefined}
+          className={`flex flex-col items-center justify-center transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] rounded-xl px-2 ${
             active === item.id 
               ? 'text-[#D4AF37]' 
               : 'text-white/40 active:text-[#D4AF37] hover:text-[#D4AF37]/80'

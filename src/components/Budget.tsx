@@ -194,7 +194,11 @@ export default function Budget() {
                   <h3 className="font-headline text-3xl text-on-surface italic">{activeBudget.category}</h3>
                   <p className="text-on-surface-variant text-xs uppercase tracking-widest mt-1">Link Accounts to this Budget</p>
                 </div>
-                <button onClick={() => setSelectedBudget(null)} className="p-2 rounded-full bg-white/5 text-on-surface-variant">
+                <button
+                  onClick={() => setSelectedBudget(null)}
+                  aria-label="Close"
+                  className="p-2 rounded-full bg-white/5 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -287,7 +291,11 @@ export default function Budget() {
               <div className="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8" />
               <div className="flex justify-between items-center mb-8">
                 <h3 className="font-headline text-3xl text-on-surface italic">Select Wallets</h3>
-                <button onClick={() => setShowWalletPicker(false)} className="p-2 rounded-full bg-white/5 text-on-surface-variant">
+                <button
+                  onClick={() => setShowWalletPicker(false)}
+                  aria-label="Close"
+                  className="p-2 rounded-full bg-white/5 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -478,7 +486,11 @@ export default function Budget() {
                   <h3 className="font-headline text-3xl text-on-surface italic">Add New Budget</h3>
                   <p className="text-on-surface-variant text-[10px] uppercase tracking-widest mt-1">Select a category and set limit</p>
                 </div>
-                <button onClick={() => setShowAddModal(false)} className="p-2 rounded-full bg-white/5 text-on-surface-variant">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  aria-label="Close"
+                  className="p-2 rounded-full bg-white/5 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>

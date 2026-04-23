@@ -61,7 +61,8 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
               
               <button 
                 onClick={onClose}
-                className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors p-2"
+                aria-label="Close"
+                className="absolute top-6 right-6 text-white/20 hover:text-white transition-colors p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>

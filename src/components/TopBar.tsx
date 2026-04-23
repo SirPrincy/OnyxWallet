@@ -12,7 +12,8 @@ export default function TopBar({ title, onMenuClick, profileImage }: TopBarProps
     <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex justify-between items-center px-6 h-20 border-b border-white/5">
       <button 
         onClick={onMenuClick}
-        className="text-primary hover:text-primary-container transition-colors"
+        aria-label="Open menu"
+        className="text-primary hover:text-primary-container transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg"
       >
         <Menu className="w-6 h-6" />
       </button>
@@ -22,7 +23,10 @@ export default function TopBar({ title, onMenuClick, profileImage }: TopBarProps
       </h1>
 
       <div className="flex items-center gap-4">
-        <button className="text-on-surface-variant hover:text-primary transition-colors">
+        <button
+          aria-label="Notifications"
+          className="text-on-surface-variant hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg"
+        >
           <Bell className="w-5 h-5" />
         </button>
         <div className="w-8 h-8 rounded-full overflow-hidden border border-primary/20">
