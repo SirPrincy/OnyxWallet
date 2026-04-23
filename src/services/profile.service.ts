@@ -1,17 +1,6 @@
 import { databaseService } from './database.service';
 import { settingsService } from './settings.service';
-
-export interface Profile {
-  id: string;
-  name: string;
-  passcode: string | null;
-  role: string;
-  tier: string;
-  status: string;
-  lastActive: number;
-  image?: string;
-  color: string;
-}
+import { Profile } from '../types';
 
 export class ProfileService {
   async getProfiles(): Promise<Profile[]> {

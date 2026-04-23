@@ -4,7 +4,7 @@ import { Lock, Fingerprint, PlusCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 interface LoginProps {
-  onLogin: (passcode: string | null, userProfile: any) => void;
+  onLogin: (passcode: string | null, userProfile: Profile) => void;
   onAddProfile?: () => void;
   isPasscodeEnabled: boolean;
 }
@@ -36,7 +36,7 @@ export default function Login({ onLogin, onAddProfile, isPasscodeEnabled }: Logi
     }
   };
 
-  const selectProfile = (profile: any) => {
+  const selectProfile = (profile: Profile) => {
     setSelectedProfile(profile);
     if (isPasscodeEnabled) {
       setStep('passcode');

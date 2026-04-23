@@ -12,18 +12,6 @@ import { ICON_MAP } from '../constants';
 
 import SafeToSpendAI from './SafeToSpendAI';
 
-// Local overrides or additions for specialized goal icons
-const IconMap: Record<string, React.ElementType> = {
-  ...ICON_MAP,
-  local_fire_department: Flame,
-  workspace_premium: Award,
-  rocket_launch: Rocket,
-  auto_graph: TrendingUp,
-  auto_awesome: Sparkles,
-  public: Globe,
-  savings: Wallet,
-};
-
 export default function Growth() {
   const savingsGoals = useFinancialStore(s => s.savingsGoals);
   const contributeToGoal = useFinancialStore(s => s.contributeToGoal);
@@ -206,7 +194,7 @@ export default function Growth() {
         <h3 className="font-headline text-2xl text-on-surface italic px-1">Missions Stratégiques</h3>
         <div className="space-y-4">
           {missions.map((mission, i) => {
-            const Icon = IconMap[mission.icon] || Landmark;
+            const Icon = ICON_MAP[mission.icon] || Landmark;
             const progressPct = mission.total > 0 ? (mission.progress / mission.total) * 100 : 0;
             return (
               <div 
@@ -245,7 +233,7 @@ export default function Growth() {
          <h3 className="font-headline text-2xl text-on-surface italic px-1">Hauts Faits</h3>
          <div className="grid grid-cols-4 gap-6 px-1">
           {achievements.map((badge) => {
-            const Icon = IconMap[badge.icon] || Star;
+            const Icon = ICON_MAP[badge.icon] || Star;
             return (
               <div key={badge.id} className="flex flex-col items-center gap-3">
                 <div className={`w-16 h-16 rounded-full flex items-center justify-center relative transition-all duration-500 cursor-help group ${badge.earned ? 'bg-gradient-to-tr from-primary to-primary-container shadow-[0_10px_30px_rgba(242,202,80,0.2)]' : 'bg-surface-container-highest/50 border border-white/5'}`}>

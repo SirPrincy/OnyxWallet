@@ -117,7 +117,6 @@ export default function Onboarding() {
     await completeSetup();
     await completeOnboarding();
     // This will trigger App.tsx to show the main app since isAuthenticated is true
-    window.location.reload(); // Quick way to sync all states
   };
 
   const variants = {

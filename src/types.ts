@@ -96,6 +96,18 @@ export interface RecurringTransaction {
   frequency: 'Monthly' | 'Quarterly' | 'Annually';
 }
 
+export interface Profile {
+  id: string;
+  name: string;
+  passcode: string | null;
+  role: string;
+  tier: string;
+  status: string;
+  lastActive: string | number;
+  image?: string;
+  color: string;
+}
+
 export interface TierData {
   tierName: string;
   level: number;

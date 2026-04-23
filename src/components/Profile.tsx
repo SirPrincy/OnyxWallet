@@ -4,9 +4,10 @@ import {
   FileText, Shield, ExternalLink, LogOut, X, Plus, Search, CheckCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Profile as ProfileType } from '../types';
 
 interface ProfileProps {
-  profile: any;
+  profile: ProfileType | null;
 }
 
 const MOCK_INSTITUTIONS = [

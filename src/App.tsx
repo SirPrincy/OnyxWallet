@@ -61,7 +61,7 @@ function AppContent() {
     return <Onboarding />;
   }
 
-  const handleLogin = async (_passcode: string | null, profile: any) => {
+  const handleLogin = async (_passcode: string | null, profile: ProfileType) => {
     // We delay the state update slightly to prevent "Form submission canceled"
     setTimeout(async () => {
       await login(profile);

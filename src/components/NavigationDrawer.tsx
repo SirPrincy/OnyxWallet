@@ -5,11 +5,12 @@ import {
   TrendingUp, AlertCircle, Target, PiggyBank, 
   Home, Landmark, ChevronRight, Crown
 } from 'lucide-react';
+import { Profile } from '../types';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  profile: any;
+  profile: Profile | null;
   onNavigate: (screen: any, source: 'drawer') => void;
 }
 
