@@ -3,12 +3,11 @@ import { Wallet } from '../types';
 import { walletService } from '../services/wallet.service';
 import { useAuthStore } from './useAuthStore';
 import { useGamificationStore } from './useGamificationStore';
-import { useFinancialStore } from './useFinancialStore';
 
 interface WalletState {
   wallets: Wallet[];
   totalLiquidity: number;
-
+  
   setWallets: (w: Wallet[]) => void;
   reloadWallets: (profileId: string) => Promise<void>;
 
@@ -20,14 +19,13 @@ interface WalletState {
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   wallets: [],
+  
+  get totalLiquidity() {
+    return get().wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
+  },
 
-  totalLiquidity: 0,
-
-  setWallets: (w) => set({
-    wallets: w,
-    totalLiquidity: w.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0)
-  }),
-
+  setWallets: (w) => set({ wallets: w }),
+  
   reloadWallets: async (profileId: string) => {
     const updatedWallets = await walletService.getWallets(profileId);
     set({ wallets: updatedWallets });
@@ -38,13 +36,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!profileId) return;
     await walletService.addWallet(wallet, profileId);
     await get().reloadWallets(profileId);
-    const financialStore = useFinancialStore.getState();
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: get().wallets,
-      transactions: financialStore.transactions,
-      savingsGoals: financialStore.savingsGoals,
-      totalLiquidity: get().totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   updateWallet: async (id, updates) => {
@@ -52,29 +44,15 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     if (!profileId) return;
     await walletService.updateWallet(id, updates);
     await get().reloadWallets(profileId);
-    const financialStore = useFinancialStore.getState();
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: get().wallets,
-      transactions: financialStore.transactions,
-      savingsGoals: financialStore.savingsGoals,
-      totalLiquidity: get().totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   deleteWallet: async (id) => {
     const profileId = useAuthStore.getState().currentUser?.id;
     if (!profileId) return;
     await walletService.deleteWallet(id);
-    const updatedWallets = get().wallets.filter(w => w.id !== id);
-    const totalLiquidity = updatedWallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
-    set({ wallets: updatedWallets, totalLiquidity });
-    const financialStore = useFinancialStore.getState();
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: updatedWallets,
-      transactions: financialStore.transactions,
-      savingsGoals: financialStore.savingsGoals,
-      totalLiquidity
-    });
+    set(state => ({ wallets: state.wallets.filter(w => w.id !== id) }));
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   reorderWallets: async (newWallets) => {

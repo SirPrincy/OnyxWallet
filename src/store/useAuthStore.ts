@@ -4,33 +4,32 @@ import { settingsService } from '../services/settings.service';
 import { financialService } from '../services/financial.service';
 import { budgetService } from '../services/budget.service';
 import { databaseService } from '../services/database.service';
-import { Profile, Category } from '../types';
 
 interface AuthState {
-  profiles: Profile[];
+  profiles: any[];
   isPasscodeEnabled: boolean;
   hasCompletedOnboarding: boolean;
   hasCompletedSetup: boolean;
-  currentUser: Profile | null;
+  currentUser: any | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-
+  
   setLoading: (loading: boolean) => void;
-  setProfiles: (profiles: Profile[]) => void;
+  setProfiles: (profiles: any[]) => void;
   setIsPasscodeEnabledState: (enabled: boolean) => void;
   setHasCompletedOnboarding: (completed: boolean) => void;
   setHasCompletedSetup: (completed: boolean) => void;
-  setCurrentUser: (user: Profile | null) => void;
+  setCurrentUser: (user: any | null) => void;
   setIsAuthenticated: (auth: boolean) => void;
 
   setIsPasscodeEnabled: (enabled: boolean) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   resetOnboarding: () => Promise<void>;
   completeSetup: () => Promise<void>;
-  login: (profile: Profile) => Promise<void>;
+  login: (profile: any) => Promise<void>;
   logout: () => Promise<void>;
   hashPasscode: (plain: string) => Promise<string>;
-  addProfile: (profile: Omit<Profile, 'passcode'> & { passcode?: string }, initialCategories: Category[]) => Promise<Profile>;
+  addProfile: (profile: any, initialCategories: any[]) => Promise<any>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -102,25 +101,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     }
 
-    const defaultMissions: any[] = [
+    const defaultMissions = [
       { title: 'Security Buffer', description: 'Establish a fundamental liquidity reserve', progress: 0, total: 3000, icon: 'shield', type: 'growth', level: 1 },
       { title: 'Diversification', description: 'Establish multiple reserves', progress: 0, total: 3, icon: 'account_balance', type: 'growth', level: 1 },
       { title: 'Positive Cashflow', description: 'Maintain income > expenses', progress: 0, total: 1, icon: 'trending-up', type: 'growth', level: 1 }
     ];
     for (const m of defaultMissions) {
-      await financialService.addMission(m, profileToSave.id);
+      await financialService.addMission(m as any, profileToSave.id);
     }
 
-    const defaultAchievements: any[] = [
+    const defaultAchievements = [
       { title: 'First $10k', icon: 'star', earned: false },
       { title: 'Master Saver', icon: 'workspace_premium', earned: false },
       { title: 'Globalist', icon: 'public', earned: false },
       { title: 'Fast Starter', icon: 'rocket_launch', earned: false }
     ];
     for (const a of defaultAchievements) {
-      await financialService.addAchievement(a, profileToSave.id);
+      await financialService.addAchievement(a as any, profileToSave.id);
     }
-
+    
     await databaseService.saveToStore();
     return profileToSave;
   }

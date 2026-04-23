@@ -20,7 +20,7 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
   const categories = useFinancialStore(s => s.categories);
   const liabilities = useFinancialStore(s => s.liabilities);
   const savingsGoals = useFinancialStore(s => s.savingsGoals);
-
+  
   const wallets = useWalletStore(s => s.wallets);
   const [selectedLiabilityId, setSelectedLiabilityId] = useState<string>(editTransaction?.liabilityId || '');
   const [selectedGoalId, setSelectedGoalId] = useState<string>(editTransaction?.goalId || '');

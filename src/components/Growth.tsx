@@ -17,9 +17,9 @@ export default function Growth() {
   const contributeToGoal = useFinancialStore(s => s.contributeToGoal);
   const addSavingsGoal = useFinancialStore(s => s.addSavingsGoal);
   const transactions = useFinancialStore(s => s.transactions);
-
+  
   const wallets = useWalletStore(s => s.wallets);
-
+  
   const missions = useGamificationStore(s => s.missions);
   const achievements = useGamificationStore(s => s.achievements);
   const updateMission = useGamificationStore(s => s.updateMission);

@@ -34,9 +34,9 @@ export const loadUserData = async (profileId: string) => {
     ]);
 
     useWalletStore.getState().setWallets(walletsData);
-
+    
     const recurringRes = await databaseService.query('SELECT * FROM recurring_transactions WHERE profileId = ?', [profileId]);
-
+    
     const finStore = useFinancialStore.getState();
     finStore.setTransactions(transactionsData);
     finStore.setBudgets(budgetsData);
@@ -48,14 +48,9 @@ export const loadUserData = async (profileId: string) => {
     const gamStore = useGamificationStore.getState();
     if (missionsData.length > 0) gamStore.setMissions(missionsData);
     if (achievementsData.length > 0) gamStore.setAchievements(achievementsData);
-
+    
     await databaseService.saveToStore();
-    await gamStore.syncGamification(profileId, {
-      wallets: walletsData,
-      transactions: transactionsData,
-      savingsGoals: goalsData,
-      totalLiquidity: useWalletStore.getState().totalLiquidity
-    });
+    await gamStore.syncGamification(profileId);
   } catch (error) {
     console.error('Failed to load user data:', error);
   }
@@ -83,10 +78,10 @@ export const initApp = async () => {
 
     authStore.setProfiles(profilesRes);
     authStore.setIsPasscodeEnabledState(passcodeEnabled);
-
+    
     if (onboardingDone !== null) authStore.setHasCompletedOnboarding(onboardingDone);
     if (setupDone !== null) authStore.setHasCompletedSetup(setupDone);
-
+    
     if (savedUser) {
       authStore.setCurrentUser(savedUser);
       authStore.setIsAuthenticated(true);

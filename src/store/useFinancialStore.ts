@@ -41,10 +41,10 @@ interface FinancialState {
   setLiabilities: (l: Liability[]) => void;
   setRecurringTransactions: (r: RecurringTransaction[]) => void;
 
-  addTransaction: (newTx: Omit<Transaction, 'id' | 'timestamp' | 'date' | 'time'> & { date?: string; time?: string; timestamp?: number, toWalletId?: string }) => Promise<void>;
+  addTransaction: (newTx: Omit<Transaction, 'id' | 'timestamp' | 'date' | 'time'> & { date?: string; time?: string; timestamp?: number }) => Promise<void>;
   updateTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
-
+  
   updateBudgetWallets: (category: string, walletIds: string[]) => Promise<void>;
   updateBudgetLimit: (category: string, limit: number) => Promise<void>;
   addBudget: (budget: Omit<Budget, 'spent'>) => Promise<void>;
@@ -88,30 +88,25 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     const profileId = useAuthStore.getState().currentUser?.id;
     if (!profileId) return;
 
-    await transactionService.addTransaction(newTx, profileId);
-
+    await transactionService.addTransaction(newTx as any, profileId);
+    
     const [updatedTransactions, updatedLiabilities, updatedGoals] = await Promise.all([
       transactionService.getTransactions(profileId),
       financialService.getLiabilities(profileId),
       financialService.getSavingsGoals(profileId)
     ]);
-
+    
     // Wallets reload
     const walletStore = useWalletStore.getState();
     await walletStore.reloadWallets(profileId);
-
+    
     set({
       transactions: updatedTransactions,
       liabilities: updatedLiabilities,
       savingsGoals: updatedGoals
     });
 
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: walletStore.wallets,
-      transactions: updatedTransactions,
-      savingsGoals: updatedGoals,
-      totalLiquidity: walletStore.totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   updateTransaction: async (id, updates) => {
@@ -119,18 +114,12 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     if (!profileId) return;
 
     await transactionService.updateTransaction(id, updates, get().transactions);
-
+    
     const updatedTransactions = await transactionService.getTransactions(profileId);
-    const walletStore = useWalletStore.getState();
-    await walletStore.reloadWallets(profileId);
-
+    await useWalletStore.getState().reloadWallets(profileId);
+    
     set({ transactions: updatedTransactions });
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: walletStore.wallets,
-      transactions: updatedTransactions,
-      savingsGoals: get().savingsGoals,
-      totalLiquidity: walletStore.totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   deleteTransaction: async (id) => {
@@ -138,28 +127,22 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     if (!profileId) return;
 
     await transactionService.deleteTransaction(id, get().transactions);
-
+    
     const [updatedTransactions, updatedLiabilities, updatedGoals] = await Promise.all([
       transactionService.getTransactions(profileId),
       financialService.getLiabilities(profileId),
       financialService.getSavingsGoals(profileId)
     ]);
-
-    const walletStore = useWalletStore.getState();
-    await walletStore.reloadWallets(profileId);
-
+    
+    await useWalletStore.getState().reloadWallets(profileId);
+    
     set({
       transactions: updatedTransactions,
       liabilities: updatedLiabilities,
       savingsGoals: updatedGoals
     });
 
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: walletStore.wallets,
-      transactions: updatedTransactions,
-      savingsGoals: updatedGoals,
-      totalLiquidity: walletStore.totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   updateBudgetWallets: async (category, walletIds) => {
@@ -194,13 +177,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     await financialService.addSavingsGoal(goal, profileId);
     const updated = await financialService.getSavingsGoals(profileId);
     set({ savingsGoals: updated });
-    const walletStore = useWalletStore.getState();
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: walletStore.wallets,
-      transactions: get().transactions,
-      savingsGoals: updated,
-      totalLiquidity: walletStore.totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   updateSavingsGoal: async (id, updates) => {
@@ -209,13 +186,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     await financialService.updateSavingsGoal(id, updates);
     const updated = await financialService.getSavingsGoals(profileId);
     set({ savingsGoals: updated });
-    const walletStore = useWalletStore.getState();
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: walletStore.wallets,
-      transactions: get().transactions,
-      savingsGoals: updated,
-      totalLiquidity: walletStore.totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   deleteSavingsGoal: async (id) => {
@@ -224,13 +195,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     await databaseService.run('DELETE FROM savings_goals WHERE id = ?', [id]);
     const updated = get().savingsGoals.filter(g => g.id !== id);
     set({ savingsGoals: updated });
-    const walletStore = useWalletStore.getState();
-    useGamificationStore.getState().syncGamification(profileId, {
-      wallets: walletStore.wallets,
-      transactions: get().transactions,
-      savingsGoals: updated,
-      totalLiquidity: walletStore.totalLiquidity
-    });
+    useGamificationStore.getState().syncGamification(profileId);
   },
 
   contributeToGoal: async (goalId, amount, walletId) => {
@@ -251,19 +216,13 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
       const goal = get().savingsGoals.find(g => g.id === goalId);
       if (goal) {
         const newCurrent = goal.current + amount;
-        await financialService.updateSavingsGoal(goalId, {
-          current: newCurrent,
-          isCompleted: newCurrent >= goal.target
+        await financialService.updateSavingsGoal(goalId, { 
+          current: newCurrent, 
+          isCompleted: newCurrent >= goal.target 
         });
         const updatedGoals = await financialService.getSavingsGoals(profileId);
         set({ savingsGoals: updatedGoals });
-        const walletStore = useWalletStore.getState();
-        useGamificationStore.getState().syncGamification(profileId, {
-          wallets: walletStore.wallets,
-          transactions: get().transactions,
-          savingsGoals: updatedGoals,
-          totalLiquidity: walletStore.totalLiquidity
-        });
+        useGamificationStore.getState().syncGamification(profileId);
       }
     }
   },
@@ -278,7 +237,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
   updateCategory: async (id, updates) => {
     const profileId = useAuthStore.getState().currentUser?.id;
     if (!profileId) return;
-
+    
     if (updates.name) {
       const oldName = get().categories.find(cat => cat.id === id)?.name;
       if (oldName && oldName !== updates.name) {
@@ -301,7 +260,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
       transactionService.getTransactions(profileId),
       budgetService.getBudgets(profileId)
     ]);
-
+    
     set({ categories: updatedCats, transactions: updatedTxs, budgets: updatedBudgets });
   },
 

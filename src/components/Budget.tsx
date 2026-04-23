@@ -13,7 +13,7 @@ export default function Budget() {
   const addBudget = useFinancialStore(s => s.addBudget);
   const deleteBudget = useFinancialStore(s => s.deleteBudget);
   const categories = useFinancialStore(s => s.categories);
-
+  
   const wallets = useWalletStore(s => s.wallets);
   const [selectedBudget, setSelectedBudget] = useState<string | null>(null);
   const [editingLimit, setEditingLimit] = useState<string>('');

@@ -1,7 +1,9 @@
 import { create } from 'zustand';
-import { Mission, Achievement, TierData, Wallet, Transaction, SavingsGoal } from '../types';
+import { Mission, Achievement, TierData } from '../types';
 import { gamificationService } from '../services/gamification.service';
 import { financialService } from '../services/financial.service';
+import { useFinancialStore } from './useFinancialStore';
+import { useWalletStore } from './useWalletStore';
 
 interface GamificationState {
   missions: Mission[];
@@ -11,11 +13,11 @@ interface GamificationState {
 
   setMissions: (m: Mission[]) => void;
   setAchievements: (a: Achievement[]) => void;
-
+  
   updateMission: (id: string, progress: number, total: number, level?: number, description?: string) => Promise<void>;
   updateAchievement: (id: string, earned: boolean) => Promise<void>;
-  syncGamification: (profileId: string, data: { wallets: Wallet[], transactions: Transaction[], savingsGoals: SavingsGoal[], totalLiquidity: number }) => Promise<void>;
-  calculateXP: (data: { transactions: Transaction[], savingsGoals: SavingsGoal[], totalLiquidity: number }) => void;
+  syncGamification: (profileId: string) => Promise<void>;
+  calculateXP: () => void;
 }
 
 const TIERS = [
@@ -42,7 +44,12 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
   setMissions: (m) => set({ missions: m }),
   setAchievements: (a) => set({ achievements: a }),
 
-  calculateXP: ({ transactions, savingsGoals, totalLiquidity }) => {
+  calculateXP: () => {
+    const wallets = useWalletStore.getState().wallets;
+    const transactions = useFinancialStore.getState().transactions;
+    const savingsGoals = useFinancialStore.getState().savingsGoals;
+
+    const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
     const xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
     const xpFromTx = transactions.length * 50;
     const xpFromGoals = savingsGoals.filter(g => g.current >= g.target).length * 500;
@@ -50,14 +57,14 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
 
     let currentTier = TIERS[0];
     let next = TIERS[1];
-
+    
     for (let i = 0; i < TIERS.length; i++) {
       if (xp >= TIERS[i].threshold) {
         currentTier = TIERS[i];
         next = TIERS[i+1] || TIERS[i];
       }
     }
-
+    
     let progress = 100;
     let left = 0;
     if (currentTier !== next) {
@@ -84,6 +91,7 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     set(state => ({
       missions: state.missions.map(m => m.id === id ? { ...m, progress, total, level: level ?? m.level, description: description ?? m.description } : m)
     }));
+    get().calculateXP();
   },
 
   updateAchievement: async (id, earned) => {
@@ -91,15 +99,21 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     set(state => ({
       achievements: state.achievements.map(a => a.id === id ? { ...a, earned } : a)
     }));
+    get().calculateXP();
   },
 
-  syncGamification: async (profileId, data) => {
+  syncGamification: async (profileId) => {
+    const wallets = useWalletStore.getState().wallets;
+    const transactions = useFinancialStore.getState().transactions;
+    const savingsGoals = useFinancialStore.getState().savingsGoals;
+
+    const data = { wallets, transactions, savingsGoals };
     const missions = get().missions;
     const achievements = get().achievements;
 
     const missionUpdates = gamificationService.evaluateMissions(data, missions);
     const achievementUpdates = gamificationService.evaluateAchievements(data, achievements);
-
+    
     let needsRefresh = false;
     if (missionUpdates.length > 0) {
       for (const update of missionUpdates) {
@@ -113,7 +127,7 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       }
       needsRefresh = true;
     }
-
+    
     if (needsRefresh) {
       const [m, a] = await Promise.all([
         financialService.getMissions(profileId),
@@ -122,6 +136,6 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       set({ missions: m, achievements: a });
     }
 
-    get().calculateXP(data);
+    get().calculateXP();
   }
 }));
