@@ -7,6 +7,7 @@ import { useWalletStore } from '../store/useWalletStore';
 import { useGamificationStore } from '../store/useGamificationStore';
 import IncomeStatement from './IncomeStatement';
 import { ICON_MAP } from '../constants';
+import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 
 export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'history' | 'budget' | 'growth' | 'investing') => void }) {
   const currentUser = useAuthStore(s => s.currentUser);
@@ -18,6 +19,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
   const totalLiquidity = useWalletStore(s => s.totalLiquidity);
   const tierData = useGamificationStore(s => s.tierData);
   const missions = useGamificationStore(s => s.missions);
+
+  const primaryCurrencySymbol = useMemo(() => {
+    const primaryCurrency = wallets[0]?.currency || 'USD';
+    return SUPPORTED_CURRENCIES.find((c: any) => c.code === primaryCurrency)?.symbol || '$';
+  }, [wallets]);
 
   const growthPercent = useMemo(() => {
     const now = new Date();
@@ -124,7 +130,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
               <path d="M0 15 Q 25 5, 50 12 T 100 8" fill="none" stroke="currentColor" strokeWidth="1" />
             </svg>
           </div>
-          <span className="text-primary-container font-headline text-5xl md:text-7xl">$</span>
+          <span className="text-primary-container font-headline text-5xl md:text-7xl">{primaryCurrencySymbol}</span>
           <span className="text-on-surface font-headline text-6xl md:text-8xl tracking-tight">
             {totalLiquidity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
@@ -189,11 +195,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           
           <div className="flex items-center justify-between mb-8">
             <div className="space-y-1">
-              <p className="text-5xl font-headline text-on-surface tracking-tight">${safeToSpend.monthly.toLocaleString()}</p>
+              <p className="text-5xl font-headline text-on-surface tracking-tight">{primaryCurrencySymbol}{safeToSpend.monthly.toLocaleString()}</p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-[0.3em] font-bold">Remaining in your vault</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-headline text-primary">${safeToSpend.daily.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+              <p className="text-2xl font-headline text-primary">{primaryCurrencySymbol}{safeToSpend.daily.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
               <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Per day limit</p>
             </div>
           </div>
@@ -233,13 +239,13 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-start mb-6">
             <div>
               <p className="text-on-surface-variant text-[10px] uppercase tracking-widest mb-1">Total Invested Assets</p>
-              <h4 className="text-3xl font-headline">${totalInvested.toLocaleString()}</h4>
+              <h4 className="text-3xl font-headline">{primaryCurrencySymbol}{totalInvested.toLocaleString()}</h4>
             </div>
             <div className="text-right">
               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Daily Yield</p>
               <p className="text-primary font-medium flex items-center justify-end gap-1">
                 <TrendingUp className="w-4 h-4" />
-                +$0.00
+                +{primaryCurrencySymbol}0.00
               </p>
             </div>
           </div>
@@ -326,7 +332,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <p className="text-2xl font-headline">
-                ${Math.abs(transactions
+                {primaryCurrencySymbol}{Math.abs(transactions
                   .filter(tx => tx.type === 'expense' && 
                     new Date(tx.timestamp).getMonth() === new Date().getMonth() &&
                     new Date(tx.timestamp).getFullYear() === new Date().getFullYear())
@@ -391,7 +397,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold">{tx.amount < 0 ? '-' : '+'}${Math.abs(tx.amount).toLocaleString()}</p>
+                    <p className="text-sm font-semibold">{tx.amount < 0 ? '-' : '+'}{primaryCurrencySymbol}{Math.abs(tx.amount).toLocaleString()}</p>
                     <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{tx.date}</p>
                   </div>
                 </div>

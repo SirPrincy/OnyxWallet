@@ -101,8 +101,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     }
 
+    const primaryCurrency = profileToSave.currency || 'USD';
+    const thresholds = (await import('../constants/thresholds')).getThresholds(primaryCurrency);
+
     const defaultMissions = [
-      { title: 'Security Buffer', description: 'Establish a fundamental liquidity reserve', progress: 0, total: 3000, icon: 'shield', type: 'growth', level: 1 },
+      { title: 'Security Buffer', description: 'Establish a fundamental liquidity reserve', progress: 0, total: thresholds.avgMonthlyIncome, icon: 'shield', type: 'growth', level: 1 },
       { title: 'Diversification', description: 'Establish multiple reserves', progress: 0, total: 3, icon: 'account_balance', type: 'growth', level: 1 },
       { title: 'Positive Cashflow', description: 'Maintain income > expenses', progress: 0, total: 1, icon: 'trending-up', type: 'growth', level: 1 }
     ];

@@ -4,6 +4,7 @@ import { gamificationService } from '../services/gamification.service';
 import { financialService } from '../services/financial.service';
 import { useFinancialStore } from './useFinancialStore';
 import { useWalletStore } from './useWalletStore';
+import { getThresholds } from '../constants/thresholds';
 
 interface GamificationState {
   missions: Mission[];
@@ -19,15 +20,6 @@ interface GamificationState {
   syncGamification: (profileId: string) => Promise<void>;
   calculateXP: () => void;
 }
-
-const TIERS = [
-  { level: 1, name: 'Bronze', threshold: 0 },
-  { level: 2, name: 'Silver', threshold: 5000 },
-  { level: 3, name: 'Gold', threshold: 15000 },
-  { level: 4, name: 'Platinum', threshold: 50000 },
-  { level: 5, name: 'Diamond', threshold: 150000 },
-  { level: 6, name: 'Archon', threshold: 500000 }
-];
 
 export const useGamificationStore = create<GamificationState>((set, get) => ({
   missions: [],
@@ -49,30 +41,68 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     const transactions = useFinancialStore.getState().transactions;
     const savingsGoals = useFinancialStore.getState().savingsGoals;
 
+    // Get currency from primary wallet or default to USD
+    const primaryCurrency = wallets[0]?.currency || 'USD';
+    const thresholds = getThresholds(primaryCurrency);
+
+    const TIERS = [
+      { level: 1, name: 'Bronze', threshold: 0 },
+      { level: 2, name: 'Silver', threshold: thresholds.silverXP },
+      { level: 3, name: 'Gold', threshold: thresholds.goldXP },
+      { level: 4, name: 'Platinum', threshold: thresholds.platinumXP },
+      { level: 5, name: 'Diamond', threshold: thresholds.diamondXP },
+      { level: 6, name: 'Archon', threshold: thresholds.archonXP }
+    ];
+
     const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
+
+    // XP Calculation
     const xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
     const xpFromTx = transactions.length * 50;
     const xpFromGoals = savingsGoals.filter(g => g.current >= g.target).length * 500;
     const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
 
+    // Stability Bonus (Runway)
+    const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const averageMonthlyIncome = totalIncome > 0 ? Math.max(thresholds.avgMonthlyIncome, totalIncome / 3) : thresholds.avgMonthlyIncome;
+    const runwayMonths = totalLiquidity / averageMonthlyIncome;
+
     let currentTier = TIERS[0];
     let next = TIERS[1];
     
+    // Calculate Tier based on XP
     for (let i = 0; i < TIERS.length; i++) {
       if (xp >= TIERS[i].threshold) {
         currentTier = TIERS[i];
         next = TIERS[i+1] || TIERS[i];
       }
     }
+
+    // Bump Tier based on Stability (Runway)
+    // 1 month = at least Silver (2)
+    // 3 months = at least Gold (3)
+    // 6 months = at least Platinum (4)
+    if (runwayMonths >= 6 && currentTier.level < 4) {
+      currentTier = TIERS[3];
+      next = TIERS[4];
+    } else if (runwayMonths >= 3 && currentTier.level < 3) {
+      currentTier = TIERS[2];
+      next = TIERS[3];
+    } else if (runwayMonths >= 1 && currentTier.level < 2) {
+      currentTier = TIERS[1];
+      next = TIERS[2];
+    }
     
     let progress = 100;
     let left = 0;
     if (currentTier !== next) {
       const range = next.threshold - currentTier.threshold;
-      const currentXPInTier = xp - currentTier.threshold;
+      const currentXPInTier = Math.max(0, xp - currentTier.threshold);
       progress = (currentXPInTier / range) * 100;
-      left = next.threshold - xp;
+      left = Math.max(0, next.threshold - xp);
     }
+
+    const oldLevel = get().tierData.level;
 
     set({
       xp,
@@ -84,6 +114,11 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
         nextTier: next.name
       }
     });
+
+    // If upgraded to Platinum (4) or higher, trigger category upgrades
+    if (oldLevel < 4 && currentTier.level >= 4) {
+      useFinancialStore.getState().upgradeToEliteCategories();
+    }
   },
 
   updateMission: async (id, progress, total, level, description) => {

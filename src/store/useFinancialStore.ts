@@ -7,24 +7,9 @@ import { databaseService } from '../services/database.service';
 import { useAuthStore } from './useAuthStore';
 import { useWalletStore } from './useWalletStore';
 import { useGamificationStore } from './useGamificationStore';
+import { STANDARD_CATEGORIES, ELITE_UPGRADES } from '../constants/categories';
 
-export const INITIAL_CATEGORIES: Category[] = [
-  { id: '1', name: 'Luxury Goods', icon: 'shopping_bag', color: '#B4947C', type: 'expense', subcategories: [{ name: 'Watches', icon: 'award' }, { name: 'Jewelry', icon: 'diamond' }, { name: 'Apparel', icon: 'shopping_bag' }] },
-  { id: '2', name: 'Tech', icon: 'smartphone', color: '#60A5FA', type: 'expense', subcategories: [{ name: 'Hardware', icon: 'smartphone' }, { name: 'Software', icon: 'code' }, { name: 'Gadgets', icon: 'cpu' }] },
-  { id: '3', name: 'Dining', icon: 'restaurant', color: '#F87171', type: 'expense', subcategories: [{ name: 'Fine Dining', icon: 'utensils' }, { name: 'Bar & Spirits', icon: 'glass-water' }, { name: 'Casual', icon: 'coffee' }] },
-  { id: '4', name: 'Salary', icon: 'banknote', color: '#34D399', type: 'income', subcategories: [{ name: 'Regular Salary', icon: 'banknote' }, { name: 'Bonus', icon: 'sparkles' }, { name: 'Dividend', icon: 'trending-up' }, { name: 'Commissions', icon: 'award' }, { name: 'Tips', icon: 'heart' }, { name: 'Overtime', icon: 'clock' }] },
-  { id: '5', name: 'Private Aviation', icon: 'plane', color: '#A78BFA', type: 'expense', subcategories: [{ name: 'Fuel', icon: 'fuel' }, { name: 'Maintenance', icon: 'settings' }, { name: 'Charter', icon: 'plane' }] },
-  { id: '6', name: 'Transport', icon: 'car', color: '#FBBF24', type: 'expense', subcategories: [{ name: 'Uber Premium', icon: 'car' }, { name: 'Private Driver', icon: 'user-check' }, { name: 'Gasoline', icon: 'fuel' }] },
-  { id: '7', name: 'Hospitality', icon: 'hotel', color: '#F472B6', type: 'expense', subcategories: [{ name: 'Hotels', icon: 'hotel' }, { name: 'Resorts', icon: 'palmtree' }, { name: 'Vacation Rental', icon: 'home' }] },
-  { id: '8', name: 'Investment', icon: 'trending-up', color: '#10B981', type: 'income', subcategories: [{ name: 'Stocks', icon: 'bar-chart' }, { name: 'Real Estate', icon: 'building' }, { name: 'Crypto', icon: 'bitcoin' }, { name: 'Bonds', icon: 'activity' }, { name: 'Interest', icon: 'payments' }] },
-  { id: '9', name: 'Lifestyle', icon: 'heart', color: '#EC4899', type: 'expense', subcategories: [{ name: 'Wellness', icon: 'heart' }, { name: 'Concierge', icon: 'user' }, { name: 'Health', icon: 'activity' }] },
-  { id: '10', name: 'Fine Dining', icon: 'utensils', color: '#EF4444', type: 'expense', subcategories: [{ name: 'Michelin Star', icon: 'star' }, { name: 'Private Chef', icon: 'utensils' }] },
-  { id: '11', name: 'First Class Travel', icon: 'award', color: '#8B5CF6', type: 'expense', subcategories: [{ name: 'Aviation', icon: 'plane' }, { name: 'Executive Lounge', icon: 'sofa' }] },
-  { id: '12', name: 'Business', icon: 'briefcase', color: '#3B82F6', type: 'income', subcategories: [{ name: 'Revenue', icon: 'trending-up' }, { name: 'Consulting', icon: 'user-check' }, { name: 'Sales', icon: 'shopping_bag' }, { name: 'Services', icon: 'briefcase' }] },
-  { id: '13', name: 'Real Estate', icon: 'building', color: '#F59E0B', type: 'income', subcategories: [{ name: 'Rental', icon: 'home' }, { name: 'Sale', icon: 'building' }, { name: 'Commercial', icon: 'building' }] },
-  { id: '14', name: 'Consulting', icon: 'user-check', color: '#8B5CF6', type: 'income', subcategories: [{ name: 'Retainer', icon: 'briefcase' }, { name: 'Hourly', icon: 'clock' }, { name: 'Project Base', icon: 'award' }] },
-  { id: '15', name: 'Gifts', icon: 'heart', color: '#EC4899', type: 'income', subcategories: [{ name: 'Family', icon: 'heart' }, { name: 'Donation', icon: 'star' }] }
-];
+export const INITIAL_CATEGORIES: Category[] = STANDARD_CATEGORIES.map((c, i) => ({ ...c, id: (i + 1).toString() })) as Category[];
 
 interface FinancialState {
   transactions: Transaction[];
@@ -67,6 +52,7 @@ interface FinancialState {
   addRecurringTransaction: (recurring: Omit<RecurringTransaction, 'id'>) => Promise<void>;
   updateRecurringTransaction: (id: string, updates: Partial<RecurringTransaction>) => Promise<void>;
   deleteRecurringTransaction: (id: string) => Promise<void>;
+  upgradeToEliteCategories: () => Promise<void>;
 }
 
 export const useFinancialStore = create<FinancialState>((set, get) => ({
@@ -262,6 +248,20 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     ]);
     
     set({ categories: updatedCats, transactions: updatedTxs, budgets: updatedBudgets });
+  },
+
+  upgradeToEliteCategories: async () => {
+    const { categories, updateCategory } = get();
+    const { tierData } = useGamificationStore.getState();
+
+    if (tierData.level < 4) return; // Need at least Platinum
+
+    for (const cat of categories) {
+      const upgrade = ELITE_UPGRADES[cat.name];
+      if (upgrade) {
+        await updateCategory(cat.id, upgrade);
+      }
+    }
   },
 
   deleteCategory: async (id) => {

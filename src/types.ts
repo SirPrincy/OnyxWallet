@@ -106,6 +106,7 @@ export interface Profile {
   lastActive: string | number;
   image?: string;
   color: string;
+  currency?: string;
 }
 
 export interface TierData {
