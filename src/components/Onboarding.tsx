@@ -55,6 +55,7 @@ export default function Onboarding() {
   // Wallet state
   const [walletName, setWalletName] = useState('');
   const [walletBalance, setWalletBalance] = useState('');
+  const [walletType, setWalletType] = useState<any>('Bank Account');
 
   const nextStep = () => {
     if (setupStep === 'info') {
@@ -101,7 +102,7 @@ export default function Onboarding() {
     await addWallet({
       name: walletName,
       balance: parseFloat(walletBalance),
-      type: 'Bank Account',
+      type: walletType,
       currency: 'USD',
       color: '#B4947C',
       icon: 'landmark',
@@ -264,6 +265,20 @@ export default function Onboarding() {
                   <p className="text-xs text-on-surface-variant">Initialize your primary reserve account.</p>
                 </div>
                 <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Wallet Type</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['Bank Account', 'Credit Card', 'Cash', 'Mobile Money', 'Crypto'].map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setWalletType(type)}
+                          className={`px-4 py-2 rounded-xl border text-[10px] font-bold uppercase tracking-widest transition-all ${walletType === type ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-on-surface-variant hover:bg-white/10'}`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Wallet Label</label>
                     <input 

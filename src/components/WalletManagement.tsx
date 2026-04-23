@@ -10,7 +10,7 @@ import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { useWalletStore } from '../store/useWalletStore';
 import { Wallet } from '../types';
 
-type WalletType = 'Credit Card' | 'Bank Account' | 'Crypto' | 'Investment' | 'Cash';
+type WalletType = 'Credit Card' | 'Bank Account' | 'Crypto' | 'Investment' | 'Cash' | 'Mobile Money';
 type Currency = 'USD' | 'EUR' | 'BTC';
 
 export default function WalletManagement() {
@@ -38,7 +38,8 @@ export default function WalletManagement() {
       'Bank Account': [],
       'Crypto': [],
       'Investment': [],
-      'Cash': []
+      'Cash': [],
+      'Mobile Money': []
     };
     wallets.forEach(w => {
       if (groups[w.type as WalletType]) {
@@ -148,6 +149,8 @@ export default function WalletManagement() {
                         {type === 'Credit Card' ? <CreditCard className="w-6 h-6 text-primary" /> : 
                          type === 'Crypto' ? <Coins className="w-6 h-6 text-primary" /> :
                          type === 'Cash' ? <DollarSign className="w-6 h-6 text-primary" /> : 
+                         type === 'Mobile Money' ? <Smartphone className="w-6 h-6 text-primary" /> :
+                         type === 'Investment' ? <TrendingUp className="w-6 h-6 text-primary" /> :
                          <Library className="w-6 h-6 text-primary" />}
                       </div>
                       <div>
@@ -213,6 +216,7 @@ export default function WalletManagement() {
                       <option value="Credit Card">Credit Card</option>
                       <option value="Crypto">Crypto Wallet</option>
                       <option value="Investment">Investment Portfolio</option>
+                      <option value="Mobile Money">Mobile Money</option>
                       <option value="Cash">Physical Cash</option>
                     </select>
                   </div>
