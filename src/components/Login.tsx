@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Lock, Fingerprint, PlusCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { Profile } from '../types';
 
 interface LoginProps {
   onLogin: (passcode: string | null, userProfile: Profile) => void;
