@@ -13,6 +13,7 @@ import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
 import { Transaction } from '../types';
 import { ICON_MAP } from '../constants';
+import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 
 export default function NewTransaction({ onClose, editTransaction }: { onClose: () => void, editTransaction?: Transaction }) {
   const addTransaction = useFinancialStore(s => s.addTransaction);
@@ -28,6 +29,8 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
   // Initialize state based on editTransaction if present
   const [type, setType] = useState<'expense' | 'income' | 'transfer'>(editTransaction?.type || 'expense');
   const [amount, setAmount] = useState(editTransaction ? Math.abs(editTransaction.amount).toString() : '');
+  const [cryptoQuantity, setCryptoQuantity] = useState('');
+  const [cryptoPrice, setCryptoPrice] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(() => {
     if (editTransaction) {
       if (editTransaction.type === 'transfer') {
@@ -81,7 +84,11 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
   const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = () => {
-    if (!amount || parseFloat(amount) <= 0) return;
+    const finalAmount = selectedWallet?.type === 'Crypto'
+      ? (parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)
+      : parseFloat(amount);
+
+    if (!finalAmount || finalAmount <= 0) return;
     
     setIsSubmitting(true);
     
@@ -107,7 +114,7 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
     const txData = type === 'transfer' ? {
       ...commonBase,
       title: description || `Transfer: ${selectedWallet?.name} → ${toWallet?.name}`,
-      amount: parseFloat(amount),
+      amount: finalAmount,
       category: 'Transfer',
       icon: 'swap_horiz',
       type: 'transfer' as const,
@@ -115,7 +122,7 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
     } : {
       ...commonBase,
       title: description || selectedCategory?.name || 'Transaction',
-      amount: type === 'expense' ? -parseFloat(amount) : parseFloat(amount),
+      amount: type === 'expense' ? -finalAmount : finalAmount,
       category: selectedCategory?.name || 'Uncategorized',
       subcategory: selectedSubcategory || undefined,
       subcategoryIcon: selectedSubcategory ? selectedCategory.subcategories.find(s => s.name === selectedSubcategory)?.icon : undefined,
@@ -202,19 +209,54 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
         </section>
 
         <div className="space-y-10">
-          <div className="flex flex-col">
-            <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-2">Amount</label>
-            <div className="relative flex items-baseline">
-              <span className="font-headline text-4xl text-primary/60 mr-2">$</span>
-              <input 
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full bg-transparent border-none p-0 font-headline text-7xl md:text-8xl focus:ring-0 text-on-surface placeholder:text-surface-variant selection:bg-primary/20" 
-                placeholder="0.00" 
-                type="number" 
-              />
+          {selectedWallet?.type === 'Crypto' ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-2">Quantity</label>
+                  <input
+                    value={cryptoQuantity}
+                    onChange={(e) => setCryptoQuantity(e.target.value)}
+                    className="w-full bg-transparent border-none p-0 font-headline text-4xl md:text-5xl focus:ring-0 text-on-surface placeholder:text-surface-variant selection:bg-primary/20"
+                    placeholder="0.5"
+                    type="number"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-2">Token Price ($)</label>
+                  <input
+                    value={cryptoPrice}
+                    onChange={(e) => setCryptoPrice(e.target.value)}
+                    className="w-full bg-transparent border-none p-0 font-headline text-4xl md:text-5xl focus:ring-0 text-on-surface placeholder:text-surface-variant selection:bg-primary/20"
+                    placeholder="70000"
+                    type="number"
+                  />
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
+                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Estimated Value</p>
+                <p className="font-headline text-4xl text-primary">
+                  $ {((parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col">
+              <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-2">Amount</label>
+              <div className="relative flex items-baseline">
+                <span className="font-headline text-4xl text-primary/60 mr-2">
+                  {SUPPORTED_CURRENCIES.find(c => c.code === selectedWallet?.currency)?.symbol || '$'}
+                </span>
+                <input
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full bg-transparent border-none p-0 font-headline text-7xl md:text-8xl focus:ring-0 text-on-surface placeholder:text-surface-variant selection:bg-primary/20"
+                  placeholder="0.00"
+                  type="number"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {type !== 'transfer' && (
