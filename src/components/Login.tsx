@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Lock, Fingerprint, PlusCircle } from 'lucide-react';
 import { useTransactions } from '../context/useTransactions';
+import { Profile } from '../types';
 
 interface LoginProps {
-  onLogin: (passcode: string | null, userProfile: any) => void;
+  onLogin: (passcode: string | null, userProfile: Profile) => void;
   onAddProfile?: () => void;
   isPasscodeEnabled: boolean;
 }
 
 export default function Login({ onLogin, onAddProfile, isPasscodeEnabled }: LoginProps) {
   const { profiles, hashPasscode } = useTransactions();
-  const [selectedProfile, setSelectedProfile] = useState<any | null>(profiles[0] || null);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(profiles[0] || null);
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState(false);
   const [step, setStep] = useState<'profile' | 'passcode'>('profile');
@@ -35,7 +36,7 @@ export default function Login({ onLogin, onAddProfile, isPasscodeEnabled }: Logi
     }
   };
 
-  const selectProfile = (profile: any) => {
+  const selectProfile = (profile: Profile) => {
     setSelectedProfile(profile);
     if (isPasscodeEnabled) {
       setStep('passcode');

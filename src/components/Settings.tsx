@@ -10,9 +10,10 @@ import { useTransactions } from '../context/useTransactions';
 import CategoryManager from './CategoryManager';
 import ColorLibrary from './ColorLibrary';
 import { Palette } from 'lucide-react';
+import { Profile } from '../types';
 
 interface SettingsProps {
-  profile: any;
+  profile: Profile | null;
   onLogout?: () => void;
 }
 

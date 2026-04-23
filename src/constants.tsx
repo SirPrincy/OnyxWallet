@@ -5,7 +5,7 @@ import {
   ShoppingBag, Smartphone, Utensils, Plane, Car, Hotel, 
   Heart, Award, TrendingUp, CreditCard, DollarSign,
   Dumbbell, Fuel, Landmark, Briefcase, Car as TaxiIcon,
-  ArrowLeftRight, Activity, Building, BarChart, Bitcoin,
+  ArrowLeftRight, Activity, Building, BarChart3, Bitcoin,
   Coffee, Code, Cpu, Diamond, GlassWater, Home, Palmtree,
   Settings, Star, User, UserCheck, Sparkles, Banknote,
   Sofa
@@ -215,7 +215,7 @@ export const ICON_OPTIONS = [
   { id: 'swap_horiz', icon: ArrowLeftRight },
   { id: 'activity', icon: Activity },
   { id: 'building', icon: Building },
-  { id: 'bar-chart', icon: BarChart },
+  { id: 'bar-chart', icon: BarChart3 },
   { id: 'bitcoin', icon: Bitcoin },
   { id: 'coffee', icon: Coffee },
   { id: 'code', icon: Code },
@@ -233,9 +233,19 @@ export const ICON_OPTIONS = [
   { id: 'sofa', icon: Sofa }
 ];
 
-export const ICON_MAP: Record<string, React.ElementType> = ICON_OPTIONS.reduce((acc, opt) => ({
-  ...acc,
-  [opt.id]: opt.icon
-}), {});
+export const ICON_MAP: Record<string, React.ElementType> = {
+  ...ICON_OPTIONS.reduce((acc, opt) => ({
+    ...acc,
+    [opt.id]: opt.icon
+  }), {}),
+  restaurant: (props: any) => (
+    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+    </svg>
+  ),
+  payments: TrendingUp,
+  auto_graph: BarChart3,
+  account_balance: Landmark,
+};
 
 export const COLOR_OPTIONS = APP_COLORS.categories;

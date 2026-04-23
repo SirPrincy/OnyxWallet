@@ -1,24 +1,9 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, CreditCard, ShoppingBag, Car, Hotel, Fuel, Landmark, Diamond, BarChart3, Clock, Wallet, Rocket } from 'lucide-react';
+import { TrendingUp, CreditCard, ShoppingBag, Landmark, Clock, Rocket } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useTransactions } from '../context/useTransactions';
 import IncomeStatement from './IncomeStatement';
-
-const IconMap: Record<string, React.ElementType> = {
-  shopping_bag: ShoppingBag,
-  restaurant: (props) => (
-    <svg {...props} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
-    </svg>
-  ),
-  payments: TrendingUp,
-  local_gas_station: Fuel,
-  local_taxi: Car,
-  hotel: Hotel,
-  auto_graph: BarChart3,
-  account_balance: Landmark,
-  diamond: Diamond,
-};
+import { ICON_MAP } from '../constants';
 
 export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'history' | 'budget' | 'growth' | 'investing') => void }) {
   const { 
@@ -94,10 +79,13 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
       .filter(rt => rt.type === 'expense' && rt.frequency === 'Monthly')
       .reduce((sum, rt) => sum + rt.amount, 0);
 
-    // 4. Savings Targets (Simulated monthly target: 10% of remaining if not specified, 
-    // or we can use the difference between target and current divided by some months)
-    // For simplicity: let's say we want to put $5,000 aside for savings goals this month.
-    const savingsTarget = 5000; 
+    // 4. Savings Targets: Dynamic calculation based on active goals
+    const activeGoals = savingsGoals.filter(g => !g.isCompleted);
+    const totalRemainingToGoal = activeGoals.reduce((sum, g) => sum + (g.target - g.current), 0);
+    // Suggest putting aside enough to reach all goals in 12 months, or 10% of remaining if no goals
+    const savingsTarget = activeGoals.length > 0
+      ? Math.max(0, totalRemainingToGoal / 12)
+      : (monthlyIncome + curMonthIncomeResult) * 0.1;
 
     // 5. Already spent this month (Expenses)
     const curMonthSpent = Math.abs(transactions
@@ -299,7 +287,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
             .filter(m => !mainMission || m.id !== mainMission.id)
             .slice(0, 4)
             .map((mission) => {
-              const Icon = IconMap[mission.icon] || Landmark;
+              const Icon = ICON_MAP[mission.icon] || Landmark;
               const progress = (mission.progress / mission.total) * 100;
               return (
                 <div 
@@ -382,7 +370,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
             </div>
           ) : (
             transactions.slice(0, 3).map((tx) => {
-              const Icon = IconMap[tx.icon] || ShoppingBag;
+              const Icon = ICON_MAP[tx.icon] || ShoppingBag;
               return (
                 <div key={tx.id} className="bg-surface-container-low/50 p-4 rounded-xl border border-outline-variant/5 flex items-center justify-between">
                   <div className="flex items-center gap-4">

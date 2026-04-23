@@ -17,6 +17,7 @@ const Onboarding = React.lazy(() => import('./components/Onboarding'));
 import NavigationDrawer from './components/NavigationDrawer';
 import { TransactionProvider } from './context/TransactionContext';
 import { useTransactions } from './context/useTransactions';
+import { Profile as ProfileType } from './types';
 
 type Screen = 'home' | 'history' | 'budget' | 'growth' | 'settings' | 'investing' | 'wallet' | 'profile' | 'debt';
 
@@ -57,7 +58,7 @@ function AppContent() {
     return <Onboarding />;
   }
 
-  const handleLogin = async (_passcode: string | null, profile: any) => {
+  const handleLogin = async (_passcode: string | null, profile: ProfileType) => {
     // We delay the state update slightly to prevent "Form submission canceled"
     setTimeout(async () => {
       await login(profile);

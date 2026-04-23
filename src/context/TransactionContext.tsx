@@ -10,7 +10,7 @@ import { gamificationService } from '../services/gamification.service';
 import { profileService } from '../services/profile.service';
 import { 
   Transaction, Budget, Wallet, Liability, Mission, Achievement, 
-  SavingsGoal, Category, RecurringTransaction, TierData 
+  SavingsGoal, Category, RecurringTransaction, TierData, Profile
 } from '../types';
 
 interface TransactionContextType {
@@ -48,8 +48,8 @@ interface TransactionContextType {
   updateLiability: (id: string, updates: Partial<Liability>) => void;
   deleteLiability: (id: string) => void;
   payLiability: (id: string, amount: number, walletId?: string) => void;
-  profiles: any[];
-  addProfile: (profile: any) => Promise<void>;
+  profiles: Profile[];
+  addProfile: (profile: Omit<Profile, 'passcode'> & { passcode?: string }) => Promise<void>;
   isPasscodeEnabled: boolean;
   setIsPasscodeEnabled: (enabled: boolean) => void;
   hasCompletedOnboarding: boolean;
@@ -57,9 +57,9 @@ interface TransactionContextType {
   resetOnboarding: () => Promise<void>;
   hasCompletedSetup: boolean;
   completeSetup: () => Promise<void>;
-  currentUser: any | null;
+  currentUser: Profile | null;
   isAuthenticated: boolean;
-  login: (profile: any) => Promise<void>;
+  login: (profile: Profile) => Promise<void>;
   logout: () => Promise<void>;
   hashPasscode: (plain: string) => Promise<string>;
   isLoading: boolean;
@@ -102,11 +102,11 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const [liabilities, setLiabilities] = useState<Liability[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [profiles, setProfiles] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [isPasscodeEnabled, setIsPasscodeEnabledState] = useState<boolean>(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(false);
   const [hasCompletedSetup, setHasCompletedSetup] = useState<boolean>(false);
-  const [currentUser, setCurrentUser] = useState<any | null>(null);
+  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -280,8 +280,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const addTransaction = async (newTx: Omit<Transaction, 'id' | 'timestamp' | 'date' | 'time'> & { date?: string; time?: string; timestamp?: number }) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
 
     try {
       await transactionService.addTransaction(newTx, profileId);
@@ -306,8 +306,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const updateTransaction = async (id: string, updates: Partial<Transaction>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
 
     try {
       await transactionService.updateTransaction(id, updates, transactions);
@@ -328,8 +328,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteTransaction = async (id: string) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
 
     try {
       await transactionService.deleteTransaction(id, transactions);
@@ -354,8 +354,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const updateBudgetWallets = async (category: string, walletIds: string[]) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await budgetService.updateBudgetWallets(category, walletIds);
       const updated = await budgetService.getBudgets(profileId);
@@ -366,8 +366,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const updateBudgetLimit = async (category: string, limit: number) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await budgetService.updateBudgetLimit(category, limit);
       const updated = await budgetService.getBudgets(profileId);
@@ -378,8 +378,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const addBudget = async (budget: Omit<Budget, 'spent'>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await budgetService.addOrUpdateBudget({ ...budget, spent: 0 }, profileId);
       const updated = await budgetService.getBudgets(profileId);
@@ -390,8 +390,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteBudget = async (category: string) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await budgetService.deleteBudget(category);
       setBudgets(prev => prev.filter(b => b.category !== category));
@@ -401,8 +401,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const addSavingsGoal = async (goal: Omit<SavingsGoal, 'id' | 'isCompleted'>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await financialService.addSavingsGoal(goal, profileId);
       const updated = await financialService.getSavingsGoals(profileId);
@@ -414,8 +414,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const updateSavingsGoal = async (id: string, updates: Partial<SavingsGoal>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await financialService.updateSavingsGoal(id, updates);
       const updated = await financialService.getSavingsGoals(profileId);
@@ -427,11 +427,9 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteSavingsGoal = async (id: string) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
-      await financialService.updateSavingsGoal(id, { isCompleted: false }); // Using update as a proxy for delete or just implement delete in service
-      // Actually I'll implement delete in service if missing
       await databaseService.run('DELETE FROM savings_goals WHERE id = ?', [id]);
       setSavingsGoals(prev => prev.filter(g => g.id !== id));
       const updated = savingsGoals.filter(g => g.id !== id);
@@ -454,8 +452,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         goalId: goalId
       });
     } else {
-      const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-      const profileId = currentSettingsUser?.id || currentUser?.id;
+      const profileId = currentUser?.id;
+      if (!profileId) return;
       try {
         const goal = savingsGoals.find(g => g.id === goalId);
         if (goal) {
@@ -475,8 +473,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const addCategory = async (category: Omit<Category, 'id'>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await financialService.addCategory(category, profileId);
       const updatedCats = await financialService.getCategories(profileId);
@@ -487,8 +485,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const updateCategory = async (id: string, updates: Partial<Category>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       // Direct SQL for name sync (as it affects other tables)
       if (updates.name) {
@@ -523,8 +521,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteCategory = async (id: string) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await databaseService.run('DELETE FROM categories WHERE id = ?', [id]);
       setCategories(prev => prev.filter(cat => cat.id !== id));
@@ -534,8 +532,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const addWallet = async (wallet: Omit<Wallet, 'id'>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await walletService.addWallet(wallet, profileId);
       const updatedWallets = await walletService.getWallets(profileId);
@@ -547,8 +545,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const updateWallet = async (id: string, updates: Partial<Wallet>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await walletService.updateWallet(id, updates);
       const updatedWallets = await walletService.getWallets(profileId);
@@ -560,8 +558,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteWallet = async (id: string) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await walletService.deleteWallet(id);
       setWallets(prev => prev.filter(w => w.id !== id));
@@ -578,8 +576,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const addLiability = async (liability: Omit<Liability, 'id'>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await financialService.addLiability(liability, profileId);
       const updated = await financialService.getLiabilities(profileId);
@@ -590,8 +588,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const updateLiability = async (id: string, updates: Partial<Liability>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       const entries = Object.entries(updates);
       if (entries.length > 0) {
@@ -607,8 +605,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteLiability = async (id: string) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     try {
       await databaseService.run('DELETE FROM liabilities WHERE id = ?', [id]);
       setLiabilities(prev => prev.filter(l => l.id !== id));
@@ -632,8 +630,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         liabilityId: id
       });
     } else {
-      const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-      const profileId = currentSettingsUser?.id || currentUser?.id;
+      const profileId = currentUser?.id;
+      if (!profileId) return;
       try {
         await databaseService.run(
           'UPDATE liabilities SET remainingAmount = MAX(0, remainingAmount - ?) WHERE id = ?',
@@ -648,8 +646,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   };
 
   const addRecurringTransaction = async (recurring: Omit<RecurringTransaction, 'id'>) => {
-    const currentSettingsUser = await settingsService.getSetting<any>('onyx_current_user');
-    const profileId = currentSettingsUser?.id || currentUser?.id;
+    const profileId = currentUser?.id;
+    if (!profileId) return;
     const newRecurring = { ...recurring, id: crypto.randomUUID() };
     try {
       await databaseService.run(
@@ -685,7 +683,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addProfile = async (profile: any) => {
+  const addProfile = async (profile: Omit<Profile, 'passcode'> & { passcode?: string }) => {
     try {
       const profileToSave = await profileService.addProfile(profile);
       setProfiles(prev => [...prev, profileToSave]);
@@ -804,7 +802,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     },
     currentUser,
     isAuthenticated,
-    login: async (profile: any) => {
+    login: async (profile: Profile) => {
       setIsAuthenticated(true);
       setCurrentUser(profile);
       await profileService.setCurrentUser(profile);

@@ -2,7 +2,5 @@
   "name": "Onyx Wallet",
   "description": "The Onyx Wallet - A high-end private wealth management dashboard with secure access and atmospheric design.",
   "requestFramePermissions": [],
-  "majorCapabilities": [],
-  "D7": [],
-  "aq": []
+  "majorCapabilities": []
 }
