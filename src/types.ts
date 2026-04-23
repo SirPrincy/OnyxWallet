@@ -130,6 +130,7 @@ export interface Profile {
   lastActive: string | number;
   image?: string;
   color: string;
+  currency: string;
   path?: 'investor' | 'frugal' | 'neutral';
 }
 

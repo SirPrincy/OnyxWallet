@@ -5,6 +5,7 @@ import { financialService } from '../services/financial.service';
 import { useFinancialStore } from './useFinancialStore';
 import { useWalletStore } from './useWalletStore';
 import { useAuthStore } from './useAuthStore';
+import { getThresholds } from '../constants/thresholds';
 
 interface GamificationState {
   missions: Mission[];
@@ -70,6 +71,19 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
 
     // Stability Bonus (Runway)
+    const currentUser = useAuthStore.getState().currentUser;
+    const currency = currentUser?.currency || 'USD';
+    const thresholds = getThresholds(currency);
+
+    const TIERS = [
+      { name: 'Bronze', level: 1, threshold: 0 },
+      { name: 'Silver', level: 2, threshold: thresholds.silverXP },
+      { name: 'Gold', level: 3, threshold: thresholds.goldXP },
+      { name: 'Platinum', level: 4, threshold: thresholds.platinumXP },
+      { name: 'Diamond', level: 5, threshold: thresholds.diamondXP },
+      { name: 'Archon', level: 6, threshold: thresholds.archonXP },
+    ];
+
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const averageMonthlyIncome = totalIncome > 0 ? Math.max(thresholds.avgMonthlyIncome, totalIncome / 3) : thresholds.avgMonthlyIncome;
     const runwayMonths = totalLiquidity / averageMonthlyIncome;

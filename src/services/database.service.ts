@@ -183,6 +183,7 @@ class DatabaseService {
         lastActive TEXT,
         image TEXT,
         color TEXT,
+        currency TEXT DEFAULT 'USD',
         path TEXT DEFAULT 'neutral'
       );
     `;
@@ -272,8 +273,11 @@ class DatabaseService {
         }
 
         if (table === 'profiles') {
-           if (res.values && !res.values.some((col: any) => col.name === 'path')) {
+          if (res.values && !res.values.some((col: any) => col.name === 'path')) {
             await this.db.execute(`ALTER TABLE profiles ADD COLUMN path TEXT DEFAULT 'neutral'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'currency')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN currency TEXT DEFAULT 'USD'`);
           }
         }
 
