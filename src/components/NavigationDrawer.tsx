@@ -2,8 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Settings, User, History, Wallet, 
-  TrendingUp, AlertCircle, Target, PiggyBank, 
-  Home, Landmark, ChevronRight, Crown
+  TrendingUp, AlertCircle, Landmark, ChevronRight, Crown, Home
 } from 'lucide-react';
 import { Profile } from '../types';
 
@@ -117,24 +116,20 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
             </div>
 
             {/* Navigation Items */}
-            <div className="flex-1 px-4 space-y-1 overflow-y-auto no-scrollbar py-4">
-              <div className="px-4 mb-4">
-                <p className="text-[9px] uppercase tracking-[0.3em] text-white/20 font-bold">Management</p>
-              </div>
-              
+            <div className="flex-1 px-3 space-y-0.5 overflow-y-auto no-scrollbar py-2">
               {menuItems.map((item, index) => (
                 <button
                   key={index}
                   onClick={() => handleItemClick(item.screen)}
-                  className="w-full flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-all duration-300 group text-left"
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all duration-200 group text-left"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <item.icon className="w-5 h-5 text-white/40 group-hover:text-primary transition-colors" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                      <item.icon className="w-4.5 h-4.5 text-white/40 group-hover:text-primary transition-colors" />
                     </div>
                     <p className="font-sans text-sm text-white/60 group-hover:text-white transition-colors tracking-wide font-medium">{item.label}</p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                  <ChevronRight className="w-3.5 h-3.5 text-white/10 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                 </button>
               ))}
             </div>

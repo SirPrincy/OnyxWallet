@@ -219,7 +219,11 @@ export default function WalletScreen() {
                       <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold mt-1">{selectedAsset.sub}</p>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedAsset(null)} className="p-3 rounded-xl bg-white/5 text-on-surface-variant hover:bg-white/10 transition-colors">
+                  <button
+                    onClick={() => setSelectedAsset(null)}
+                    aria-label="Close"
+                    className="p-3 rounded-xl bg-white/5 text-on-surface-variant hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
                     <X className="w-6 h-6" />
                   </button>
                 </div>
@@ -295,7 +299,11 @@ export default function WalletScreen() {
                   <h3 className="font-headline text-4xl text-on-surface italic capitalize">{activeAction} Capital</h3>
                   <p className="text-on-surface-variant text-[10px] uppercase tracking-[0.3em] mt-2">Secure Institutional Channel</p>
                 </div>
-                <button onClick={() => setActiveAction(null)} className="p-3 rounded-full bg-white/5 text-on-surface-variant hover:bg-white/10 transition-colors">
+                <button
+                  onClick={() => setActiveAction(null)}
+                  aria-label="Close"
+                  className="p-3 rounded-full bg-white/5 text-on-surface-variant hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>

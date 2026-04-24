@@ -12,7 +12,8 @@ export default function TopBar({ title, onMenuClick, profileImage }: TopBarProps
     <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 border-b border-white/5">
       <button 
         onClick={onMenuClick}
-        className="text-primary hover:text-primary-container transition-colors"
+        aria-label="Open menu"
+        className="text-primary hover:text-primary-container transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg"
       >
         <Menu className="w-5 h-5" />
       </button>

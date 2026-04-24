@@ -91,7 +91,11 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
       className="fixed inset-0 z-[150] bg-background flex flex-col"
     >
       <header className="h-20 flex items-center px-6 border-b border-white/5 bg-background/80 backdrop-blur-xl">
-        <button onClick={onBack} className="p-2 -ml-2 text-on-surface-variant hover:text-white transition-colors">
+        <button
+          onClick={onBack}
+          aria-label="Back"
+          className="p-2 -ml-2 text-on-surface-variant hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+        >
           <ArrowLeft className="w-6 h-6" />
         </button>
         <div className="ml-4">
@@ -135,13 +139,15 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleEdit(cat); }}
-                      className="p-2 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100"
+                      aria-label={`Edit ${cat.name}`}
+                      className="p-2 text-on-surface-variant hover:text-primary transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
                     >
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); deleteCategory(cat.id); if(selectedCat?.id === cat.id) setSelectedCat(null); }}
-                      className="p-2 text-on-surface-variant hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                      aria-label={`Delete ${cat.name}`}
+                      className="p-2 text-on-surface-variant hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -201,7 +207,11 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
                     <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Refining Subsets</p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedCat(null)} className="p-2 text-on-surface-variant hover:text-white transition-colors">
+                <button
+                  onClick={() => setSelectedCat(null)}
+                  aria-label="Close"
+                  className="p-2 text-on-surface-variant hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -263,7 +273,8 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
                               </div>
                               <button 
                                 onClick={() => handleRemoveSub(idx)}
-                                className="p-1.5 text-on-surface-variant hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                                aria-label={`Remove ${sub.name}`}
+                                className="p-1.5 text-on-surface-variant hover:text-red-400 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -302,7 +313,11 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
                   <h3 className="font-headline text-3xl text-on-surface italic">{editingCat ? 'Manifest Refinement' : 'New Financial Entity'}</h3>
                   <p className="text-[10px] uppercase tracking-widest text-primary font-bold mt-1">Classification Core</p>
                 </div>
-                <button onClick={() => setIsAdding(false)} className="p-2 text-on-surface-variant hover:text-white">
+                <button
+                  onClick={() => setIsAdding(false)}
+                  aria-label="Close"
+                  className="p-2 text-on-surface-variant hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>
@@ -326,7 +341,8 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
                         <button
                           key={opt.id}
                           onClick={() => setIcon(opt.id)}
-                          className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all ${icon === opt.id ? 'bg-primary border-primary text-background scale-110 shadow-lg shadow-primary/20' : 'bg-white/5 border-white/5 text-on-surface-variant hover:border-white/20'}`}
+                          aria-label={`Select icon ${opt.id.replace('_', ' ')}`}
+                          className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${icon === opt.id ? 'bg-primary border-primary text-background scale-110 shadow-lg shadow-primary/20' : 'bg-white/5 border-white/5 text-on-surface-variant hover:border-white/20'}`}
                         >
                           <opt.icon className="w-5 h-5" />
                         </button>

@@ -123,7 +123,8 @@ export default function DebtScreen() {
           <h3 className="font-headline text-2xl text-on-surface italic">Portfolio Structure</h3>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary border border-white/5 hover:bg-white/5 transition-colors"
+            aria-label="Add liability"
+            className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary border border-white/5 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Plus className="w-5 h-5" />
           </button>
@@ -236,7 +237,11 @@ export default function DebtScreen() {
                   <h3 className="font-headline text-3xl text-on-surface italic">Boost Payment</h3>
                   <p className="text-on-surface-variant text-xs uppercase tracking-widest mt-1">Accelerate your financial freedom</p>
                 </div>
-                <button onClick={() => setSelectedDebtId(null)} className="p-2 rounded-full bg-white/5 text-on-surface-variant">
+                <button
+                  onClick={() => setSelectedDebtId(null)}
+                  aria-label="Close"
+                  className="p-2 rounded-full bg-white/5 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -323,7 +328,11 @@ export default function DebtScreen() {
                   <h3 className="font-headline text-4xl text-on-surface italic">Add Liability</h3>
                   <p className="text-primary text-[10px] uppercase tracking-[0.3em] font-bold">New Debt Record</p>
                 </div>
-                <button onClick={() => setShowAddModal(false)} className="p-3 rounded-full bg-white/5 text-on-surface-variant">
+                <button
+                  onClick={() => setShowAddModal(false)}
+                  aria-label="Close"
+                  className="p-3 rounded-full bg-white/5 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>

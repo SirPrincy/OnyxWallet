@@ -227,7 +227,11 @@ export default function WalletManagement() {
                   <h3 className="font-headline text-4xl text-on-surface italic">{editingWallet ? 'Configure Wallet' : 'New Strategic Base'}</h3>
                   <p className="text-primary text-[10px] uppercase tracking-[0.3em] font-bold">Asset Allocation Protocol</p>
                 </div>
-                <button onClick={closeModal} className="p-3 rounded-full bg-white/5 text-on-surface-variant">
+                <button
+                  onClick={closeModal}
+                  aria-label="Close"
+                  className="p-3 rounded-full bg-white/5 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
                   <X className="w-6 h-6" />
                 </button>
               </div>

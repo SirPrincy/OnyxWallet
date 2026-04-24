@@ -163,7 +163,11 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
       </div>
 
       <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex justify-between items-center px-6 h-20 border-b border-white/5">
-        <button onClick={onClose} className="text-primary hover:text-primary-container transition-colors">
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="text-primary hover:text-primary-container transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg p-1"
+        >
           <X className="w-6 h-6" />
         </button>
         <h1 className="font-headline italic tracking-tighter text-2xl text-primary absolute left-1/2 -translate-x-1/2">
@@ -458,7 +462,8 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
                 {pickerStep === 'subcategory' && (
                   <button 
                     onClick={() => setPickerStep('category')}
-                    className="p-2 -ml-2 rounded-full hover:bg-white/5 text-on-surface-variant"
+                    aria-label="Back to categories"
+                    className="p-2 -ml-2 rounded-full hover:bg-white/5 text-on-surface-variant focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
                     <ArrowLeft className="w-6 h-6" />
                   </button>
