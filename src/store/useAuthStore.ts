@@ -90,15 +90,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Initialize defaults for the new profile
     for (const cat of initialCategories) {
       await financialService.addCategory(cat, profileToSave.id);
-      if (cat.type === 'expense') {
-        await budgetService.addOrUpdateBudget({
-          category: cat.name,
-          subtext: 'Monthly Budget',
-          spent: 0,
-          limit: 5000,
-          linkedWallets: []
-        }, profileToSave.id);
-      }
     }
 
     const primaryCurrency = profileToSave.currency || 'USD';

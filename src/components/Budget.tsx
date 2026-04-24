@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { budgetService } from '../services/budget.service';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useCurrency } from '../hooks/useCurrency';
 
 export default function Budget() {
   const transactions = useFinancialStore(s => s.transactions);
@@ -91,6 +92,8 @@ export default function Budget() {
     return categories.filter(c => c.type === 'expense' && !existingBudgetNames.includes(c.name));
   }, [categories, budgets]);
 
+  const { primaryCurrencySymbol, formatCurrency } = useCurrency();
+
   return (
     <div className="space-y-12 pb-12">
       <section className="flex flex-col items-center justify-center space-y-8">
@@ -111,9 +114,9 @@ export default function Budget() {
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className="font-sans text-[10px] tracking-[0.2em] uppercase text-on-surface-variant mb-1">Total Spent</span>
-            <span className="font-headline text-5xl text-primary">${totalSpent.toLocaleString()}</span>
+            <span className="font-headline text-5xl text-primary">{formatCurrency(totalSpent)}</span>
             <div className="w-12 h-[1px] bg-outline-variant/30 my-3"></div>
-            <span className="font-sans text-xs text-on-surface-variant">Limit: ${totalLimit.toLocaleString()}</span>
+            <span className="font-sans text-xs text-on-surface-variant">Limit: {formatCurrency(totalLimit)}</span>
           </div>
         </div>
       </section>
@@ -145,9 +148,9 @@ export default function Budget() {
                   <span className="font-sans text-[10px] uppercase tracking-wider text-on-surface-variant">{budget.subtext}</span>
                 </div>
                 <div className="text-right">
-                  <span className="font-sans text-md text-primary">${budget.dynamicSpent.toLocaleString()}</span>
+                  <span className="font-sans text-md text-primary">{formatCurrency(budget.dynamicSpent)}</span>
                   <span className="text-on-surface-variant mx-1">/</span>
-                  <span className="font-sans text-xs text-on-surface-variant">${(budget.limit / 1000)}k</span>
+                  <span className="font-sans text-xs text-on-surface-variant">{primaryCurrencySymbol} {(budget.limit / 1000)}k</span>
                 </div>
               </div>
               <div className="h-[2px] w-full bg-surface-container-highest overflow-hidden rounded-full">
@@ -208,7 +211,7 @@ export default function Budget() {
                   <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-4">Monthly Limit</label>
                   <div className="flex items-center gap-4">
                     <div className="relative flex-1">
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 font-headline text-2xl text-primary/60">$</span>
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 font-headline text-2xl text-primary/60">{primaryCurrencySymbol}</span>
                       <input 
                         type="number"
                         value={editingLimit}
@@ -252,7 +255,7 @@ export default function Budget() {
             <div className="mt-10 p-6 rounded-2xl bg-primary/5 border border-primary/10">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-[10px] uppercase tracking-widest text-primary font-bold">Current Impact</span>
-                  <span className="text-xl font-headline text-primary">${activeBudget.dynamicSpent.toLocaleString()}</span>
+                  <span className="text-xl font-headline text-primary">{formatCurrency(activeBudget.dynamicSpent)}</span>
                 </div>
                 <p className="text-xs text-on-surface-variant leading-relaxed">
                   Only transactions from the selected accounts will be counted towards this budget's spending limit.
@@ -335,102 +338,136 @@ export default function Budget() {
       </AnimatePresence>
 
       <section>
-        <div className="bg-surface-container-low p-8 rounded-xl border border-outline-variant/10 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary to-primary-container opacity-5 blur-3xl -mr-32 -mt-32 group-hover:opacity-10 transition-opacity"></div>
+        <div className="bg-surface-container-low p-8 rounded-[2.5rem] border border-outline-variant/10 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-primary/5 blur-[100px] -mr-40 -mt-40 rounded-full group-hover:bg-primary/10 transition-colors duration-1000"></div>
           
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-10">
             <div className="flex items-center gap-3">
-              <Sparkles className="text-primary w-5 h-5" />
-              <h3 className="font-sans text-[10px] tracking-[0.25em] uppercase text-on-surface-variant">Spending Forecast</h3>
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Sparkles className="text-primary w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-headline text-2xl italic text-on-surface">Intelligence Prévisionnelle</h3>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Moteur d'Analyse Prédictive</p>
+              </div>
             </div>
-            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${advancedForecast.isOverProjected ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-primary/10 text-primary border border-primary/20'}`}>
-              {advancedForecast.isOverProjected ? 'Risk Alert' : 'Healthy Trend'}
+            <div className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${advancedForecast.isOverProjected ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
+              {advancedForecast.isOverProjected ? 'Risque Détecté' : 'Optimisé'}
             </div>
           </div>
 
-          <div className="space-y-10">
-            <div>
-              <div className="flex justify-between items-end mb-4">
-                <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant">Projected Monthly Total</span>
-                <span className={`font-headline text-4xl ${advancedForecast.isOverProjected ? 'text-red-400' : 'text-primary'}`}>
-                  ${Math.round(advancedForecast.adjustedProjection).toLocaleString()}
-                </span>
-              </div>
-              
-              <div className="h-[2px] w-full bg-surface-container-highest rounded-full relative">
-                {/* Current Spent */}
-                <div 
-                  className="absolute h-full bg-primary z-10" 
-                  style={{ width: `${Math.min((totalSpent / totalLimit) * 100, 100)}%` }} 
-                />
-                {/* Projected Line */}
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(totalLimit > 0 ? (advancedForecast.adjustedProjection / totalLimit) * 100 : 0, 120)}%` }}
-                  className={`absolute h-full border-r-2 border-dashed z-20 ${advancedForecast.isOverProjected ? 'border-red-400' : 'border-primary'}`}
-                />
-              </div>
-              <div className="mt-2 flex justify-between text-[8px] uppercase tracking-widest text-on-surface-variant">
-                <span>Current</span>
-                <span>Limit: ${totalLimit.toLocaleString()}</span>
-                <span>Projected</span>
-              </div>
-            </div>
+          <div className="space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-8">
+                <div>
+                  <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-4 block">Simulation d'impact mensuel</span>
+                  <div className={`text-6xl font-headline tracking-tighter ${advancedForecast.isOverProjected ? 'text-red-400' : 'text-primary'}`}>
+                    {formatCurrency(Math.round(advancedForecast.adjustedProjection))}
+                  </div>
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mt-2">Projection à 30 jours</p>
+                </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="p-4 rounded-xl bg-surface-container-highest/30 border border-white/5">
-                <span className="text-[10px] uppercase tracking-widest text-on-surface-variant block mb-1">Safe Daily Spend</span>
-                <span className="font-headline text-xl text-on-surface">${Math.round(advancedForecast.dailyAvailable).toLocaleString()}</span>
-                <p className="text-[8px] text-on-surface-variant mt-1 italic">For {advancedForecast.daysRemaining} days remaining</p>
+                <div className="space-y-6">
+                  <div className="h-4 w-full bg-surface-container-highest rounded-full relative overflow-hidden">
+                    {/* Background segments */}
+                    <div className="absolute inset-0 flex">
+                       <div className="h-full border-r border-white/5" style={{ width: '25%' }} />
+                       <div className="h-full border-r border-white/5" style={{ width: '25%' }} />
+                       <div className="h-full border-r border-white/5" style={{ width: '25%' }} />
+                    </div>
+                    {/* Current Spent */}
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min((totalSpent / totalLimit) * 100, 100)}%` }}
+                      className="absolute h-full bg-on-surface/20 z-10"
+                    />
+                    {/* Projected Area */}
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min(totalLimit > 0 ? (advancedForecast.adjustedProjection / totalLimit) * 100 : 0, 110)}%` }}
+                      className={`absolute h-full ${advancedForecast.isOverProjected ? 'bg-red-500/30' : 'bg-primary/30'} z-0`}
+                    />
+                    {/* Target Line */}
+                    <div className="absolute top-0 bottom-0 right-0 w-0.5 bg-red-500/50 z-20 shadow-[0_0_10px_rgba(239,68,68,0.5)]" style={{ left: '100%' }} />
+                  </div>
+                  <div className="flex justify-between items-center text-[9px] uppercase tracking-widest font-bold text-on-surface-variant">
+                    <span className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-on-surface/40" />
+                      Consommé
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-primary/40" />
+                      Projeté
+                    </span>
+                    <span>Limite: {formatCurrency(totalLimit)}</span>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 rounded-xl bg-surface-container-highest/30 border border-white/5">
-                <span className="text-[10px] uppercase tracking-widest text-on-surface-variant block mb-1">Monthly Variance</span>
-                <span className={`font-headline text-xl ${advancedForecast.trend > 0 ? 'text-red-400' : 'text-primary'}`}>
-                  {advancedForecast.trend > 0 ? '+' : ''}{advancedForecast.trend.toFixed(1)}%
-                </span>
-                <p className="text-[8px] text-on-surface-variant mt-1 italic">Vs. overall limit</p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-6 rounded-3xl bg-surface-container-highest/20 border border-white/5 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold block mb-1">Marge Quotidienne</span>
+                    <span className="font-headline text-3xl text-on-surface">{formatCurrency(Math.round(advancedForecast.dailyAvailable))}</span>
+                  </div>
+                  <p className="text-[8px] text-on-surface-variant mt-4 italic uppercase tracking-tighter">Pour {advancedForecast.daysRemaining} jours restants</p>
+                </div>
+                <div className="p-6 rounded-3xl bg-surface-container-highest/20 border border-white/5 flex flex-col justify-between">
+                  <div>
+                    <span className="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold block mb-1">Variance / Budget</span>
+                    <span className={`font-headline text-3xl ${advancedForecast.trend > 0 ? 'text-red-400' : 'text-primary'}`}>
+                      {advancedForecast.trend > 0 ? '+' : ''}{advancedForecast.trend.toFixed(1)}%
+                    </span>
+                  </div>
+                  <p className="text-[8px] text-on-surface-variant mt-4 italic uppercase tracking-tighter">Déviation calculée</p>
+                </div>
               </div>
             </div>
 
             {/* Adjustment Controls */}
-            <div className="space-y-4 pt-4 border-t border-outline-variant/10">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Manual Adjustment</span>
-                  <div className="group relative">
-                    <Info className="w-3 h-3 text-on-surface-variant/50 cursor-help" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-surface-container-high rounded-lg text-white text-[8px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-xl border border-white/5">
-                      Adjust projection for known upcoming large purchases or savings.
-                    </div>
+            <div className="bg-surface-container-low p-8 rounded-[2rem] border border-white/5 space-y-8 relative overflow-hidden">
+              <div className="flex justify-between items-center relative z-10">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold">Ajustement Manuel de Flux</span>
+                    <Info className="w-3 h-3 text-on-surface-variant/30" />
                   </div>
+                  <p className="text-[10px] text-on-surface-variant/60 italic">Simulez des dépenses ou entrées exceptionnelles</p>
                 </div>
-                <span className="text-[10px] font-mono text-primary">
-                  {projectionAdjustment >= 0 ? '+' : ''}{projectionAdjustment.toLocaleString()} USD
-                </span>
+                <div className={`px-4 py-2 rounded-xl font-mono text-xs border ${projectionAdjustment === 0 ? 'border-white/5 text-on-surface-variant' : 'border-primary/30 text-primary bg-primary/5'}`}>
+                  {projectionAdjustment >= 0 ? '+' : ''}{projectionAdjustment.toLocaleString()} {wallets[0]?.currency || 'USD'}
+                </div>
               </div>
-              <input 
-                type="range"
-                min="-5000"
-                max="5000"
-                step="50"
-                value={projectionAdjustment}
-                onChange={(e) => setProjectionAdjustment(parseInt(e.target.value))}
-                className="w-full h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary"
-              />
-              <div className="flex justify-between text-[8px] text-on-surface-variant uppercase tracking-widest">
-                <span>Save $5k</span>
-                <span>Normal Trend</span>
-                <span>Extra $5k</span>
+
+              <div className="relative h-12 flex items-center px-2">
+                <div className="absolute inset-x-0 h-1 bg-surface-container-highest rounded-full" />
+                <input
+                  type="range"
+                  min="-10000"
+                  max="10000"
+                  step="100"
+                  value={projectionAdjustment}
+                  onChange={(e) => setProjectionAdjustment(parseInt(e.target.value))}
+                  className="w-full h-2 bg-transparent appearance-none cursor-pointer accent-primary relative z-10"
+                />
+              </div>
+
+              <div className="flex justify-between text-[9px] text-on-surface-variant uppercase tracking-[0.2em] font-bold opacity-60">
+                <span>Économie Majeure</span>
+                <span>Neutre</span>
+                <span>Dépense Exceptionnelle</span>
               </div>
             </div>
 
-            <button 
-              onClick={() => setShowForecastDetail(!showForecastDetail)}
-              className="w-full py-4 bg-surface-container-highest/50 border border-white/5 rounded-xl text-[10px] uppercase tracking-[0.2em] text-on-surface-variant hover:text-primary transition-colors flex items-center justify-center gap-2"
-            >
-              {showForecastDetail ? 'Hide Insights' : 'Explain Logic'}
-              <ChevronRight className={`w-4 h-4 transition-transform ${showForecastDetail ? 'rotate-90' : ''}`} />
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowForecastDetail(!showForecastDetail)}
+                className="flex-1 py-5 bg-surface-container-highest/30 border border-white/5 rounded-2xl text-[10px] uppercase tracking-[0.25em] text-on-surface-variant hover:text-primary transition-all flex items-center justify-center gap-3 font-bold"
+              >
+                {showForecastDetail ? 'Masquer l\'Analyse' : 'Décoder l\'Algorithme'}
+                <ChevronRight className={`w-4 h-4 transition-transform duration-500 ${showForecastDetail ? 'rotate-90 text-primary' : ''}`} />
+              </button>
+            </div>
 
             <AnimatePresence>
               {showForecastDetail && (
@@ -451,7 +488,7 @@ export default function Budget() {
                       <div className="flex gap-3">
                         <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
                         <p className="text-[10px] text-on-surface-variant leading-relaxed">
-                          At your current rate, you will exceed your budget by <span className="text-red-400 font-medium">${advancedForecast.projectedOverAmount.toLocaleString()}</span>. Consider reducing daily spend to <span className="text-primary font-medium">${Math.round(advancedForecast.dailyAvailable)}</span> to stay on track.
+                          At your current rate, you will exceed your budget by <span className="text-red-400 font-medium">{formatCurrency(advancedForecast.projectedOverAmount)}</span>. Consider reducing daily spend to <span className="text-primary font-medium">{formatCurrency(Math.round(advancedForecast.dailyAvailable))}</span> to stay on track.
                         </p>
                       </div>
                     )}
@@ -525,7 +562,7 @@ export default function Budget() {
                 <div className="flex flex-col bg-surface-container-highest/20 p-6 rounded-2xl border border-white/5">
                   <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-4">Initial Monthly Limit</label>
                   <div className="relative">
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 font-headline text-2xl text-primary/60">$</span>
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 font-headline text-2xl text-primary/60">{primaryCurrencySymbol}</span>
                     <input 
                       type="number"
                       value={newBudgetLimit}

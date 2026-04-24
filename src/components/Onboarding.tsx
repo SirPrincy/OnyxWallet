@@ -513,13 +513,13 @@ export default function Onboarding() {
                       </div>
                       <div className="col-span-2 mt-2 px-1">
                         <p className="text-[10px] text-primary uppercase tracking-widest font-bold">
-                          Total Value: ${((parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)).toLocaleString()}
+                          Total Value: {SUPPORTED_CURRENCIES.find(c => c.code === walletCurrency)?.symbol || '$'} {((parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)).toLocaleString()}
                         </p>
                       </div>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Initial Balance ($)</label>
+                      <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Initial Balance ({SUPPORTED_CURRENCIES.find(c => c.code === walletCurrency)?.symbol || '$'})</label>
                       <input
                         type="number"
                         value={walletBalance}

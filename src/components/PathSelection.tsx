@@ -84,12 +84,7 @@ export default function PathSelection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 px-1">
-        <h3 className="font-headline text-2xl text-on-surface italic">Strategic Alignment</h3>
-        <span className="bg-primary/10 text-primary text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-primary/20">Class Selection</span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {paths.map((p) => {
           const isActive = currentPath === p.id;
           const Icon = p.icon;

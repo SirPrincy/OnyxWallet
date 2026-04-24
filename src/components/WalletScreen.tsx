@@ -6,9 +6,12 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
+import { useCurrency } from '../hooks/useCurrency';
 
 export default function WalletScreen() {
   const transactions = useFinancialStore(s => s.transactions);
+  const wallets = useWalletStore(s => s.wallets);
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [transferAmount, setTransferAmount] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -39,6 +42,8 @@ export default function WalletScreen() {
     return (Object.values(walletStats) as number[]).reduce((sum: number, val: number) => sum + val, 0);
   }, [walletStats]);
 
+  const { primaryCurrencySymbol, formatCurrency } = useCurrency();
+
   const handleActionSubmit = () => {
     setIsSuccess(true);
     setTimeout(() => {
@@ -58,7 +63,7 @@ export default function WalletScreen() {
         </div>
         <div className="flex items-center gap-4 mt-1">
           <span className="text-5xl font-headline tracking-tight text-on-surface">
-            ${Math.floor(netWorth).toLocaleString()}.<span className="text-2xl text-on-surface-variant">{(netWorth % 1).toFixed(2).split('.')[1] || '00'}</span>
+            {formatCurrency(netWorth)}
           </span>
           <div className="flex items-center bg-primary/10 px-2 py-1 rounded-lg">
             <TrendingUp className="w-4 h-4 text-primary" />
@@ -76,7 +81,7 @@ export default function WalletScreen() {
             <div className="flex justify-between items-start mb-12">
               <div>
                 <p className="text-xs font-sans uppercase tracking-widest text-on-surface-variant mb-1">Main Vault</p>
-                <p className="text-2xl font-headline text-primary">${walletStats.main.toLocaleString()}</p>
+                <p className="text-2xl font-headline text-primary">{formatCurrency(walletStats.main)}</p>
               </div>
               <CreditCard className="w-6 h-6 text-on-surface-variant" />
             </div>
@@ -91,7 +96,7 @@ export default function WalletScreen() {
             <div className="flex justify-between items-start mb-12">
               <div>
                 <p className="text-xs font-sans uppercase tracking-widest text-on-surface-variant mb-1">Investment Portfolio</p>
-                <p className="text-2xl font-headline text-on-surface">${walletStats.offshore.toLocaleString()}</p>
+                <p className="text-2xl font-headline text-on-surface">{formatCurrency(walletStats.offshore)}</p>
               </div>
               <Wallet className="w-6 h-6 text-primary" />
             </div>
@@ -106,7 +111,7 @@ export default function WalletScreen() {
             <div className="flex justify-between items-start mb-12">
               <div>
                 <p className="text-xs font-sans uppercase tracking-widest text-on-surface-variant mb-1">Crypto Ledger</p>
-                <p className="text-2xl font-headline text-on-surface">${walletStats.crypto.toLocaleString()}</p>
+                <p className="text-2xl font-headline text-on-surface">{formatCurrency(walletStats.crypto)}</p>
               </div>
               <Bitcoin className="w-6 h-6 text-primary" />
             </div>
@@ -174,7 +179,7 @@ export default function WalletScreen() {
                   <p className="text-xs font-medium text-on-surface">{asset.allocation}</p>
                 </div>
                 <div className="text-right min-w-[100px]">
-                  <p className="font-headline text-lg">${parseFloat(asset.value.replace('$', '').replace(',', '')).toLocaleString()}</p>
+                  <p className="font-headline text-lg">{formatCurrency(parseFloat(asset.value.replace('$', '').replace(',', '')))}</p>
                   <div className="flex items-center justify-end gap-2">
                     <p className={`text-[10px] font-bold ${asset.positive ? 'text-primary' : 'text-red-400'}`}>{asset.change}</p>
                     <button 
@@ -328,7 +333,7 @@ export default function WalletScreen() {
                 <div className="space-y-4">
                   <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-on-surface-variant ml-2">Amount to {activeAction}</label>
                   <div className="relative">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-headline text-3xl">$</span>
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-headline text-3xl">{primaryCurrencySymbol} </span>
                     <input 
                       type="number"
                       value={transferAmount}
@@ -346,7 +351,7 @@ export default function WalletScreen() {
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] uppercase tracking-widest text-on-surface-variant block mb-1">Fee (0.2%)</span>
-                    <p className="text-on-surface-variant font-medium">${(parseFloat(transferAmount) * 0.002 || 0).toFixed(2)}</p>
+                    <p className="text-on-surface-variant font-medium">{primaryCurrencySymbol} {(parseFloat(transferAmount) * 0.002 || 0).toFixed(2)}</p>
                   </div>
                 </div>
 

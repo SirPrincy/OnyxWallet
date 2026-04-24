@@ -4,12 +4,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import { aiService, AISuggestion } from '../services/ai.service';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useCurrency } from '../hooks/useCurrency';
 
 export default function SafeToSpendAI() {
   const transactions = useFinancialStore(s => s.transactions);
   const budgets = useFinancialStore(s => s.budgets);
   const wallets = useWalletStore(s => s.wallets);
   const [loading, setLoading] = useState(false);
+  const { primaryCurrencySymbol } = useCurrency();
   const [suggestion, setSuggestion] = useState<AISuggestion | null>(null);
 
   const getAISuggestion = async () => {
@@ -41,7 +43,7 @@ export default function SafeToSpendAI() {
             {loading ? (
               <div className="h-10 w-32 bg-surface-container-highest animate-pulse rounded-lg" />
             ) : (
-              <h4 className="font-headline text-4xl text-on-surface">${suggestion?.dailyLimit || 0}</h4>
+              <h4 className="font-headline text-4xl text-on-surface">{primaryCurrencySymbol} {suggestion?.dailyLimit?.toLocaleString() || 0}</h4>
             )}
             <span className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Daily Cap</span>
           </div>
