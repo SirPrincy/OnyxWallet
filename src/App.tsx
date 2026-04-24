@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { App as CapApp } from '@capacitor/app';
 import TopBar from './components/TopBar';
 import BottomNav from './components/BottomNav';
 const Home = React.lazy(() => import('./components/Home'));
@@ -39,10 +40,76 @@ function AppContent() {
   const [showNewTransaction, setShowNewTransaction] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isBottomNavVisible, setIsBottomNavVisible] = useState(true);
+  const [showExitToast, setShowExitToast] = useState(false);
+
+  const activeScreenRef = useRef<Screen>('home');
+  const lastBackPress = useRef<number>(0);
+
+  // Swipe gesture state
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const minSwipeDistance = 50;
 
   useEffect(() => {
     initApp();
   }, []);
+
+  useEffect(() => {
+    const backButtonHandler = CapApp.addListener('backButton', ({ canGoBack }) => {
+      if (showNewTransaction) {
+        setShowNewTransaction(false);
+        return;
+      }
+      if (isDrawerOpen) {
+        setIsDrawerOpen(false);
+        return;
+      }
+
+      if (activeScreenRef.current !== 'home') {
+        handleNavigation('home', 'internal');
+      } else {
+        const now = Date.now();
+        if (now - lastBackPress.current < 2000) {
+          CapApp.exitApp();
+        } else {
+          lastBackPress.current = now;
+          setShowExitToast(true);
+          setTimeout(() => setShowExitToast(false), 2000);
+        }
+      }
+    });
+
+    return () => {
+      backButtonHandler.then(h => h.remove());
+    };
+  }, [showNewTransaction, isDrawerOpen]);
+
+  useEffect(() => {
+    activeScreenRef.current = activeScreen;
+  }, [activeScreen]);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isRightSwipe && !isDrawerOpen && touchStart < 50) {
+      setIsDrawerOpen(true);
+    }
+    if (isLeftSwipe && isDrawerOpen) {
+      setIsDrawerOpen(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -143,6 +210,9 @@ function AppContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="min-h-screen bg-background text-on-surface"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
           >
             <TopBar 
               title={getTitle()} 
@@ -157,7 +227,7 @@ function AppContent() {
               onNavigate={handleNavigation}
             />
             
-            <main className={`pt-24 px-6 max-w-2xl mx-auto min-h-screen ${isBottomNavVisible ? 'pb-32' : 'pb-12'}`}>
+            <main className={`pt-20 px-6 max-w-2xl mx-auto min-h-screen ${isBottomNavVisible ? 'pb-32' : 'pb-12'}`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeScreen}
@@ -191,6 +261,19 @@ function AppContent() {
                     onChange={(s) => handleNavigation(s, 'bottom-nav')} 
                     onPlusClick={() => setShowNewTransaction(true)} 
                   />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {showExitToast && (
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 50 }}
+                  className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-surface-container-highest/90 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 shadow-2xl"
+                >
+                  <p className="text-[10px] uppercase tracking-widest text-primary font-bold">Appuyez à nouveau pour quitter</p>
                 </motion.div>
               )}
             </AnimatePresence>

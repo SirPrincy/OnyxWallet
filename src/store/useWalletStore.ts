@@ -51,8 +51,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     const profileId = useAuthStore.getState().currentUser?.id;
     if (!profileId) return;
     await walletService.deleteWallet(id);
-    const newWallets = get().wallets.filter(w => w.id !== id);
-    get().setWallets(newWallets);
+    const updatedWallets = get().wallets.filter(w => w.id !== id);
+    get().setWallets(updatedWallets);
     useGamificationStore.getState().syncGamification(profileId);
   },
 

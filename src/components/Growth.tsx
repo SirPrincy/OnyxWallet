@@ -10,6 +10,7 @@ import { useGamificationStore } from '../store/useGamificationStore';
 import { useWalletStore } from '../store/useWalletStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { ICON_MAP } from '../constants';
+import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 
 import SafeToSpendAI from './SafeToSpendAI';
 import VaultVisual from './VaultVisual';
@@ -49,9 +50,7 @@ export default function Growth() {
   const [historyGoalId, setHistoryGoalId] = useState<string | null>(null);
   const [goalHistory, setGoalHistory] = useState<any[]>([]);
 
-  const totalLiquidity = React.useMemo(() => {
-    return wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
-  }, [wallets]);
+  const totalLiquidity = useWalletStore(s => s.totalLiquidity);
 
   const averageMonthlyIncome = React.useMemo(() => {
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
@@ -59,6 +58,17 @@ export default function Growth() {
   }, [transactions]);
 
   const { tierName, level, progressPercent, xpLeft, nextTier } = tierData;
+
+  const primaryCurrencySymbol = React.useMemo(() => {
+    const primaryCurrency = wallets[0]?.currency || 'USD';
+    return SUPPORTED_CURRENCIES.find((c: any) => c.code === primaryCurrency)?.symbol || '$';
+  }, [wallets]);
+
+  const formatNumber = (val: number) => {
+    const parts = val.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return parts.join('.');
+  };
 
   // Prestige Theme logic
   const isPrestige = level >= 6;
@@ -156,7 +166,7 @@ export default function Growth() {
                   />
                 </div>
                 <div className="flex justify-between items-center text-[9px] text-on-surface-variant/60 uppercase tracking-widest font-mono">
-                  <span>{xpLeft > 0 ? `${Math.round(xpLeft).toLocaleString()} XP to Ascension` : 'Pinnacle Reached'}</span>
+                  <span>{xpLeft > 0 ? `${formatNumber(xpLeft).split('.')[0]} XP to Ascension` : 'Pinnacle Reached'}</span>
                   <span className="flex items-center gap-2">
                     {nextTier}
                     <ChevronRight className="w-3 h-3" />
@@ -266,12 +276,12 @@ export default function Growth() {
 
                   <div className="grid grid-cols-2 gap-8 mb-4">
                     <div className="space-y-1">
-                      <p className="text-3xl font-headline text-on-surface">${goal.current.toLocaleString()}</p>
+                      <p className="text-3xl font-headline text-on-surface">{primaryCurrencySymbol}{formatNumber(goal.current)}</p>
                       <p className="text-[9px] text-on-surface-variant uppercase tracking-[0.2em] font-bold">Accumulated</p>
                     </div>
                     <div className="text-right space-y-1">
                       <div className="flex items-center justify-end gap-2">
-                        <p className="text-3xl font-headline text-on-surface-variant/80">${Math.round(adjustedTarget).toLocaleString()}</p>
+                        <p className="text-3xl font-headline text-on-surface-variant/80">{primaryCurrencySymbol}{formatNumber(adjustedTarget)}</p>
                         {goal.inflationRate ? <Info className="w-3 h-3 text-primary" /> : null}
                       </div>
                       <p className="text-[9px] text-on-surface-variant uppercase tracking-[0.2em] font-bold">
@@ -478,7 +488,7 @@ export default function Growth() {
                            </div>
                            <div className="text-left">
                              <p className={`text-sm font-medium ${selectedWalletId === w.id ? 'text-primary' : 'text-on-surface'}`}>{w.name}</p>
-                             <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">${w.balance.toLocaleString()}</p>
+                               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">{w.currency}{formatNumber(w.balance)}</p>
                            </div>
                          </div>
                          {selectedWalletId === w.id && <CheckCircle2 className="w-5 h-5 text-primary" />}
@@ -488,9 +498,9 @@ export default function Growth() {
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Capital Amount ($)</label>
+                  <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Capital Amount</label>
                   <div className="relative">
-                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-headline text-4xl">$</span>
+                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-headline text-4xl">{primaryCurrencySymbol}</span>
                     <input 
                       type="number"
                       value={contribAmount}
@@ -590,13 +600,13 @@ export default function Growth() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-3">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Capital Cible ($)</label>
+                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Capital Cible ({primaryCurrencySymbol})</label>
                     <input
                       type="number"
                       value={newGoalTarget}
                       onChange={(e) => setNewGoalTarget(e.target.value)}
                       className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-4 px-6 text-on-surface focus:ring-1 focus:ring-primary/40 text-base font-headline"
-                      placeholder="1,000,000"
+                      placeholder="1 000 000"
                     />
                   </div>
                   <div className="space-y-3">
@@ -650,7 +660,7 @@ export default function Growth() {
                             className="flex-1 min-w-[80px] p-4 bg-background/50 rounded-xl border border-white/5 text-center group hover:border-primary/30 transition-colors"
                           >
                              <p className="text-[10px] text-on-surface font-bold uppercase">{months}M</p>
-                             <p className="text-[8px] text-on-surface-variant/60 font-mono italic">${(averageMonthlyIncome * months).toLocaleString()}</p>
+                             <p className="text-[8px] text-on-surface-variant/60 font-mono italic">{primaryCurrencySymbol}{formatNumber(averageMonthlyIncome * months).split('.')[0]}</p>
                           </button>
                        ))}
                     </div>
@@ -718,7 +728,7 @@ export default function Growth() {
                           <ArrowRight className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="text-on-surface font-medium">${h.amount.toLocaleString()}</p>
+                          <p className="text-on-surface font-medium">{primaryCurrencySymbol}{formatNumber(h.amount)}</p>
                           <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{h.date}</p>
                         </div>
                       </div>
@@ -767,7 +777,7 @@ export default function Growth() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-end text-[10px] uppercase tracking-[0.3em] font-bold">
                     <span className="text-on-surface-variant">Progress</span>
-                    <span className="text-primary">{selectedMission.progress.toLocaleString()} / {selectedMission.total.toLocaleString()}</span>
+                    <span className="text-primary">{formatNumber(selectedMission.progress).split('.')[0]} / {formatNumber(selectedMission.total).split('.')[0]}</span>
                   </div>
                   <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
                     <motion.div 

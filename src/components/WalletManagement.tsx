@@ -15,13 +15,13 @@ type WalletType = 'Credit Card' | 'Bank Account' | 'Crypto' | 'Investment' | 'Ca
 
 export default function WalletManagement() {
   const wallets = useWalletStore(s => s.wallets);
+  const totalNetWorth = useWalletStore(s => s.totalLiquidity);
   const addWallet = useWalletStore(s => s.addWallet);
   const updateWallet = useWalletStore(s => s.updateWallet);
   const deleteWallet = useWalletStore(s => s.deleteWallet);
-  const reorderWallets = useWalletStore(s => s.reorderWallets);
-  const [isCustomizing, setIsCustomizing] = useState(false);
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+  const [showMore, setShowMore] = useState(false);
 
   // Modal State
   const [modalType, setModalType] = useState<WalletType>('Bank Account');
@@ -50,10 +50,6 @@ export default function WalletManagement() {
     return groups;
   }, [wallets]);
 
-  const totalNetWorth = useMemo(() => 
-    wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0),
-  [wallets]);
-
   const rates = {
     USD: 1, EUR: 0.92, MGA: 4500, BTC: 0.000015, ETH: 0.00038,
     JPY: 150, GBP: 0.79, AUD: 1.52, CAD: 1.35, CHF: 0.88,
@@ -61,13 +57,23 @@ export default function WalletManagement() {
   };
   const formatValue = (usdAmount: number, cur: string) => {
     const value = usdAmount * (rates[cur as keyof typeof rates] || 1);
-    if (cur === 'BTC') return `₿ ${value.toFixed(6)}`;
-    if (cur === 'ETH') return `Ξ ${value.toFixed(6)}`;
+    const formatted = value.toLocaleString('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).replace(',', '.'); // Use French locale for space separator but keep point for decimals if desired, or just space.
+    // Actually standard French is 1 000,00. User asked for "Espacement de milliers"
+
+    const parts = value.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    const result = parts.join('.');
+
+    if (cur === 'BTC') return `₿ ${result}`;
+    if (cur === 'ETH') return `Ξ ${result}`;
 
     const currencyInfo = SUPPORTED_CURRENCIES.find(c => c.code === cur);
     const symbol = currencyInfo?.symbol || '$';
 
-    return `${symbol} ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${symbol} ${result}`;
   };
 
   const handleSaveWallet = () => {
@@ -102,6 +108,7 @@ export default function WalletManagement() {
     setModalProvider('');
     setModalLastFour('');
     setModalCurrency('USD');
+    setShowMore(false);
   };
 
   const openEdit = (w: Wallet) => {
@@ -116,7 +123,7 @@ export default function WalletManagement() {
   };
 
   return (
-    <div className="space-y-16 pb-20 relative">
+    <div className="space-y-16 pb-32 relative">
       <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-4">
@@ -129,6 +136,17 @@ export default function WalletManagement() {
           <p className="font-headline text-4xl text-primary">{formatValue(totalNetWorth, currency)}</p>
         </div>
       </section>
+
+      {/* Centralized Add Button */}
+      <button
+        onClick={() => { setEditingWallet(null); setShowAddWallet(true); }}
+        className="w-full py-6 rounded-[2rem] bg-primary/10 border border-primary/20 flex items-center justify-center gap-3 group hover:bg-primary/20 transition-all"
+      >
+        <div className="w-10 h-10 rounded-full bg-primary text-background flex items-center justify-center group-hover:scale-110 transition-transform">
+          <Plus className="w-6 h-6" strokeWidth={3} />
+        </div>
+        <span className="font-headline text-2xl italic text-primary">Initialize New Strategic Base</span>
+      </button>
 
       <div className="space-y-12">
         {(Object.keys(groupedWallets) as WalletType[]).map(type => {
@@ -273,26 +291,50 @@ export default function WalletManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Provider</label>
-                    <input 
-                      value={modalProvider}
-                      onChange={(e) => setModalProvider(e.target.value)}
-                      className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-6 px-6 text-on-surface focus:ring-1 focus:ring-primary/40 text-lg"
-                      placeholder="e.g. Goldman Sachs"
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Suffix (Last 4)</label>
-                    <input 
-                      maxLength={4}
-                      value={modalLastFour}
-                      onChange={(e) => setModalLastFour(e.target.value)}
-                      className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-6 px-6 text-on-surface focus:ring-1 focus:ring-primary/40 text-lg font-mono"
-                      placeholder="8821"
-                    />
-                  </div>
+                {/* Collapsible More Section */}
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setShowMore(!showMore)}
+                    className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-primary font-bold"
+                  >
+                    <Settings2 className={`w-3 h-3 transition-transform ${showMore ? 'rotate-180' : ''}`} />
+                    {showMore ? 'Hide Advanced Details' : 'Show More Details'}
+                  </button>
+
+                  <AnimatePresence>
+                    {showMore && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden space-y-8"
+                      >
+                        <div className="grid grid-cols-2 gap-4 pt-2">
+                          <div className="space-y-3">
+                            <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Provider</label>
+                            <input
+                              value={modalProvider}
+                              onChange={(e) => setModalProvider(e.target.value)}
+                              className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-6 px-6 text-on-surface focus:ring-1 focus:ring-primary/40 text-lg"
+                              placeholder="e.g. Goldman Sachs"
+                            />
+                          </div>
+                          {modalType !== 'Cash' && (
+                            <div className="space-y-3">
+                              <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Suffix (Last 4)</label>
+                              <input
+                                maxLength={4}
+                                value={modalLastFour}
+                                onChange={(e) => setModalLastFour(e.target.value)}
+                                className="w-full bg-surface-container-low border border-white/5 rounded-2xl py-6 px-6 text-on-surface focus:ring-1 focus:ring-primary/40 text-lg font-mono"
+                                placeholder="8821"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="flex gap-4 pt-4">
