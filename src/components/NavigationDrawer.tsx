@@ -26,6 +26,15 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
     { icon: Settings, label: 'Settings', screen: 'settings' as const },
   ];
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   const handleItemClick = (screen: any) => {
     if (screen) {
       onNavigate(screen, 'drawer');
@@ -52,7 +61,7 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-            className="fixed top-0 left-0 h-full w-[85%] max-w-[320px] bg-[#0e0e0e] border-r border-white/5 z-[70] flex flex-col"
+            className="fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-[#0e0e0e] border-r border-white/5 z-[70] flex flex-col"
           >
             {/* Header / Profile Section */}
             <div className="relative pt-12 pb-6 px-6 overflow-hidden">
@@ -60,33 +69,47 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
               
               <button 
                 onClick={onClose}
-                aria-label="Close"
-                className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+                className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors p-2"
               >
                 <X className="w-5 h-5" />
               </button>
 
-              <div className="relative">
-                <div className="w-16 h-16 rounded-2xl bg-surface-container-highest border border-primary/20 p-1 mb-4 group cursor-pointer" onClick={() => handleItemClick('profile')}>
-                  <div className="w-full h-full rounded-xl overflow-hidden relative">
-                    <img 
-                      src={profile?.image} 
-                      alt="Profile" 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+              <div className="relative flex items-center gap-4">
+                <div
+                  className="w-14 h-14 rounded-xl bg-surface-container-highest border border-primary/20 p-0.5 group cursor-pointer flex-shrink-0"
+                  onClick={() => handleItemClick('profile')}
+                >
+                  <div className="w-full h-full rounded-[10px] overflow-hidden relative bg-surface-container-highest flex items-center justify-center">
+                    {profile?.image ? (
+                      <img
+                        src={profile.image}
+                        alt="Profile"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          (e.target as HTMLImageElement).parentElement!.classList.add('bg-primary/10');
+                        }}
+                      />
+                    ) : null}
+                    <span className="font-headline text-xl text-primary italic">
+                      {profile?.name ? getInitials(profile.name) : 'O'}
+                    </span>
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
                   </div>
                 </div>
                 
-                <div className="space-y-1">
+                <div className="space-y-0.5 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h2 className="font-headline text-2xl text-white italic tracking-tight">{profile?.name}</h2>
-                    <Crown className="w-3.5 h-3.5 text-primary" fill="currentColor" />
+                    <h2 className="font-headline text-xl text-white italic tracking-tight truncate">{profile?.name}</h2>
+                    <Crown className="w-3.5 h-3.5 text-primary flex-shrink-0" fill="currentColor" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                    <p className="font-sans text-[9px] uppercase tracking-[0.2em] text-primary/80 font-bold">{profile?.role}</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
+                    <p className="font-sans text-[8px] uppercase tracking-[0.2em] text-primary font-bold truncate">{profile?.role}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                     <p className="font-sans text-[8px] uppercase tracking-[0.1em] text-on-surface-variant/40 font-medium">{profile?.tier} Tier</p>
                   </div>
                 </div>
               </div>
@@ -115,14 +138,17 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
             <div className="p-6 border-t border-white/5 bg-black/20">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex flex-col">
-                  <span className="text-[8px] text-white/20 uppercase tracking-widest mb-1">Current Plan</span>
-                  <span className="text-xs text-white/60 font-medium">Private Banking Plus</span>
+                  <span className="text-[8px] text-white/20 uppercase tracking-widest mb-0.5">Asset Status</span>
+                  <span className="text-[10px] text-white/60 font-medium uppercase tracking-tight">{profile?.status || 'Active'}</span>
                 </div>
-                <button className="text-[9px] text-primary font-bold uppercase tracking-widest hover:underline">Upgrade</button>
+                <div className="flex flex-col items-end">
+                  <span className="text-[8px] text-white/20 uppercase tracking-widest mb-0.5">Strategy</span>
+                  <span className="text-[10px] text-primary font-bold uppercase tracking-tight italic">{profile?.path || 'Neutral'}</span>
+                </div>
               </div>
               
-              <p className="font-sans text-[8px] text-white/10 uppercase tracking-[0.4em] text-center">
-                Onyx Wallet v1.2.0
+              <p className="font-sans text-[8px] text-white/10 uppercase tracking-[0.3em] text-center">
+                Onyx Wallet Premium
               </p>
             </div>
           </motion.div>

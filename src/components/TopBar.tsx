@@ -4,7 +4,7 @@ import { Menu, Bell } from 'lucide-react';
 interface TopBarProps {
   title: string;
   onMenuClick: () => void;
-  profileImage: string;
+  profileImage: string | undefined;
 }
 
 export default function TopBar({ title, onMenuClick, profileImage }: TopBarProps) {
@@ -23,19 +23,26 @@ export default function TopBar({ title, onMenuClick, profileImage }: TopBarProps
       </h1>
 
       <div className="flex items-center gap-3">
-        <button
-          aria-label="Notifications"
-          className="text-on-surface-variant hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg"
-        >
+        <button className="text-on-surface-variant hover:text-primary transition-colors">
           <Bell className="w-4 h-4" />
         </button>
-        <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/20">
-          <img 
-            src={profileImage} 
-            alt="Profile" 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
+        <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/20 bg-surface-container-highest flex items-center justify-center relative">
+          {profileImage ? (
+            <img
+              src={profileImage}
+              alt="Profile"
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : null}
+          <div className="absolute inset-0 flex items-center justify-center -z-10">
+            <div className="w-full h-full bg-primary/10 flex items-center justify-center">
+               <span className="text-[10px] text-primary font-bold">O</span>
+            </div>
+          </div>
         </div>
       </div>
     </header>
