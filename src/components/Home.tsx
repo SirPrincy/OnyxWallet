@@ -82,17 +82,23 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
     const spendingTrend = trendBuckets.map(s => Math.max(10, (s / maxSpent) * 100));
 
     // Safe-to-Spend Logic
-    const monthlyRecurringIncome = recurringTransactions
-      .filter(rt => rt.type === 'income' && rt.frequency === 'Monthly')
-      .reduce((sum, rt) => sum + rt.amount, 0);
-    
-    const monthlyRecurringExpense = recurringTransactions
-      .filter(rt => rt.type === 'expense' && rt.frequency === 'Monthly')
-      .reduce((sum, rt) => sum + rt.amount, 0);
+    let monthlyRecurringIncome = 0;
+    let monthlyRecurringExpense = 0;
+    for (const recurringTx of recurringTransactions) {
+      if (recurringTx.frequency !== 'Monthly') continue;
+      if (recurringTx.type === 'income') monthlyRecurringIncome += recurringTx.amount;
+      else if (recurringTx.type === 'expense') monthlyRecurringExpense += recurringTx.amount;
+    }
 
-    const activeGoals = savingsGoals.filter(g => !g.isCompleted);
-    const totalRemainingToGoal = activeGoals.reduce((sum, g) => sum + (g.target - g.current), 0);
-    const savingsTarget = activeGoals.length > 0
+    let activeGoalsCount = 0;
+    let totalRemainingToGoal = 0;
+    for (const goal of savingsGoals) {
+      if (goal.isCompleted) continue;
+      activeGoalsCount++;
+      totalRemainingToGoal += (goal.target - goal.current);
+    }
+
+    const savingsTarget = activeGoalsCount > 0
       ? Math.max(0, totalRemainingToGoal / 12)
       : (monthlyRecurringIncome + curMonthIncome) * 0.1;
 
@@ -334,12 +340,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <p className="text-2xl font-headline">
-                {formatCurrency(Math.abs(transactions
-                  .filter(tx => tx.type === 'expense' && 
-                    new Date(tx.timestamp).getMonth() === new Date().getMonth() &&
-                    new Date(tx.timestamp).getFullYear() === new Date().getFullYear())
-                  .reduce((sum, tx) => sum + tx.amount, 0)
-                ))}
+                {formatCurrency(stats.curMonthSpent)}
               </p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Expenses This Month</p>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Plus, CreditCard, Landmark, ArrowRight, 
   Coins, Smartphone, DollarSign, Edit3,
@@ -8,9 +8,11 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { useWalletStore } from '../store/useWalletStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCurrency } from '../hooks/useCurrency';
 import { Wallet } from '../types';
 import { SUPPORTED_CURRENCIES } from '../constants/currencies';
+import { convertCurrency } from '../utils/currency';
 
 type WalletType = 'Credit Card' | 'Bank Account' | 'Crypto' | 'Investment' | 'Cash' | 'Mobile Money';
 
@@ -20,6 +22,7 @@ export default function WalletManagement() {
   const addWallet = useWalletStore(s => s.addWallet);
   const updateWallet = useWalletStore(s => s.updateWallet);
   const deleteWallet = useWalletStore(s => s.deleteWallet);
+  const profileCurrency = useAuthStore(s => s.currentUser?.currency || 'USD');
   const { formatCurrency } = useCurrency();
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
@@ -33,7 +36,11 @@ export default function WalletManagement() {
   const [modalLastFour, setModalLastFour] = useState('');
   const [modalCurrency, setModalCurrency] = useState<string>('USD');
 
-  const [currency, setCurrency] = useState<string>('USD');
+  const [currency, setCurrency] = useState<string>(profileCurrency);
+
+  useEffect(() => {
+    setCurrency(profileCurrency);
+  }, [profileCurrency]);
 
   const groupedWallets = useMemo(() => {
     const groups: Record<WalletType, Wallet[]> = {
@@ -52,22 +59,17 @@ export default function WalletManagement() {
     return groups;
   }, [wallets]);
 
-  const rates = {
-    USD: 1, EUR: 0.92, MGA: 4500, BTC: 0.000015, ETH: 0.00038,
-    JPY: 150, GBP: 0.79, AUD: 1.52, CAD: 1.35, CHF: 0.88,
-    CNY: 7.19, HKD: 7.82, NZD: 1.63
-  };
-  const formatValue = (usdAmount: number, cur: string) => {
-    const value = usdAmount * (rates[cur as keyof typeof rates] || 1);
+  const formatValue = (amount: number, fromCurrency: string, toCurrency: string) => {
+    const value = convertCurrency(amount, fromCurrency, toCurrency);
 
-    if (cur === "BTC" || cur === "ETH") {
+    if (toCurrency === "BTC" || toCurrency === "ETH") {
         const parts = value.toFixed(2).split('.');
         parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
         const result = parts.join('.');
-        return `${cur === "BTC" ? "₿" : "Ξ"} ${result}`;
+        return `${toCurrency === "BTC" ? "₿" : "Ξ"} ${result}`;
     }
 
-    const symbol = SUPPORTED_CURRENCIES.find(c => c.code === cur)?.symbol;
+    const symbol = SUPPORTED_CURRENCIES.find(c => c.code === toCurrency)?.symbol;
     return formatCurrency(value, symbol);
   };
 
@@ -128,7 +130,7 @@ export default function WalletManagement() {
         </div>
         <div className="text-left md:text-right border-l md:border-l-0 md:border-r border-primary/20 pl-4 md:pl-0 md:pr-4">
           <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Net Liquidity</p>
-          <p className="font-headline text-4xl text-primary">{formatValue(totalNetWorth, currency)}</p>
+          <p className="font-headline text-4xl text-primary">{formatValue(totalNetWorth, profileCurrency, currency)}</p>
         </div>
       </section>
 
@@ -188,7 +190,7 @@ export default function WalletManagement() {
                     <div className="flex items-center gap-6">
                       <div className="text-right">
                         <p className={`font-medium ${wallet.type === 'Credit Card' ? 'text-on-surface' : 'text-primary'}`}>
-                          {formatValue(wallet.balance, currency)}
+                          {formatValue(wallet.balance, wallet.currency || 'USD', currency)}
                         </p>
                         <p className="text-[9px] uppercase text-on-surface-variant tracking-tighter">
                           Verified Today

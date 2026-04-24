@@ -3,10 +3,12 @@ import { Wallet } from '../types';
 import { walletService } from '../services/wallet.service';
 import { useAuthStore } from './useAuthStore';
 import { useGamificationStore } from './useGamificationStore';
+import { convertCurrency } from '../utils/currency';
 
 interface WalletState {
   wallets: Wallet[];
   totalLiquidity: number;
+  totalLiquidityCurrency: string;
   
   setWallets: (w: Wallet[]) => void;
   reloadWallets: (profileId: string) => Promise<void>;
@@ -20,10 +22,16 @@ interface WalletState {
 export const useWalletStore = create<WalletState>((set, get) => ({
   wallets: [],
   totalLiquidity: 0,
+  totalLiquidityCurrency: 'USD',
 
   setWallets: (w) => {
-    const total = w.reduce((sum, wallet) => sum + (wallet.type === 'Credit Card' ? -Math.abs(wallet.balance) : wallet.balance), 0);
-    set({ wallets: w, totalLiquidity: total });
+    const targetCurrency = useAuthStore.getState().currentUser?.currency || 'USD';
+    const total = w.reduce((sum, wallet) => {
+      const signedBalance = wallet.type === 'Credit Card' ? -Math.abs(wallet.balance) : wallet.balance;
+      const normalizedBalance = convertCurrency(signedBalance, wallet.currency || 'USD', targetCurrency);
+      return sum + normalizedBalance;
+    }, 0);
+    set({ wallets: w, totalLiquidity: total, totalLiquidityCurrency: targetCurrency });
   },
   
   reloadWallets: async (profileId: string) => {
