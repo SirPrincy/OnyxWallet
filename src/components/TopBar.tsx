@@ -9,27 +9,27 @@ interface TopBarProps {
 
 export default function TopBar({ title, onMenuClick, profileImage }: TopBarProps) {
   return (
-    <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex justify-between items-center px-6 h-20 border-b border-white/5">
+    <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl flex justify-between items-center px-6 h-16 border-b border-white/5">
       <button 
         onClick={onMenuClick}
         aria-label="Open menu"
         className="text-primary hover:text-primary-container transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg"
       >
-        <Menu className="w-6 h-6" />
+        <Menu className="w-5 h-5" />
       </button>
 
-      <h1 className="font-headline italic tracking-tighter text-2xl text-primary absolute left-1/2 -translate-x-1/2">
+      <h1 className="font-headline italic tracking-tight text-xl text-primary absolute left-1/2 -translate-x-1/2 truncate max-w-[50%]">
         {title}
       </h1>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <button
           aria-label="Notifications"
           className="text-on-surface-variant hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg"
         >
-          <Bell className="w-5 h-5" />
+          <Bell className="w-4 h-4" />
         </button>
-        <div className="w-8 h-8 rounded-full overflow-hidden border border-primary/20">
+        <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/20">
           <img 
             src={profileImage} 
             alt="Profile" 
