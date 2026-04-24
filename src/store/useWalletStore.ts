@@ -19,16 +19,16 @@ interface WalletState {
 
 export const useWalletStore = create<WalletState>((set, get) => ({
   wallets: [],
-  
-  get totalLiquidity() {
-    return get().wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
-  },
+  totalLiquidity: 0,
 
-  setWallets: (w) => set({ wallets: w }),
+  setWallets: (w) => {
+    const total = w.reduce((sum, wallet) => sum + (wallet.type === 'Credit Card' ? -Math.abs(wallet.balance) : wallet.balance), 0);
+    set({ wallets: w, totalLiquidity: total });
+  },
   
   reloadWallets: async (profileId: string) => {
     const updatedWallets = await walletService.getWallets(profileId);
-    set({ wallets: updatedWallets });
+    get().setWallets(updatedWallets);
   },
 
   addWallet: async (wallet) => {
@@ -51,7 +51,8 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     const profileId = useAuthStore.getState().currentUser?.id;
     if (!profileId) return;
     await walletService.deleteWallet(id);
-    set(state => ({ wallets: state.wallets.filter(w => w.id !== id) }));
+    const updatedWallets = get().wallets.filter(w => w.id !== id);
+    get().setWallets(updatedWallets);
     useGamificationStore.getState().syncGamification(profileId);
   },
 

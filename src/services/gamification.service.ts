@@ -5,7 +5,7 @@ export interface GamificationData {
   transactions: Transaction[];
   savingsGoals: SavingsGoal[];
   currentLevel: number;
-  path?: 'investor' | 'frugal' | 'neutral';
+  path?: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
 }
 
 export const ALL_ACHIEVEMENTS: Omit<Achievement, 'earned' | 'earnedDate'>[] = [
@@ -57,7 +57,27 @@ export const INITIAL_MISSIONS: Omit<Mission, 'id'>[] = [
 
   // Frugal Path
   { title: 'Budget Ninja', description: 'Stay under budget for 3 categories', progress: 0, total: 3, icon: 'shield', type: 'short', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' },
-  { title: 'Minimalist', description: 'Reduce monthly expenses by 10%', progress: 0, total: 10, icon: 'target', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' }
+  { title: 'Minimalist', description: 'Reduce monthly expenses by 10%', progress: 0, total: 10, icon: 'target', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' },
+
+  // Guardian Path
+  { title: 'Capital Shield', description: 'Maintain 6 months of runway', progress: 0, total: 6, icon: 'shield', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'guardian' },
+  { title: 'Risk Auditor', description: 'Verify all asset providers', progress: 0, total: 5, icon: 'audit', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'guardian' },
+
+  // Catalyst Path
+  { title: 'Growth Engine', description: 'Reach 20% portfolio volatility', progress: 0, total: 20, icon: 'zap', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'catalyst' },
+  { title: 'Venture Ingress', description: 'Add 3 high-growth assets', progress: 0, total: 3, icon: 'rocket', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'catalyst' },
+
+  // Alchemist Path
+  { title: 'Impact Radius', description: 'Allocate $5000 to ESG goals', progress: 0, total: 5000, icon: 'gem', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'alchemist' },
+  { title: 'Green Ledger', description: 'Label 5 ethical transactions', progress: 0, total: 5, icon: 'leaf', type: 'short', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'alchemist' },
+
+  // Nomad Path
+  { title: 'Global Liquidity', description: 'Hold assets in 4 currencies', progress: 0, total: 4, icon: 'globe', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'nomad' },
+  { title: 'Borderless Flow', description: 'Make a cross-border transfer', progress: 0, total: 1, icon: 'plane', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'nomad' },
+
+  // Legacy Path
+  { title: 'Estate Blueprint', description: 'Initialize a property asset', progress: 0, total: 1, icon: 'landmark', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'legacy' },
+  { title: 'Century Plan', description: 'Set a goal with 10yr+ target', progress: 0, total: 1, icon: 'clock', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'legacy' }
 ];
 
 export class GamificationService {
@@ -124,6 +144,19 @@ export class GamificationService {
           .filter(w => w.type === 'Investment' || w.type === 'Crypto')
           .reduce((sum, w) => sum + w.balance, 0);
         newProgress = Math.min(m.total, investmentTotal);
+        changed = true;
+      } else if (m.title === 'Capital Shield') {
+        const runway = totalLiquidity / averageMonthlyIncome;
+        newProgress = Math.min(m.total, runway);
+        changed = true;
+      } else if (m.title === 'Global Liquidity') {
+        newProgress = new Set(wallets.map(w => w.currency)).size;
+        changed = true;
+      } else if (m.title === 'Estate Blueprint') {
+        newProgress = wallets.some(w => w.type === 'Property') ? 1 : 0;
+        changed = true;
+      } else if (m.title === 'Venture Ingress') {
+        newProgress = wallets.filter(w => w.type === 'Investment' || w.type === 'Crypto').length;
         changed = true;
       }
 

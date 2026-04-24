@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Rocket, Shield, Target, ChevronRight, Zap, TrendingUp, Gem } from 'lucide-react';
+import { Rocket, Shield, Target, ChevronRight, Zap, TrendingUp, Gem, Globe, Landmark } from 'lucide-react';
 import { useGamificationStore } from '../store/useGamificationStore';
 
 export default function PathSelection() {
@@ -27,14 +27,59 @@ export default function PathSelection() {
       accent: 'text-blue-400'
     },
     {
-        id: 'neutral',
-        name: 'The Balanced Path',
-        desc: 'A versatile approach balancing growth and security.',
-        perks: ['Standard XP progression', 'Access to all mission types', 'Flexible strategy'],
-        icon: Target,
-        color: '#F2CA50',
-        accent: 'text-primary'
-      }
+      id: 'neutral',
+      name: 'The Balanced Path',
+      desc: 'A versatile approach balancing growth and security.',
+      perks: ['Standard XP progression', 'Access to all mission types', 'Flexible strategy'],
+      icon: Target,
+      color: '#F2CA50',
+      accent: 'text-primary'
+    },
+    {
+      id: 'guardian',
+      name: 'Wealth Guardian',
+      desc: 'Prioritizes capital preservation, stability, and risk mitigation.',
+      perks: ['Bonus XP for savings growth', 'Lower volatility missions', 'Risk Assessment AI'],
+      icon: Shield,
+      color: '#F59E0B',
+      accent: 'text-amber-500'
+    },
+    {
+      id: 'catalyst',
+      name: 'Venture Catalyst',
+      desc: 'High-risk, high-reward strategy focusing on disruptive opportunities.',
+      perks: ['XP multiplier for high-growth assets', 'Early stage access missions', 'Venture Tracking'],
+      icon: Zap,
+      color: '#F43F5E',
+      accent: 'text-rose-500'
+    },
+    {
+      id: 'alchemist',
+      name: 'Ethical Alchemist',
+      desc: 'Aligns financial growth with social and environmental impact.',
+      perks: ['Bonus XP for ESG investments', 'Impact tracking missions', 'Sustainable finance AI'],
+      icon: Gem,
+      color: '#2DD4BF',
+      accent: 'text-teal-400'
+    },
+    {
+      id: 'nomad',
+      name: 'Digital Nomad',
+      desc: 'Optimizes for global mobility, remote income, and borderless finance.',
+      perks: ['Reduced foreign transaction fees (Virtual)', 'Global tax optimization missions', 'Multi-currency AI'],
+      icon: Globe,
+      color: '#818CF8',
+      accent: 'text-indigo-400'
+    },
+    {
+      id: 'legacy',
+      name: 'Legacy Builder',
+      desc: 'Long-term focused, emphasizing estate planning and generational wealth.',
+      perks: ['XP bonus for multi-year goals', 'Estate planning missions', 'Trust and Will AI'],
+      icon: Landmark,
+      color: '#A78BFA',
+      accent: 'text-purple-400'
+    }
   ];
 
   return (
