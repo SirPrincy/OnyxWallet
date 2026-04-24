@@ -31,41 +31,96 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
     return SUPPORTED_CURRENCIES.find((c: any) => c.code === primaryCurrency)?.symbol || '$';
   }, [wallets]);
 
-  const growthPercent = useMemo(() => {
+  const stats = useMemo(() => {
     const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const thirtyDaysAgo = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthStart = new Date(currentYear, currentMonth, 1).getTime();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysRemaining = daysInMonth - now.getDate() + 1;
 
-    const netChange = transactions
-      .filter(t => t.timestamp >= thirtyDaysAgo)
-      .reduce((sum, t) => {
-        if (t.type === 'income') return sum + t.amount;
-        if (t.type === 'expense') return sum - Math.abs(t.amount);
-        return sum;
-      }, 0);
+    // The limit is the earliest point we need to check: either 30 days ago or start of month
+    const lookbackLimit = Math.min(thirtyDaysAgo, monthStart);
+
+    // Spending trend buckets (last 7 days)
+    const trendBuckets = Array(7).fill(0);
+    const bucketTimestamps = Array.from({ length: 7 }, (_, i) =>
+      new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i)).getTime()
+    );
+
+    let netChange30d = 0;
+    let curMonthIncome = 0;
+    let curMonthSpent = 0;
+
+    // PERFORMANCE: Optimized single-pass over transactions.
+    // NOTE: This assumes transactions are sorted DESC by timestamp (default DB order).
+    for (const tx of transactions) {
+      if (tx.timestamp < lookbackLimit) break;
+
+      // 30-day net change for growth percent
+      if (tx.timestamp >= thirtyDaysAgo) {
+        if (tx.type === 'income') netChange30d += tx.amount;
+        else if (tx.type === 'expense') netChange30d -= Math.abs(tx.amount);
+      }
+
+      // Current month stats for safe-to-spend
+      const txDate = new Date(tx.timestamp);
+      if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
+        if (tx.type === 'income') curMonthIncome += tx.amount;
+        else if (tx.type === 'expense') curMonthSpent += Math.abs(tx.amount);
+      }
+
+      // Spending trend (last 7 days)
+      if (tx.type === 'expense' && tx.timestamp >= bucketTimestamps[0]) {
+        for (let i = 6; i >= 0; i--) {
+          if (tx.timestamp >= bucketTimestamps[i]) {
+            trendBuckets[i] += Math.abs(tx.amount);
+            break;
+          }
+        }
+      }
+    }
+
+    // Growth Calculation
+    const previousWealth = totalLiquidity - netChange30d;
+    const growthPercent = previousWealth <= 0 ? (netChange30d > 0 ? 100 : 0) : (netChange30d / previousWealth) * 100;
+
+    // Spending Trend Visualization
+    const maxSpent = Math.max(...trendBuckets, 1);
+    const spendingTrend = trendBuckets.map(s => Math.max(10, (s / maxSpent) * 100));
+
+    // Safe-to-Spend Logic
+    const monthlyRecurringIncome = recurringTransactions
+      .filter(rt => rt.type === 'income' && rt.frequency === 'Monthly')
+      .reduce((sum, rt) => sum + rt.amount, 0);
     
-    const previousWealth = totalLiquidity - netChange;
+    const monthlyRecurringExpense = recurringTransactions
+      .filter(rt => rt.type === 'expense' && rt.frequency === 'Monthly')
+      .reduce((sum, rt) => sum + rt.amount, 0);
 
-    if (previousWealth <= 0) return netChange > 0 ? 100 : 0;
-    return (netChange / previousWealth) * 100;
-  }, [transactions, totalLiquidity]);
+    const activeGoals = savingsGoals.filter(g => !g.isCompleted);
+    const totalRemainingToGoal = activeGoals.reduce((sum, g) => sum + (g.target - g.current), 0);
+    const savingsTarget = activeGoals.length > 0
+      ? Math.max(0, totalRemainingToGoal / 12)
+      : (monthlyRecurringIncome + curMonthIncome) * 0.1;
 
-  const spendingTrend = useMemo(() => {
-    const now = new Date();
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (6 - i));
-      const startOfDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-      const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
-      
-      const spent = Math.abs(transactions
-        .filter(t => t.type === 'expense' && t.timestamp >= startOfDay && t.timestamp < endOfDay)
-        .reduce((sum, t) => sum + t.amount, 0));
-      
-      return spent;
-    });
+    const totalAvailable = monthlyRecurringIncome + curMonthIncome - monthlyRecurringExpense - savingsTarget;
+    const remainingForMonth = totalAvailable - curMonthSpent;
+    const perDay = remainingForMonth / daysRemaining;
 
-    const maxSpent = Math.max(...days, 1);
-    return days.map(s => Math.max(10, (s / maxSpent) * 100));
-  }, [transactions]);
+    return {
+      growthPercent,
+      spendingTrend,
+      curMonthSpent, // used for the trend card below
+      safeToSpend: {
+        monthly: Math.max(0, remainingForMonth),
+        daily: Math.max(0, perDay),
+        percent: Math.min(100, Math.max(0, (curMonthSpent / totalAvailable) * 100))
+      }
+    };
+  }, [transactions, totalLiquidity, recurringTransactions, savingsGoals]);
 
   const totalInvested = useMemo(() => {
     return savingsGoals.reduce((sum, g) => sum + g.current, 0);
@@ -76,54 +131,6 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
     if (active.length === 0) return missions[0];
     return [...active].sort((a, b) => (b.progress / b.total) - (a.progress / a.total))[0];
   }, [missions]);
-
-  const safeToSpend = useMemo(() => {
-    const now = new Date();
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    const daysRemaining = daysInMonth - now.getDate() + 1;
-
-    // 1. Expected Income this month (Recurring + Income already received)
-    const monthlyIncome = recurringTransactions
-      .filter(rt => rt.type === 'income' && rt.frequency === 'Monthly')
-      .reduce((sum, rt) => sum + rt.amount, 0);
-    
-    // 2. Already received income this month
-    const curMonthIncomeResult = transactions
-      .filter(tx => tx.type === 'income' && 
-        new Date(tx.timestamp).getMonth() === now.getMonth() &&
-        new Date(tx.timestamp).getFullYear() === now.getFullYear())
-      .reduce((sum, tx) => sum + tx.amount, 0);
-
-    // 3. Fixed Expenses (Recurring)
-    const fixedExpenses = recurringTransactions
-      .filter(rt => rt.type === 'expense' && rt.frequency === 'Monthly')
-      .reduce((sum, rt) => sum + rt.amount, 0);
-
-    // 4. Savings Targets: Dynamic calculation based on active goals
-    const activeGoals = savingsGoals.filter(g => !g.isCompleted);
-    const totalRemainingToGoal = activeGoals.reduce((sum, g) => sum + (g.target - g.current), 0);
-    // Suggest putting aside enough to reach all goals in 12 months, or 10% of remaining if no goals
-    const savingsTarget = activeGoals.length > 0
-      ? Math.max(0, totalRemainingToGoal / 12)
-      : (monthlyIncome + curMonthIncomeResult) * 0.1;
-
-    // 5. Already spent this month (Expenses)
-    const curMonthSpent = Math.abs(transactions
-      .filter(tx => tx.type === 'expense' && new Date(tx.timestamp).getMonth() === now.getMonth())
-      .reduce((sum, tx) => sum + tx.amount, 0));
-
-    const totalAvailable = monthlyIncome + curMonthIncomeResult - fixedExpenses - savingsTarget;
-    const remainingForMonth = totalAvailable - curMonthSpent;
-    
-    // Safe to spend today
-    const perDay = remainingForMonth / daysRemaining;
-
-    return {
-      monthly: Math.max(0, remainingForMonth),
-      daily: Math.max(0, perDay),
-      percent: Math.min(100, Math.max(0, (curMonthSpent / totalAvailable) * 100))
-    };
-  }, [transactions, recurringTransactions]);
 
   return (
     <div className="space-y-10 pb-12">
@@ -143,9 +150,9 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
         </div>
         {transactions.length > 0 && (
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container-low text-primary text-sm font-medium">
-            <TrendingUp className={`w-4 h-4 ${growthPercent < 0 ? 'rotate-180 text-error' : ''}`} />
-            <span className={growthPercent < 0 ? 'text-error' : ''}>
-              {growthPercent >= 0 ? '+' : ''}{growthPercent.toFixed(1)}% this month
+            <TrendingUp className={`w-4 h-4 ${stats.growthPercent < 0 ? 'rotate-180 text-error' : ''}`} />
+            <span className={stats.growthPercent < 0 ? 'text-error' : ''}>
+              {stats.growthPercent >= 0 ? '+' : ''}{stats.growthPercent.toFixed(1)}% this month
             </span>
           </div>
         )}
@@ -213,13 +220,13 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="space-y-3">
             <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-widest">
               <span className="text-on-surface-variant">Consumption Pulse</span>
-              <span className={safeToSpend.percent > 90 ? 'text-error' : 'text-primary'}>{safeToSpend.percent.toFixed(0)}%</span>
+              <span className={stats.safeToSpend.percent > 90 ? 'text-error' : 'text-primary'}>{stats.safeToSpend.percent.toFixed(0)}%</span>
             </div>
             <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
-                animate={{ width: `${safeToSpend.percent}%` }}
-                className={`h-full ${safeToSpend.percent > 90 ? 'bg-error' : 'bg-primary'} transition-all`}
+                animate={{ width: `${stats.safeToSpend.percent}%` }}
+                className={`h-full ${stats.safeToSpend.percent > 90 ? 'bg-error' : 'bg-primary'} transition-all`}
               />
             </div>
           </div>
@@ -293,7 +300,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
                 <h4 className="text-lg font-headline">{mainMission.title}</h4>
                 <div className="flex items-center gap-3">
                   <div className="h-1 w-32 bg-surface-container-highest rounded-full overflow-hidden">
-                    <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${(mainMission.progress / mainMission.total) * 100}%` }}></div>
+                    <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${(mainMission.progress / mainMission.total) * 100}%` }}>0%</div>
                   </div>
                   <span className="text-[10px] text-on-surface/60 italic">{Math.round((mainMission.progress / mainMission.total) * 100)}% complete</span>
                 </div>
@@ -348,7 +355,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Expenses This Month</p>
             </div>
             <div className="flex gap-1.5 h-12 items-end">
-              {spendingTrend.map((h, i) => (
+              {stats.spendingTrend.map((h, i) => (
                 <div 
                   key={i} 
                   className={`w-2 rounded-t-sm ${h > 80 ? 'bg-primary' : 'bg-surface-container-highest'}`} 

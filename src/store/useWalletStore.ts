@@ -57,6 +57,6 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   },
 
   reorderWallets: async (newWallets) => {
-    set({ wallets: newWallets });
+    get().setWallets(newWallets);
   }
 }));
