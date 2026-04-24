@@ -208,11 +208,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           
           <div className="flex items-center justify-between mb-8">
             <div className="space-y-1">
-              <p className="text-5xl font-headline text-on-surface tracking-tight">{primaryCurrencySymbol}{formatNumber(stats.safeToSpend.monthly)}</p>
+              <p className="text-5xl font-headline text-on-surface tracking-tight">{primaryCurrencySymbol}{formatNumber(safeToSpend.monthly)}</p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-[0.3em] font-bold">Remaining in your vault</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-headline text-primary">{primaryCurrencySymbol}{formatNumber(stats.safeToSpend.daily).split('.')[0]}</p>
+              <p className="text-2xl font-headline text-primary">{primaryCurrencySymbol}{formatNumber(safeToSpend.daily).split('.')[0]}</p>
               <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Per day limit</p>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           </div>
 
           <p className="mt-6 text-[10px] text-on-surface-variant/60 italic leading-relaxed">
-            Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">{primaryCurrencySymbol}{formatNumber(stats.safeToSpend.daily).split('.')[0]}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
+            Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">{primaryCurrencySymbol}{formatNumber(safeToSpend.daily).split('.')[0]}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
           </p>
         </div>
       </section>
@@ -345,7 +345,12 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <p className="text-2xl font-headline">
-                {primaryCurrencySymbol}{formatNumber(stats.curMonthSpent)}
+                {primaryCurrencySymbol}{formatNumber(Math.abs(transactions
+                  .filter(tx => tx.type === 'expense' && 
+                    new Date(tx.timestamp).getMonth() === new Date().getMonth() &&
+                    new Date(tx.timestamp).getFullYear() === new Date().getFullYear())
+                  .reduce((sum, tx) => sum + tx.amount, 0)
+                ))}
               </p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Expenses This Month</p>
             </div>
