@@ -7,7 +7,7 @@ import { useWalletStore } from '../store/useWalletStore';
 import { useGamificationStore } from '../store/useGamificationStore';
 import IncomeStatement from './IncomeStatement';
 import { ICON_MAP } from '../constants';
-import { SUPPORTED_CURRENCIES } from '../constants/currencies';
+import { useCurrency } from '../hooks/useCurrency';
 
 export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'history' | 'budget' | 'growth' | 'investing') => void }) {
   const currentUser = useAuthStore(s => s.currentUser);
@@ -15,21 +15,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
   const recurringTransactions = useFinancialStore(s => s.recurringTransactions);
   const savingsGoals = useFinancialStore(s => s.savingsGoals);
   const budgets = useFinancialStore(s => s.budgets);
-  const wallets = useWalletStore(s => s.wallets);
   const totalLiquidity = useWalletStore(s => s.totalLiquidity);
+  const { primaryCurrencySymbol, formatCurrency } = useCurrency();
 
-  const formatNumber = (val: number) => {
-    const parts = val.toFixed(2).split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-    return parts.join('.');
-  };
   const tierData = useGamificationStore(s => s.tierData);
   const missions = useGamificationStore(s => s.missions);
-
-  const primaryCurrencySymbol = useMemo(() => {
-    const primaryCurrency = wallets[0]?.currency || 'USD';
-    return SUPPORTED_CURRENCIES.find((c: any) => c.code === primaryCurrency)?.symbol || '$';
-  }, [wallets]);
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -143,9 +133,8 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
               <path d="M0 15 Q 25 5, 50 12 T 100 8" fill="none" stroke="currentColor" strokeWidth="1" />
             </svg>
           </div>
-          <span className="text-primary-container font-headline text-5xl md:text-7xl">{primaryCurrencySymbol}</span>
           <span className="text-on-surface font-headline text-6xl md:text-8xl tracking-tight">
-            {formatNumber(totalLiquidity)}
+            {formatCurrency(totalLiquidity)}
           </span>
         </div>
         {transactions.length > 0 && (
@@ -208,11 +197,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           
           <div className="flex items-center justify-between mb-8">
             <div className="space-y-1">
-              <p className="text-5xl font-headline text-on-surface tracking-tight">{primaryCurrencySymbol}{formatNumber(stats.safeToSpend.monthly)}</p>
+              <p className="text-5xl font-headline text-on-surface tracking-tight">{formatCurrency(stats.safeToSpend.monthly)}</p>
               <p className="text-[10px] text-on-surface-variant uppercase tracking-[0.3em] font-bold">Remaining in your vault</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-headline text-primary">{primaryCurrencySymbol}{formatNumber(stats.safeToSpend.daily).split('.')[0]}</p>
+              <p className="text-2xl font-headline text-primary">{formatCurrency(stats.safeToSpend.daily).split('.')[0]}</p>
               <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Per day limit</p>
             </div>
           </div>
@@ -232,7 +221,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           </div>
 
           <p className="mt-6 text-[10px] text-on-surface-variant/60 italic leading-relaxed">
-            Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">{primaryCurrencySymbol}{formatNumber(stats.safeToSpend.daily).split('.')[0]}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
+            Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">{formatCurrency(stats.safeToSpend.daily).split('.')[0]}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
           </p>
         </div>
       </section>
@@ -252,13 +241,13 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-start mb-6">
             <div>
               <p className="text-on-surface-variant text-[10px] uppercase tracking-widest mb-1">Total Invested Assets</p>
-              <h4 className="text-3xl font-headline">{primaryCurrencySymbol}{formatNumber(totalInvested)}</h4>
+              <h4 className="text-3xl font-headline">{formatCurrency(totalInvested)}</h4>
             </div>
             <div className="text-right">
               <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Daily Yield</p>
               <p className="text-primary font-medium flex items-center justify-end gap-1">
                 <TrendingUp className="w-4 h-4" />
-                +{primaryCurrencySymbol}0.00
+                +{primaryCurrencySymbol} 0.00
               </p>
             </div>
           </div>
@@ -345,7 +334,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-center">
             <div className="space-y-1">
               <p className="text-2xl font-headline">
-                {primaryCurrencySymbol}{formatNumber(Math.abs(transactions
+                {formatCurrency(Math.abs(transactions
                   .filter(tx => tx.type === 'expense' && 
                     new Date(tx.timestamp).getMonth() === new Date().getMonth() &&
                     new Date(tx.timestamp).getFullYear() === new Date().getFullYear())
@@ -410,7 +399,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold">{tx.amount < 0 ? '-' : '+'}{primaryCurrencySymbol}{formatNumber(Math.abs(tx.amount))}</p>
+                    <p className="text-sm font-semibold">{formatCurrency(tx.amount)}</p>
                     <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{tx.date}</p>
                   </div>
                 </div>

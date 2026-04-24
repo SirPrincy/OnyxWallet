@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { financialService } from '../services/financial.service';
 import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
+import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 import { Category, RecurringTransaction } from '../types';
 import { ICON_OPTIONS, COLOR_OPTIONS } from '../constants';
 
@@ -16,6 +18,7 @@ type Period = 'Monthly' | 'Quarterly' | 'Annually';
 
 export default function IncomeStatement() {
   const transactions = useFinancialStore(s => s.transactions);
+  const wallets = useWalletStore(s => s.wallets);
   const categories = useFinancialStore(s => s.categories);
   const addCategory = useFinancialStore(s => s.addCategory);
   const updateCategory = useFinancialStore(s => s.updateCategory);
@@ -49,6 +52,17 @@ export default function IncomeStatement() {
   const stats = useMemo(() => {
     return financialService.calculateIncomeStatement(transactions, recurringTransactions, period);
   }, [transactions, period, recurringTransactions]);
+
+  const primaryCurrencySymbol = useMemo(() => {
+    const primaryCurrency = wallets[0]?.currency || 'USD';
+    return SUPPORTED_CURRENCIES.find((c: any) => c.code === primaryCurrency)?.symbol || '$';
+  }, [wallets]);
+
+  const formatCurrency = (val: number) => {
+    const parts = Math.abs(val).toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return `${val < 0 ? '-' : ''}${primaryCurrencySymbol} ${parts.join('.')}`;
+  };
 
   const handleOpenEdit = (cat: Category) => {
     setEditingCategory(cat);
@@ -201,14 +215,14 @@ export default function IncomeStatement() {
                   <ArrowUpRight className="w-3 h-3 text-primary" />
                   Total Revenue
                 </div>
-                <p className="font-headline text-3xl text-on-surface">${stats.revenue.toLocaleString()}</p>
+                <p className="font-headline text-3xl text-on-surface">{formatCurrency(stats.revenue)}</p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">
                   <ArrowDownRight className="w-3 h-3 text-red-400" />
                   Total Expenses
                 </div>
-                <p className="font-headline text-3xl text-on-surface">${stats.expenses.toLocaleString()}</p>
+                <p className="font-headline text-3xl text-on-surface">{formatCurrency(stats.expenses)}</p>
               </div>
             </div>
 
@@ -216,7 +230,7 @@ export default function IncomeStatement() {
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-1">Net Flow</p>
                 <h4 className="font-headline text-4xl text-on-surface">
-                  {stats.netIncome < 0 ? '-' : '+'}${Math.abs(stats.netIncome).toLocaleString()}
+                  {formatCurrency(stats.netIncome)}
                 </h4>
               </div>
               <div className={`w-12 h-12 rounded-full border flex items-center justify-center ${stats.netIncome >= 0 ? 'bg-primary/10 border-primary/20 text-primary' : 'bg-red-400/10 border-red-400/20 text-red-400'}`}>
@@ -238,7 +252,7 @@ export default function IncomeStatement() {
               <div key={i} className="space-y-2">
                 <div className="flex justify-between items-center text-xs">
                   <span className="font-medium text-on-surface">{cat.name}</span>
-                  <span className="text-on-surface-variant font-mono">${cat.amount.toLocaleString()}</span>
+                  <span className="text-on-surface-variant font-mono">{formatCurrency(cat.amount)}</span>
                 </div>
                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                   <motion.div 
@@ -444,7 +458,7 @@ export default function IncomeStatement() {
                           </div>
                           <div className="flex items-center gap-4">
                             <span className={`text-xs font-mono font-bold ${rec.type === 'income' ? 'text-primary' : 'text-red-400'}`}>
-                              {rec.type === 'income' ? '+' : '-'}${rec.amount.toLocaleString()}
+                              {formatCurrency(rec.type === 'income' ? rec.amount : -rec.amount)}
                             </span>
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button onClick={() => handleOpenEditRec(rec)} className="p-2 text-on-surface-variant hover:text-primary transition-colors">

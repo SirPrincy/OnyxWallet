@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useFinancialStore } from '../store/useFinancialStore';
+import { useWalletStore } from '../store/useWalletStore';
+import { useCurrency } from '../hooks/useCurrency';
 import { Transaction } from '../types';
 import NewTransaction from './NewTransaction';
 import { ICON_MAP } from '../constants';
@@ -16,6 +18,7 @@ type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest';
 
 export default function History() {
   const transactions = useFinancialStore(s => s.transactions);
+  const wallets = useWalletStore(s => s.wallets);
   const deleteTransaction = useFinancialStore(s => s.deleteTransaction);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -28,6 +31,8 @@ export default function History() {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const { primaryCurrencySymbol, formatCurrency } = useCurrency();
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -141,7 +146,7 @@ export default function History() {
         <label className="text-[10px] uppercase tracking-[0.3em] text-white/20 font-bold">Amount Range</label>
         <div className="flex items-center gap-3">
           <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">{primaryCurrencySymbol}</span>
             <input 
               type="number"
               placeholder="Min"
@@ -152,7 +157,7 @@ export default function History() {
           </div>
           <div className="w-3 h-[1px] bg-white/10" />
           <div className="flex-1 relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 text-xs">{primaryCurrencySymbol}</span>
             <input 
               type="number"
               placeholder="Max"
@@ -326,7 +331,7 @@ export default function History() {
                     </div>
                     <div className="text-right">
                       <p className={`font-headline text-2xl ${tx.amount > 0 ? 'text-primary' : 'text-on-surface'}`}>
-                        {tx.amount > 0 ? '+' : '-'}${Math.abs(tx.amount).toLocaleString()}
+                        {formatCurrency(tx.amount)}
                       </p>
                     </div>
                   </motion.div>
@@ -384,7 +389,7 @@ export default function History() {
                     <div>
                       <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Amount</p>
                       <p className={`font-headline text-3xl ${selectedTx.amount > 0 ? 'text-primary' : 'text-on-surface'}`}>
-                        {selectedTx.amount > 0 ? '+' : '-'}${Math.abs(selectedTx.amount).toLocaleString()}
+                        {formatCurrency(selectedTx.amount)}
                       </p>
                     </div>
                   </div>

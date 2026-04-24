@@ -11,6 +11,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useCurrency } from '../hooks/useCurrency';
 import { Transaction } from '../types';
 import { ICON_MAP } from '../constants';
 import { SUPPORTED_CURRENCIES } from '../constants/currencies';
@@ -48,6 +49,8 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
   );
   const [toWallet, setToWallet] = useState(wallets[1] || wallets[0]);
   const [description, setDescription] = useState(editTransaction?.title || '');
+  const { primaryCurrencySymbol, formatCurrency } = useCurrency();
+
   const [dateTime, setDateTime] = useState(() => {
     const d = editTransaction ? new Date(editTransaction.timestamp) : new Date();
     const pad = (n: number) => n.toString().padStart(2, '0');
@@ -212,53 +215,57 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
           </button>
         </section>
 
-        <div className="space-y-10">
+        <div className="space-y-12">
           {selectedWallet?.type === 'Crypto' ? (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                  <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-2">Quantity</label>
+            <div className="space-y-8 bg-surface-container-low/50 p-8 rounded-[2.5rem] border border-white/5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -z-10"></div>
+              <div className="grid grid-cols-2 gap-8 relative z-10">
+                <div className="flex flex-col space-y-3">
+                  <label className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary/60">Quantity</label>
                   <input
                     value={cryptoQuantity}
                     onChange={(e) => setCryptoQuantity(e.target.value)}
-                    className="w-full bg-transparent border-none p-0 font-headline text-4xl md:text-5xl focus:ring-0 text-on-surface placeholder:text-surface-variant selection:bg-primary/20"
-                    placeholder="0.5"
+                    className="w-full bg-transparent border-none p-0 font-headline text-5xl md:text-6xl focus:ring-0 text-on-surface placeholder:text-on-surface-variant/20"
+                    placeholder="0.00"
                     type="number"
                   />
                 </div>
-                <div className="flex flex-col">
-                  <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-2">Token Price ($)</label>
+                <div className="flex flex-col space-y-3">
+                  <label className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary/60">Unit Price ($)</label>
                   <input
                     value={cryptoPrice}
                     onChange={(e) => setCryptoPrice(e.target.value)}
-                    className="w-full bg-transparent border-none p-0 font-headline text-4xl md:text-5xl focus:ring-0 text-on-surface placeholder:text-surface-variant selection:bg-primary/20"
-                    placeholder="70000"
+                    className="w-full bg-transparent border-none p-0 font-headline text-5xl md:text-6xl focus:ring-0 text-on-surface placeholder:text-on-surface-variant/20"
+                    placeholder="0"
                     type="number"
                   />
                 </div>
               </div>
-              <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
-                <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1">Estimated Value</p>
-                <p className="font-headline text-4xl text-primary">
-                  $ {((parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <div className="pt-8 border-t border-white/5">
+                <p className="text-[10px] uppercase tracking-[0.4em] text-on-surface-variant font-bold mb-3">Equivalent Value</p>
+                <p className="font-headline text-6xl text-primary tracking-tighter">
+                  {formatCurrency((parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0), '$')}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col">
-              <label className="text-[10px] uppercase tracking-[0.2em] font-semibold text-on-surface-variant mb-2">Amount</label>
-              <div className="relative flex items-baseline">
-                <span className="font-headline text-4xl text-primary/60 mr-2">
+            <div className="flex flex-col items-center justify-center py-12 px-6 bg-surface-container-low/50 rounded-[3rem] border border-white/5 relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+              <label className="text-[10px] uppercase tracking-[0.4em] font-bold text-primary mb-8 relative z-10">Transaction Amount</label>
+              <div className="relative flex items-center justify-center w-full max-w-md">
+                <span className="text-4xl md:text-5xl font-headline text-primary/40 mr-4 mt-2">
                   {SUPPORTED_CURRENCIES.find(c => c.code === selectedWallet?.currency)?.symbol || '$'}
                 </span>
                 <input
+                  autoFocus
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full bg-transparent border-none p-0 font-headline text-7xl md:text-8xl focus:ring-0 text-on-surface placeholder:text-surface-variant selection:bg-primary/20"
-                  placeholder="0.00"
+                  className="w-full bg-transparent border-none p-0 font-headline text-8xl md:text-9xl focus:ring-0 text-on-surface placeholder:text-on-surface-variant/10 text-center selection:bg-primary/20"
+                  placeholder="0"
                   type="number"
                 />
               </div>
+              <div className="mt-8 w-24 h-1 bg-primary/10 rounded-full"></div>
             </div>
           )}
 
@@ -349,7 +356,7 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
                   <option value="" className="bg-surface-container-high text-on-surface-variant">None</option>
                   {liabilities.map(l => (
                     <option key={l.id} value={l.id} className="bg-surface-container-high text-on-surface">
-                      {l.name} (${l.remainingAmount.toLocaleString()} remaining)
+                      {l.name} ({formatCurrency(l.remainingAmount)} remaining)
                     </option>
                   ))}
                 </select>
@@ -371,7 +378,7 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
                   <option value="" className="bg-surface-container-high text-on-surface-variant">None</option>
                   {savingsGoals.map(g => (
                     <option key={g.id} value={g.id} className="bg-surface-container-high text-on-surface">
-                      {g.title} (${g.current.toLocaleString()} / ${g.target.toLocaleString()})
+                      {g.title} ({formatCurrency(g.current)} / {formatCurrency(g.target)})
                     </option>
                   ))}
                 </select>
@@ -588,7 +595,7 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
                         </div>
                         <div className="text-left">
                           <p className={`font-medium ${isSelected ? 'text-primary' : 'text-on-surface'}`}>{wallet.name}</p>
-                          <p className="text-xs text-on-surface-variant">Available: ${wallet.balance.toLocaleString()}</p>
+                          <p className="text-xs text-on-surface-variant">Available: {formatCurrency(wallet.balance, SUPPORTED_CURRENCIES.find(c => c.code === wallet.currency)?.symbol)}</p>
                         </div>
                       </div>
                       {isSelected && <CheckCircle className="text-primary w-6 h-6" />}

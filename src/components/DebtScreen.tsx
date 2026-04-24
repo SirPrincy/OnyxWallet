@@ -6,6 +6,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useCurrency } from '../hooks/useCurrency';
 
 export default function DebtScreen() {
   const liabilities = useFinancialStore(s => s.liabilities);
@@ -89,6 +90,8 @@ export default function DebtScreen() {
     [...liabilities].sort((a, b) => a.remainingAmount - b.remainingAmount),
   [liabilities]);
 
+  const { primaryCurrencySymbol, formatCurrency } = useCurrency();
+
   const debtToIncomeRatio = 18; // Mock for now
 
   return (
@@ -97,7 +100,7 @@ export default function DebtScreen() {
       <section className="space-y-6">
         <div className="flex flex-col items-center text-center">
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mb-2">Total Indebtedness</span>
-          <h2 className="font-headline text-6xl md:text-7xl text-on-surface tracking-tight mb-4">${totalRemaining.toLocaleString()}</h2>
+          <h2 className="font-headline text-6xl md:text-7xl text-on-surface tracking-tight mb-4">{formatCurrency(totalRemaining)}</h2>
           <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-surface-container-low border border-outline-variant/10">
             <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(242,202,80,0.6)]"></span>
             <p className="font-sans text-xs text-on-surface-variant">Debt-to-Income Ratio: <span className="text-primary font-medium">{debtToIncomeRatio}% (Healthy)</span></p>
@@ -108,11 +111,11 @@ export default function DebtScreen() {
         <div className="grid grid-cols-12 gap-4">
           <div className="col-span-7 bg-surface-container-low/40 backdrop-blur-xl p-6 rounded-xl border border-white/5 flex flex-col justify-between h-32">
             <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant">Total Capital Repaid</span>
-            <span className="font-headline text-3xl text-on-surface">${totalPaid.toLocaleString()}</span>
+            <span className="font-headline text-3xl text-on-surface">{formatCurrency(totalPaid)}</span>
           </div>
           <div className="col-span-5 bg-primary/5 p-6 rounded-xl border border-primary/20 flex flex-col justify-between h-32">
             <span className="font-sans text-[10px] uppercase tracking-widest text-primary/80">Monthly Service</span>
-            <span className="font-headline text-3xl text-primary">${liabilities.reduce((sum, l) => sum + l.monthlyPayment, 0).toLocaleString()}</span>
+            <span className="font-headline text-3xl text-primary">{formatCurrency(liabilities.reduce((sum, l) => sum + l.monthlyPayment, 0))}</span>
           </div>
         </div>
       </section>
@@ -155,8 +158,8 @@ export default function DebtScreen() {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-[11px] uppercase tracking-wider font-medium">
-                    <span className="text-on-surface-variant">Paid: ${paid.toLocaleString()}</span>
-                    <span className="text-on-surface">Remaining: ${debt.remainingAmount.toLocaleString()}</span>
+                    <span className="text-on-surface-variant">Paid: {formatCurrency(paid)}</span>
+                    <span className="text-on-surface">Remaining: {formatCurrency(debt.remainingAmount)}</span>
                   </div>
                   <div className="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
                     <motion.div 
@@ -249,14 +252,14 @@ export default function DebtScreen() {
               <div className="space-y-8">
                 <div className="p-6 rounded-2xl bg-surface-container-highest/30 border border-white/5">
                   <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-2">Targeting</p>
-                  <p className="text-on-surface font-medium">{selectedDebt?.title}</p>
-                  <p className="text-primary text-xs mt-1">Remaining: ${(selectedDebt ? selectedDebt.target - selectedDebt.paid : 0).toLocaleString()}</p>
+                  <p className="text-on-surface font-medium">{selectedDebt?.name}</p>
+                  <p className="text-primary text-xs mt-1">Remaining: {formatCurrency(selectedDebt ? selectedDebt.remainingAmount : 0)}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Payment Amount ($)</label>
+                  <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Payment Amount</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-headline text-2xl">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-headline text-2xl">{primaryCurrencySymbol} </span>
                     <input 
                       type="number"
                       value={paymentAmount}
@@ -285,7 +288,7 @@ export default function DebtScreen() {
                   <div className="flex items-center gap-3 text-on-surface-variant">
                     <Wallet className="w-4 h-4" />
                     <span className="text-[10px] uppercase tracking-widest">
-                      Available: ${wallets.find(w => w.id === selectedWalletId)?.balance.toLocaleString() || '0'}
+                      Available: {formatCurrency(wallets.find(w => w.id === selectedWalletId)?.balance || 0)}
                     </span>
                   </div>
                 </div>
@@ -375,7 +378,7 @@ export default function DebtScreen() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Total Amount ($)</label>
+                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Total Amount ({primaryCurrencySymbol})</label>
                     <input 
                       type="number"
                       value={newTotalAmount}
@@ -385,7 +388,7 @@ export default function DebtScreen() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Remaining ($)</label>
+                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Remaining ({primaryCurrencySymbol})</label>
                     <input 
                       type="number"
                       value={newRemainingAmount}
@@ -397,7 +400,7 @@ export default function DebtScreen() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Monthly Pay ($)</label>
+                    <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Monthly Pay ({primaryCurrencySymbol})</label>
                     <input 
                       type="number"
                       value={newMonthlyPayment}

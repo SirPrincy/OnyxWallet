@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { useWalletStore } from '../store/useWalletStore';
+import { useCurrency } from '../hooks/useCurrency';
 import { Wallet } from '../types';
 import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 
@@ -19,6 +20,7 @@ export default function WalletManagement() {
   const addWallet = useWalletStore(s => s.addWallet);
   const updateWallet = useWalletStore(s => s.updateWallet);
   const deleteWallet = useWalletStore(s => s.deleteWallet);
+  const { formatCurrency } = useCurrency();
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
   const [showMore, setShowMore] = useState(false);
@@ -57,23 +59,16 @@ export default function WalletManagement() {
   };
   const formatValue = (usdAmount: number, cur: string) => {
     const value = usdAmount * (rates[cur as keyof typeof rates] || 1);
-    const formatted = value.toLocaleString('fr-FR', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).replace(',', '.'); // Use French locale for space separator but keep point for decimals if desired, or just space.
-    // Actually standard French is 1 000,00. User asked for "Espacement de milliers"
 
-    const parts = value.toFixed(2).split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-    const result = parts.join('.');
+    if (cur === "BTC" || cur === "ETH") {
+        const parts = value.toFixed(2).split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        const result = parts.join('.');
+        return `${cur === "BTC" ? "₿" : "Ξ"} ${result}`;
+    }
 
-    if (cur === 'BTC') return `₿ ${result}`;
-    if (cur === 'ETH') return `Ξ ${result}`;
-
-    const currencyInfo = SUPPORTED_CURRENCIES.find(c => c.code === cur);
-    const symbol = currencyInfo?.symbol || '$';
-
-    return `${symbol} ${result}`;
+    const symbol = SUPPORTED_CURRENCIES.find(c => c.code === cur)?.symbol;
+    return formatCurrency(value, symbol);
   };
 
   const handleSaveWallet = () => {
