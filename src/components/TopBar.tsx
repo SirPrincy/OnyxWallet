@@ -23,7 +23,10 @@ export default function TopBar({ title, onMenuClick, profileImage }: TopBarProps
       </h1>
 
       <div className="flex items-center gap-3">
-        <button className="text-on-surface-variant hover:text-primary transition-colors">
+        <button
+          aria-label="Open notifications"
+          className="text-on-surface-variant hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none rounded-lg"
+        >
           <Bell className="w-4 h-4" />
         </button>
         <div className="w-7 h-7 rounded-full overflow-hidden border border-primary/20 bg-surface-container-highest flex items-center justify-center relative">

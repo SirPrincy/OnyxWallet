@@ -69,7 +69,8 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
               
               <button 
                 onClick={onClose}
-                className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors p-2"
+                aria-label="Close navigation menu"
+                className="absolute top-4 right-4 text-white/20 hover:text-white transition-colors p-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -121,7 +122,7 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
                 <button
                   key={index}
                   onClick={() => handleItemClick(item.screen)}
-                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all duration-200 group text-left"
+                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all duration-200 group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">

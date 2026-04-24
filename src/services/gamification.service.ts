@@ -1,4 +1,5 @@
 import { Mission, Achievement, Transaction, Wallet, SavingsGoal } from '../types';
+import { convertCurrency } from '../utils/currency';
 
 export interface GamificationData {
   wallets: Wallet[];
@@ -84,7 +85,10 @@ export class GamificationService {
   evaluateMissions(data: GamificationData, currentMissions: Mission[]): (Partial<Mission> & { id: string })[] {
     const { wallets, transactions, currentLevel, path } = data;
     
-    const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
+    const totalLiquidity = wallets.reduce((sum, w) => {
+      const signedBalance = w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance;
+      return sum + convertCurrency(signedBalance, w.currency || 'USD', 'USD');
+    }, 0);
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const averageMonthlyIncome = totalIncome > 0 ? Math.max(3000, totalIncome / 3) : 3000;
     
@@ -142,7 +146,7 @@ export class GamificationService {
       } else if (m.title === 'Market Entrant') {
         const investmentTotal = wallets
           .filter(w => w.type === 'Investment' || w.type === 'Crypto')
-          .reduce((sum, w) => sum + w.balance, 0);
+          .reduce((sum, w) => sum + convertCurrency(w.balance, w.currency || 'USD', 'USD'), 0);
         newProgress = Math.min(m.total, investmentTotal);
         changed = true;
       } else if (m.title === 'Capital Shield') {
@@ -170,7 +174,10 @@ export class GamificationService {
 
   async evaluateAchievements(data: GamificationData, currentAchievements: Achievement[]): Promise<string[]> {
     const { wallets, transactions, savingsGoals } = data;
-    const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
+    const totalLiquidity = wallets.reduce((sum, w) => {
+      const signedBalance = w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance;
+      return sum + convertCurrency(signedBalance, w.currency || 'USD', 'USD');
+    }, 0);
     
     const newlyEarnedIds: string[] = [];
 
@@ -181,7 +188,7 @@ export class GamificationService {
       const luxuryTxs = transactions.filter(t => t.category === 'Luxury Goods');
       const totalLuxurySpent = Math.abs(luxuryTxs.reduce((sum, t) => sum + t.amount, 0));
       const investments = wallets.filter(w => w.type === 'Investment' || w.type === 'Crypto' || w.type === 'Property');
-      const totalInvestments = investments.reduce((sum, w) => sum + w.balance, 0);
+      const totalInvestments = investments.reduce((sum, w) => sum + convertCurrency(w.balance, w.currency || 'USD', 'USD'), 0);
 
       switch (a.id) {
         case 'first_10k': earned = totalLiquidity >= 10000; break;

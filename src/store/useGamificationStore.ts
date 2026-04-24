@@ -48,24 +48,34 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
   },
 
   calculateXP: () => {
-    const wallets = useWalletStore.getState().wallets;
+    const { wallets, totalLiquidity } = useWalletStore.getState();
     const transactions = useFinancialStore.getState().transactions;
     const savingsGoals = useFinancialStore.getState().savingsGoals;
     const path = get().path;
 
-    const totalLiquidity = wallets.reduce((sum, w) => sum + (w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance), 0);
-    let xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
-    let xpFromTx = transactions.length * 50;
-    let xpFromGoals = savingsGoals.filter(g => g.current >= g.target).length * 500;
+    const xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
+    const xpFromGoals = savingsGoals.reduce((count, goal) => count + (goal.current >= goal.target ? 1 : 0), 0) * 500;
+
+    let txCount = 0;
+    let expenseTxCount = 0;
+    let investorBonusCount = 0;
+    let totalIncome = 0;
+
+    for (const tx of transactions) {
+      txCount++;
+      if (tx.type === 'income') totalIncome += tx.amount;
+      if (tx.type === 'expense') expenseTxCount++;
+      if (tx.category === 'Investment' || (tx.category === 'Transfer' && tx.goalId)) investorBonusCount++;
+    }
+
+    let xpFromTx = txCount * 50;
 
     // Passive Bonuses
     if (path === 'investor') {
-      const investmentTxs = transactions.filter(t => t.category === 'Investment' || t.category === 'Transfer' && t.goalId);
-      xpFromTx += investmentTxs.length * 25; // +50% XP for investment related actions
+      xpFromTx += investorBonusCount * 25; // +50% XP for investment related actions
     } else if (path === 'frugal') {
-      const expenseTxs = transactions.filter(t => t.type === 'expense');
-      // Reward lower number of transactions (discipline)
-      xpFromTx += Math.max(0, (100 - expenseTxs.length)) * 10;
+      // Reward lower number of expense transactions (discipline)
+      xpFromTx += Math.max(0, (100 - expenseTxCount)) * 10;
     }
 
     const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
@@ -84,7 +94,6 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
       { name: 'Archon', level: 6, threshold: thresholds.archonXP },
     ];
 
-    const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const averageMonthlyIncome = totalIncome > 0 ? Math.max(thresholds.avgMonthlyIncome, totalIncome / 3) : thresholds.avgMonthlyIncome;
     const runwayMonths = totalLiquidity / averageMonthlyIncome;
 
