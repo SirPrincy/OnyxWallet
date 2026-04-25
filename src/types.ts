@@ -1,4 +1,4 @@
-import React from 'react';
+export type WealthPath = 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
 
 export interface Transaction {
   id: string;
@@ -30,7 +30,7 @@ export interface Mission {
   maxLevel?: number;
   status: 'active' | 'completed' | 'locked';
   unlockedAtLevel: number;
-  path?: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
+  path?: WealthPath;
 }
 
 export interface Budget {
@@ -131,7 +131,7 @@ export interface Profile {
   image?: string;
   color: string;
   currency: string;
-  path?: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
+  path?: WealthPath;
 }
 
 export interface TierData {

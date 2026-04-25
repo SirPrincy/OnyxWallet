@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Transaction, Budget, Category, SavingsGoal, Liability, RecurringTransaction } from '../types';
+import { Transaction, Budget, Category, SavingsGoal, Liability, RecurringTransaction, GoalContribution } from '../types';
 import { transactionService } from '../services/transaction.service';
 import { budgetService } from '../services/budget.service';
 import { financialService } from '../services/financial.service';
@@ -10,6 +10,8 @@ import { useGamificationStore } from './useGamificationStore';
 import { STANDARD_CATEGORIES, ELITE_UPGRADES } from '../constants/categories';
 
 export const INITIAL_CATEGORIES: Category[] = STANDARD_CATEGORIES.map((c, i) => ({ ...c, id: (i + 1).toString() })) as Category[];
+
+const getCurrency = () => useAuthStore.getState().currentUser?.currency;
 
 export interface FinancialState {
   transactions: Transaction[];
@@ -39,7 +41,7 @@ export interface FinancialState {
   updateSavingsGoal: (id: string, updates: Partial<SavingsGoal>, profileId: string) => Promise<void>;
   deleteSavingsGoal: (id: string, profileId: string) => Promise<void>;
   contributeToGoal: (goalId: string, amount: number, profileId: string, walletId?: string) => Promise<void>;
-  getGoalHistory: (goalId: string) => Promise<any[]>;
+  getGoalHistory: (goalId: string) => Promise<GoalContribution[]>;
 
   addCategory: (category: Omit<Category, 'id'>, profileId: string) => Promise<void>;
   updateCategory: (id: string, updates: Partial<Category>, profileId: string) => Promise<void>;
@@ -120,7 +122,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     });
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
   },
 
@@ -133,7 +135,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     set({ transactions: updatedTransactions });
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
   },
 
@@ -155,7 +157,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     });
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
   },
 
@@ -185,7 +187,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     set({ savingsGoals: updated });
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
   },
 
@@ -195,7 +197,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     set({ savingsGoals: updated });
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
   },
 
@@ -205,7 +207,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
     set({ savingsGoals: updated });
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
   },
 
@@ -237,7 +239,7 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
         set({ savingsGoals: updatedGoals });
 
         const gamStore = useGamificationStore.getState();
-        const profileCurrency = useAuthStore.getState().currentUser?.currency;
+        const profileCurrency = getCurrency();
         await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
       }
     }
@@ -326,13 +328,13 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
 
   updateRecurringTransaction: async (id, updates, profileId) => {
     await financialService.updateRecurringTransaction(id, updates);
-    const updated = await databaseService.query('SELECT * FROM recurring_transactions WHERE profileId = ?', [profileId]);
-    set({ recurringTransactions: updated.values || [] });
+    const updated = await financialService.getRecurringTransactions(profileId);
+    set({ recurringTransactions: updated });
   },
 
   deleteRecurringTransaction: async (id, profileId) => {
     await financialService.deleteRecurringTransaction(id);
-    const updated = await databaseService.query('SELECT * FROM recurring_transactions WHERE profileId = ?', [profileId]);
-    set({ recurringTransactions: updated.values || [] });
+    const updated = await financialService.getRecurringTransactions(profileId);
+    set({ recurringTransactions: updated });
   }
 }));

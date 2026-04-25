@@ -21,7 +21,8 @@ export const loadUserData = async (profileId: string) => {
       categoriesData,
       liabilitiesData,
       missionsData,
-      achievementsData
+      achievementsData,
+      recurringTransactionsData
     ] = await Promise.all([
       walletService.getWallets(profileId),
       transactionService.getTransactions(profileId),
@@ -30,12 +31,11 @@ export const loadUserData = async (profileId: string) => {
       financialService.getCategories(profileId),
       financialService.getLiabilities(profileId),
       financialService.getMissions(profileId),
-      financialService.getAchievements(profileId)
+      financialService.getAchievements(profileId),
+      financialService.getRecurringTransactions(profileId)
     ]);
 
     useWalletStore.getState().setWallets(walletsData);
-    
-    const recurringRes = await databaseService.query('SELECT * FROM recurring_transactions WHERE profileId = ?', [profileId]);
     
     const finStore = useFinancialStore.getState();
     finStore.setTransactions(transactionsData);
@@ -43,7 +43,7 @@ export const loadUserData = async (profileId: string) => {
     finStore.setSavingsGoals(goalsData);
     finStore.setCategories(categoriesData.length > 0 ? categoriesData : INITIAL_CATEGORIES);
     finStore.setLiabilities(liabilitiesData);
-    finStore.setRecurringTransactions(recurringRes.values || []);
+    finStore.setRecurringTransactions(recurringTransactionsData);
 
     const gamStore = useGamificationStore.getState();
     if (missionsData.length > 0) gamStore.setMissions(missionsData);

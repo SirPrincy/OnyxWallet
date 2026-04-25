@@ -8,7 +8,7 @@ export class ProfileService {
     return res.values || [];
   }
 
-  async addProfile(profile: Omit<Profile, 'id' | 'passcode'> & { passcode?: string }): Promise<Profile> {
+  async addProfile(profile: Omit<Profile, 'id' | 'passcode'> & { passcode?: string | null }): Promise<Profile> {
     const id = crypto.randomUUID();
     const hashedPasscode = profile.passcode ? await this.hashPasscode(profile.passcode) : null;
     const profileToSave = { ...profile, id, passcode: hashedPasscode } as Profile;
