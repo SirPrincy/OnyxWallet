@@ -132,6 +132,7 @@ export interface Profile {
   color: string;
   currency: string;
   path?: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
+  hourlyRate?: number;
 }
 
 export interface TierData {

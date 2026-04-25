@@ -12,6 +12,8 @@ export class TransactionService {
     newTx: Omit<Transaction, 'id' | 'timestamp' | 'date' | 'time'> & { date?: string; time?: string; timestamp?: number },
     profileId: string
   ): Promise<Transaction> {
+    await using session = await databaseService.getSession();
+
     const now = new Date();
     const id = crypto.randomUUID();
     const timestamp = newTx.timestamp || now.getTime();

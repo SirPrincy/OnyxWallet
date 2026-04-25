@@ -8,6 +8,7 @@ import { useAuthStore } from './useAuthStore';
 import { useWalletStore } from './useWalletStore';
 import { useGamificationStore } from './useGamificationStore';
 import { STANDARD_CATEGORIES, ELITE_UPGRADES } from '../constants/categories';
+import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
 
 export const INITIAL_CATEGORIES: Category[] = STANDARD_CATEGORIES.map((c, i) => ({ ...c, id: (i + 1).toString() })) as Category[];
 
@@ -72,56 +73,118 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
   setRecurringTransactions: (r) => set({ recurringTransactions: r }),
 
   addTransaction: async (newTx, profileId) => {
-    await transactionService.addTransaction(newTx as any, profileId);
+    // 1. Sensorial Feedback
+    Haptics.impact({ style: ImpactStyle.Light });
+    const { audioService } = await import('../services/audio.service');
+    audioService.playSuccess();
 
-    // Auto-Allocation Logic
-    if (newTx.type === 'income') {
-      const goals = get().savingsGoals;
-      const incomeAmount = newTx.amount;
+    // 2. Optimistic Update
+    const now = new Date();
+    const tempId = crypto.randomUUID();
+    const optimisticTx: Transaction = {
+      id: tempId,
+      title: newTx.title,
+      category: newTx.category,
+      subcategory: newTx.subcategory,
+      subcategoryIcon: newTx.subcategoryIcon,
+      amount: newTx.amount,
+      type: newTx.type,
+      date: newTx.date || 'Today',
+      time: newTx.time || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      icon: newTx.icon,
+      timestamp: newTx.timestamp || now.getTime(),
+      walletId: newTx.walletId,
+      liabilityId: newTx.liabilityId,
+      goalId: newTx.goalId,
+    };
 
-      for (const goal of goals) {
-        if (goal.autoAllocationPercent && goal.autoAllocationPercent > 0 && !goal.isCompleted) {
-          const allocationAmount = (incomeAmount * goal.autoAllocationPercent) / 100;
-          if (allocationAmount > 0) {
-            // Trigger contribution without a recursive transaction call to avoid loops
-            // We just update the goal balance
-            const newCurrent = goal.current + allocationAmount;
-            await financialService.updateSavingsGoal(goal.id, {
-              current: newCurrent,
-              isCompleted: newCurrent >= goal.target
-            });
+    const previousTransactions = get().transactions;
+    const previousLiabilities = get().liabilities;
+    const previousGoals = get().savingsGoals;
 
-            await financialService.addGoalContribution({
-              goalId: goal.id,
-              amount: allocationAmount,
-              date: new Date().toISOString().split('T')[0],
-              timestamp: Date.now(),
-              walletId: newTx.walletId
-            }, profileId);
+    set({ transactions: [optimisticTx, ...previousTransactions] });
+
+    try {
+      // 3. Database Sync
+      await transactionService.addTransaction(newTx as any, profileId);
+
+      // Auto-Allocation Logic
+      if (newTx.type === 'income') {
+        const goals = get().savingsGoals;
+        const incomeAmount = newTx.amount;
+
+        for (const goal of goals) {
+          if (goal.autoAllocationPercent && goal.autoAllocationPercent > 0 && !goal.isCompleted) {
+            const allocationAmount = (incomeAmount * goal.autoAllocationPercent) / 100;
+            if (allocationAmount > 0) {
+              const newCurrent = goal.current + allocationAmount;
+              await financialService.updateSavingsGoal(goal.id, {
+                current: newCurrent,
+                isCompleted: newCurrent >= goal.target
+              });
+
+              await financialService.addGoalContribution({
+                goalId: goal.id,
+                amount: allocationAmount,
+                date: new Date().toISOString().split('T')[0],
+                timestamp: Date.now(),
+                walletId: newTx.walletId
+              }, profileId);
+            }
           }
         }
       }
-    }
-    
-    const [updatedTransactions, updatedLiabilities, updatedGoals] = await Promise.all([
-      transactionService.getTransactions(profileId),
-      financialService.getLiabilities(profileId),
-      financialService.getSavingsGoals(profileId)
-    ]);
-    
-    // Wallets reload
-    const walletStore = useWalletStore.getState();
-    await walletStore.reloadWallets(profileId);
-    
-    set({
-      transactions: updatedTransactions,
-      liabilities: updatedLiabilities,
-      savingsGoals: updatedGoals
-    });
 
-    const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
-    await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
+      const [updatedTransactions, updatedLiabilities, updatedGoals] = await Promise.all([
+        transactionService.getTransactions(profileId),
+        financialService.getLiabilities(profileId),
+        financialService.getSavingsGoals(profileId)
+      ]);
+
+      // Wallets reload
+      const walletStore = useWalletStore.getState();
+      await walletStore.reloadWallets(profileId);
+
+      set({
+        transactions: updatedTransactions,
+        liabilities: updatedLiabilities,
+        savingsGoals: updatedGoals
+      });
+
+      const gamStore = useGamificationStore.getState();
+      const profileCurrency = useAuthStore.getState().currentUser?.currency;
+      await gamStore.syncGamification(profileId, profileCurrency, (level) => get().upgradeToEliteCategories(level, profileId));
+
+      // Round-up Logic
+      if (newTx.type === 'expense') {
+        const amount = Math.abs(newTx.amount);
+        const rounded = Math.ceil(amount);
+        const diff = rounded - amount;
+
+        if (diff > 0) {
+          const targetGoal = get().savingsGoals.find(g => (g.category === 'emergency' || g.category === 'investment') && !g.isCompleted);
+          if (targetGoal) {
+            await get().contributeToGoal(targetGoal.id, diff, profileId, newTx.walletId);
+          }
+        }
+      }
+
+      // Check for Budget Alerts
+      const budgets = get().budgets;
+      const categoryBudget = budgets.find(b => b.category === newTx.category);
+      if (categoryBudget && categoryBudget.spent > categoryBudget.limit) {
+        Haptics.notification({ type: NotificationType.Warning });
+      }
+    } catch (error) {
+      console.error('Failed to add transaction, rolling back:', error);
+      set({
+        transactions: previousTransactions,
+        liabilities: previousLiabilities,
+        savingsGoals: previousGoals
+      });
+      Haptics.notification({ type: NotificationType.Error });
+      throw error;
+    }
   },
 
   updateTransaction: async (id, updates, profileId) => {
@@ -138,6 +201,10 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
   },
 
   deleteTransaction: async (id, profileId) => {
+    Haptics.impact({ style: ImpactStyle.Medium });
+    const { audioService } = await import('../services/audio.service');
+    audioService.playAction();
+
     await transactionService.deleteTransaction(id, get().transactions);
     
     const [updatedTransactions, updatedLiabilities, updatedGoals] = await Promise.all([
