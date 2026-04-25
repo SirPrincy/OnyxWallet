@@ -5,6 +5,7 @@ import {
   ShoppingBag, Palette, LayoutGrid, ArrowLeft, Star
 } from 'lucide-react';
 import { useFinancialStore } from '../store/useFinancialStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { Category } from '../types';
 import { ICON_OPTIONS, COLOR_OPTIONS } from '../constants';
 
@@ -17,6 +18,7 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
   const addCategory = useFinancialStore(s => s.addCategory);
   const updateCategory = useFinancialStore(s => s.updateCategory);
   const deleteCategory = useFinancialStore(s => s.deleteCategory);
+  const currentUser = useAuthStore(s => s.currentUser);
 
   const [selectedCat, setSelectedCat] = useState<Category | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -49,17 +51,17 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
   };
 
   const handleSave = () => {
-    if (!name.trim()) return;
+    if (!name.trim() || !currentUser?.id) return;
 
     if (editingCat) {
       updateCategory(editingCat.id, {
         name, icon, color, type
-      });
+      }, currentUser.id);
     } else {
       addCategory({
         name, icon, color, type,
         subcategories: []
-      });
+      }, currentUser.id);
     }
     setIsAdding(false);
     setEditingCat(null);
@@ -67,9 +69,9 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
   };
 
   const handleAddSub = () => {
-    if (!tempSub.trim() || !selectedCat) return;
+    if (!tempSub.trim() || !selectedCat || !currentUser?.id) return;
     const updatedSubs = [...selectedCat.subcategories, { name: tempSub.trim(), icon: tempSubIcon }];
-    updateCategory(selectedCat.id, { subcategories: updatedSubs });
+    updateCategory(selectedCat.id, { subcategories: updatedSubs }, currentUser.id);
     setTempSub('');
     setTempSubIcon('star');
     // Update local selectedCat to reflect change
@@ -77,9 +79,9 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
   };
 
   const handleRemoveSub = (index: number) => {
-    if (!selectedCat) return;
+    if (!selectedCat || !currentUser?.id) return;
     const updatedSubs = selectedCat.subcategories.filter((_, i) => i !== index);
-    updateCategory(selectedCat.id, { subcategories: updatedSubs });
+    updateCategory(selectedCat.id, { subcategories: updatedSubs }, currentUser.id);
     setSelectedCat({ ...selectedCat, subcategories: updatedSubs });
   };
 
@@ -145,7 +147,7 @@ export default function CategoryManager({ onBack }: CategoryManagerProps) {
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button 
-                      onClick={(e) => { e.stopPropagation(); deleteCategory(cat.id); if(selectedCat?.id === cat.id) setSelectedCat(null); }}
+                      onClick={(e) => { e.stopPropagation(); currentUser?.id && deleteCategory(cat.id, currentUser.id); if(selectedCat?.id === cat.id) setSelectedCat(null); }}
                       aria-label={`Delete ${cat.name}`}
                       className="p-2 text-on-surface-variant hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded-lg"
                     >

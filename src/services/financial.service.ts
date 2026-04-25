@@ -39,6 +39,11 @@ export class FinancialService {
     await databaseService.saveToStore();
   }
 
+  async deleteSavingsGoal(id: string): Promise<void> {
+    await databaseService.run('DELETE FROM savings_goals WHERE id = ?', [id]);
+    await databaseService.saveToStore();
+  }
+
   async addGoalContribution(contribution: Omit<GoalContribution, 'id'>, profileId: string): Promise<void> {
     const id = crypto.randomUUID();
     await databaseService.run(
@@ -70,6 +75,28 @@ export class FinancialService {
     return newLiability;
   }
 
+  async updateLiability(id: string, updates: Partial<Liability>): Promise<void> {
+    const entries = Object.entries(updates);
+    if (entries.length === 0) return;
+    const setClause = entries.map(([key]) => `"${key}" = ?`).join(', ');
+    const values = entries.map(([, value]) => value);
+    await databaseService.run(`UPDATE liabilities SET ${setClause} WHERE id = ?`, [...values, id]);
+    await databaseService.saveToStore();
+  }
+
+  async deleteLiability(id: string): Promise<void> {
+    await databaseService.run('DELETE FROM liabilities WHERE id = ?', [id]);
+    await databaseService.saveToStore();
+  }
+
+  async payLiability(id: string, amount: number): Promise<void> {
+    await databaseService.run(
+      'UPDATE liabilities SET remainingAmount = MAX(0, remainingAmount - ?) WHERE id = ?',
+      [amount, id]
+    );
+    await databaseService.saveToStore();
+  }
+
   // CATEGORIES
   async getCategories(profileId: string): Promise<Category[]> {
     const res = await databaseService.query('SELECT * FROM categories WHERE profileId = ?', [profileId]);
@@ -86,6 +113,54 @@ export class FinancialService {
     );
     await databaseService.saveToStore();
     return newCat;
+  }
+
+  async updateCategory(id: string, updates: Partial<Category>): Promise<void> {
+    const entries = Object.entries(updates);
+    if (entries.length === 0) return;
+    const setClause = entries.map(([key]) => `"${key}" = ?`).join(', ');
+    const values = entries.map(([key, value]) => key === 'subcategories' ? JSON.stringify(value) : value);
+    await databaseService.run(`UPDATE categories SET ${setClause} WHERE id = ?`, [...values, id]);
+    await databaseService.saveToStore();
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    await databaseService.run('DELETE FROM categories WHERE id = ?', [id]);
+    await databaseService.saveToStore();
+  }
+
+  async renameCategoryInRelatedTables(oldName: string, newName: string): Promise<void> {
+    await databaseService.executeSet([
+      { statement: 'UPDATE transactions SET category = ? WHERE category = ?', values: [newName, oldName] },
+      { statement: 'UPDATE budgets SET category = ? WHERE category = ?', values: [newName, oldName] }
+    ]);
+    await databaseService.saveToStore();
+  }
+
+  // RECURRING TRANSACTIONS
+  async addRecurringTransaction(recurring: Omit<RecurringTransaction, 'id'>, profileId: string): Promise<RecurringTransaction> {
+    const id = crypto.randomUUID();
+    const newRecurring = { ...recurring, id };
+    await databaseService.run(
+      'INSERT INTO recurring_transactions (id, name, amount, type, category, frequency, profileId) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [id, newRecurring.name, newRecurring.amount, newRecurring.type, newRecurring.category, newRecurring.frequency, profileId]
+    );
+    await databaseService.saveToStore();
+    return newRecurring;
+  }
+
+  async updateRecurringTransaction(id: string, updates: Partial<RecurringTransaction>): Promise<void> {
+    const entries = Object.entries(updates);
+    if (entries.length === 0) return;
+    const setClause = entries.map(([key]) => `"${key}" = ?`).join(', ');
+    const values = entries.map(([, value]) => value);
+    await databaseService.run(`UPDATE recurring_transactions SET ${setClause} WHERE id = ?`, [...values, id]);
+    await databaseService.saveToStore();
+  }
+
+  async deleteRecurringTransaction(id: string): Promise<void> {
+    await databaseService.run('DELETE FROM recurring_transactions WHERE id = ?', [id]);
+    await databaseService.saveToStore();
   }
 
   // MISSIONS & ACHIEVEMENTS

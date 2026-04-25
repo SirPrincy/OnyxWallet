@@ -6,6 +6,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCurrency } from '../hooks/useCurrency';
 
 export default function DebtScreen() {
@@ -13,6 +14,7 @@ export default function DebtScreen() {
   const payLiability = useFinancialStore(s => s.payLiability);
   const addLiability = useFinancialStore(s => s.addLiability);
   const wallets = useWalletStore(s => s.wallets);
+  const currentUser = useAuthStore(s => s.currentUser);
   const [selectedDebtId, setSelectedDebtId] = useState<string | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
@@ -35,7 +37,7 @@ export default function DebtScreen() {
   const [newProvider, setNewProvider] = useState('');
 
   const handleAddLiability = () => {
-    if (!newName || !newTotalAmount || !newRemainingAmount || !newMonthlyPayment) return;
+    if (!newName || !newTotalAmount || !newRemainingAmount || !newMonthlyPayment || !currentUser?.id) return;
     
     addLiability({
       name: newName,
@@ -46,7 +48,7 @@ export default function DebtScreen() {
       monthlyPayment: parseFloat(newMonthlyPayment),
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default due date 30 days
       provider: newProvider || 'Unknown Provider',
-    });
+    }, currentUser.id);
 
     setShowAddModal(false);
     setNewName('');
@@ -70,9 +72,9 @@ export default function DebtScreen() {
   [liabilities]);
 
   const handlePayment = () => {
-    if (!selectedDebtId || !paymentAmount || !selectedWalletId) return;
+    if (!selectedDebtId || !paymentAmount || !currentUser?.id) return;
     
-    payLiability(selectedDebtId, parseFloat(paymentAmount), selectedWalletId);
+    payLiability(selectedDebtId, parseFloat(paymentAmount), currentUser.id, selectedWalletId);
 
     setIsSuccess(true);
     setTimeout(() => {

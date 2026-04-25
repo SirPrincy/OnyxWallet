@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { budgetService } from '../services/budget.service';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCurrency } from '../hooks/useCurrency';
 
 export default function Budget() {
@@ -16,6 +17,7 @@ export default function Budget() {
   const categories = useFinancialStore(s => s.categories);
   
   const wallets = useWalletStore(s => s.wallets);
+  const currentUser = useAuthStore(s => s.currentUser);
   const [selectedBudget, setSelectedBudget] = useState<string | null>(null);
   const [editingLimit, setEditingLimit] = useState<string>('');
   const [projectionAdjustment, setProjectionAdjustment] = useState<number>(0);
@@ -48,17 +50,17 @@ export default function Budget() {
   }, [budgetData, selectedBudget]);
 
   const toggleWallet = (walletId: string) => {
-    if (!activeBudget) return;
+    if (!activeBudget || !currentUser?.id) return;
     const currentWallets = activeBudget.linkedWallets || [];
     const newWallets = currentWallets.includes(walletId)
       ? currentWallets.filter(id => id !== walletId)
       : [...currentWallets, walletId];
-    updateBudgetWallets(activeBudget.category, newWallets);
+    updateBudgetWallets(activeBudget.category, newWallets, currentUser.id);
   };
 
   const handleUpdateLimit = () => {
-    if (!activeBudget || !editingLimit) return;
-    updateBudgetLimit(activeBudget.category, parseFloat(editingLimit));
+    if (!activeBudget || !editingLimit || !currentUser?.id) return;
+    updateBudgetLimit(activeBudget.category, parseFloat(editingLimit), currentUser.id);
     setEditingLimit('');
   };
 
@@ -69,20 +71,20 @@ export default function Budget() {
   }, [selectedBudget]);
 
   const handleAddBudget = async () => {
-    if (!newBudgetCategory || !newBudgetLimit) return;
+    if (!newBudgetCategory || !newBudgetLimit || !currentUser?.id) return;
     await addBudget({
       category: newBudgetCategory,
       limit: parseFloat(newBudgetLimit),
       subtext: newBudgetSubtext,
       linkedWallets: []
-    });
+    }, currentUser.id);
     setShowAddModal(false);
     setNewBudgetCategory('');
   };
 
   const handleDeleteBudget = async (category: string) => {
-    if (confirm(`Are you sure you want to delete the budget for ${category}?`)) {
-      await deleteBudget(category);
+    if (currentUser?.id && confirm(`Are you sure you want to delete the budget for ${category}?`)) {
+      await deleteBudget(category, currentUser.id);
       if (selectedBudget === category) setSelectedBudget(null);
     }
   };

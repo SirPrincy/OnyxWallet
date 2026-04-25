@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from '../store/useAuthStore';
 import { useWalletStore } from '../store/useWalletStore';
 import { useGamificationStore } from '../store/useGamificationStore';
+import { useFinancialStore } from '../store/useFinancialStore';
 import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 
 interface OnboardingStep {
@@ -206,15 +207,13 @@ export default function Onboarding() {
     // Auto-login using context
     await login(newProfile);
 
-    // Apply the recommended path to gamification store
-    await setPath(recommendedPath as any);
-
     // 2. Create Wallet
     const balance = walletType === 'Crypto'
       ? (parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)
       : parseFloat(walletBalance);
 
-    await addWallet({
+    const wallet = {
+      id: 'initial-wallet',
       name: walletName,
       balance: balance || 0,
       type: walletType,
@@ -223,7 +222,16 @@ export default function Onboarding() {
       icon: 'landmark',
       provider: 'Onyx Reserve',
       isVisible: true
-    });
+    };
+    await addWallet(wallet, newProfile.id);
+
+    // Apply the recommended path to gamification store
+    await setPath(
+      recommendedPath as any,
+      newProfile.id,
+      walletCurrency,
+      (level) => useFinancialStore.getState().upgradeToEliteCategories(level, newProfile.id)
+    );
 
     // 3. Mark completion
     setSetupStep('finish');
@@ -233,8 +241,14 @@ export default function Onboarding() {
     // Force a gamification sync to calculate the initial tier based on the deposit
     const profileId = useAuthStore.getState().currentUser?.id;
     if (profileId) {
-      const { useGamificationStore } = await import('../store/useGamificationStore');
-      await useGamificationStore.getState().syncGamification(profileId);
+      const gamStore = useGamificationStore.getState();
+      const finStore = useFinancialStore.getState();
+
+      await gamStore.syncGamification(
+        profileId,
+        useAuthStore.getState().currentUser?.currency,
+        (level: number) => finStore.upgradeToEliteCategories(level, profileId)
+      );
     }
     await completeSetup();
     await completeOnboarding();

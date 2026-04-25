@@ -5,25 +5,26 @@ import {
   TrendingUp, AlertCircle, Landmark, ChevronRight, Crown, Home
 } from 'lucide-react';
 import { Profile } from '../types';
+import { Link } from '@tanstack/react-router';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   profile: Profile | null;
-  onNavigate: (screen: any, source: 'drawer') => void;
+  onNavigate?: (screen: any, source: 'drawer') => void;
 }
 
-export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate }: NavigationDrawerProps) {
+export default function NavigationDrawer({ isOpen, onClose, profile }: NavigationDrawerProps) {
   const menuItems = [
-    { icon: Home, label: 'Home', screen: 'home' as const },
-    { icon: User, label: 'My profile', screen: 'profile' as const },
-    { icon: History, label: 'History', screen: 'history' as const },
-    { icon: Wallet, label: 'Wallet', screen: 'wallet' as const },
-    { icon: TrendingUp, label: 'Investing', screen: 'investing' as const },
-    { icon: Landmark, label: 'Budget', screen: 'budget' as const },
-    { icon: Crown, label: 'Growth & Reserves', screen: 'growth' as const },
-    { icon: AlertCircle, label: 'Liabilities', screen: 'debt' as const },
-    { icon: Settings, label: 'Settings', screen: 'settings' as const },
+    { icon: Home, label: 'Home', to: '/' },
+    { icon: User, label: 'My profile', to: '/profile' },
+    { icon: History, label: 'History', to: '/transactions' },
+    { icon: Wallet, label: 'Wallet', to: '/accounts' },
+    { icon: TrendingUp, label: 'Investing', to: '/investing' },
+    { icon: Landmark, label: 'Budget', to: '/budget' },
+    { icon: Crown, label: 'Growth & Reserves', to: '/growth' },
+    { icon: AlertCircle, label: 'Liabilities', to: '/debt' },
+    { icon: Settings, label: 'Settings', to: '/settings' },
   ];
 
   const getInitials = (name: string) => {
@@ -35,12 +36,6 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
       .slice(0, 2);
   };
 
-  const handleItemClick = (screen: any) => {
-    if (screen) {
-      onNavigate(screen, 'drawer');
-      onClose();
-    }
-  };
 
   return (
     <AnimatePresence>
@@ -76,9 +71,10 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
               </button>
 
               <div className="relative flex items-center gap-4">
-                <div
+                <Link
+                  to="/profile"
+                  onClick={onClose}
                   className="w-14 h-14 rounded-xl bg-surface-container-highest border border-primary/20 p-0.5 group cursor-pointer flex-shrink-0"
-                  onClick={() => handleItemClick('profile')}
                 >
                   <div className="w-full h-full rounded-[10px] overflow-hidden relative bg-surface-container-highest flex items-center justify-center">
                     {profile?.image ? (
@@ -98,7 +94,7 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
                     </span>
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
                   </div>
-                </div>
+                </Link>
                 
                 <div className="space-y-0.5 min-w-0">
                   <div className="flex items-center gap-2">
@@ -119,9 +115,10 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
             {/* Navigation Items */}
             <div className="flex-1 px-3 space-y-0.5 overflow-y-auto no-scrollbar py-2">
               {menuItems.map((item, index) => (
-                <button
+                <Link
                   key={index}
-                  onClick={() => handleItemClick(item.screen)}
+                  to={item.to}
+                  onClick={onClose}
                   className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-all duration-200 group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <div className="flex items-center gap-3">
@@ -131,7 +128,7 @@ export default function NavigationDrawer({ isOpen, onClose, profile, onNavigate 
                     <p className="font-sans text-sm text-white/60 group-hover:text-white transition-colors tracking-wide font-medium">{item.label}</p>
                   </div>
                   <ChevronRight className="w-3.5 h-3.5 text-white/10 group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                </button>
+                </Link>
               ))}
             </div>
 

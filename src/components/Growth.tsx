@@ -8,6 +8,7 @@ import {
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useGamificationStore } from '../store/useGamificationStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { motion, AnimatePresence } from 'motion/react';
 import { ICON_MAP } from '../constants';
 import { useCurrency } from '../hooks/useCurrency';
@@ -28,6 +29,7 @@ export default function Growth() {
   const achievements = useGamificationStore(s => s.achievements);
   const tierData = useGamificationStore(s => s.tierData);
   const path = useGamificationStore(s => s.path);
+  const currentUser = useAuthStore(s => s.currentUser);
   
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [selectedMissionId, setSelectedMissionId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export default function Growth() {
   const prestigeClass = isPrestige ? 'border-primary/30 shadow-[0_0_30px_rgba(242,202,80,0.1)] bg-gradient-to-b from-surface-container-low to-black' : 'bg-surface-container-low border-white/5';
 
   const handleAddGoal = () => {
-    if (!newGoalTitle || !newGoalTarget) return;
+    if (!newGoalTitle || !newGoalTarget || !currentUser?.id) return;
     addSavingsGoal({
       title: newGoalTitle,
       desc: newGoalDesc || 'Strategic wealth objective',
@@ -79,7 +81,7 @@ export default function Growth() {
       color: newGoalColor,
       inflationRate: newGoalInflation,
       autoAllocationPercent: newGoalAutoAlloc
-    });
+    }, currentUser.id);
     setShowAddModal(false);
     resetNewGoalForm();
   };
@@ -98,8 +100,8 @@ export default function Growth() {
   };
 
   const handleContribute = () => {
-    if (!selectedGoalId || !contribAmount) return;
-    contributeToGoal(selectedGoalId, parseFloat(contribAmount), selectedWalletId);
+    if (!selectedGoalId || !contribAmount || !currentUser?.id) return;
+    contributeToGoal(selectedGoalId, parseFloat(contribAmount), currentUser.id, selectedWalletId);
     setSelectedGoalId(null);
     setContribAmount('');
   };

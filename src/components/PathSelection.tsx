@@ -2,10 +2,19 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Rocket, Shield, Target, ChevronRight, Zap, TrendingUp, Gem, Globe, Landmark } from 'lucide-react';
 import { useGamificationStore } from '../store/useGamificationStore';
+import { useAuthStore } from '../store/useAuthStore';
+import { useWalletStore } from '../store/useWalletStore';
+import { useFinancialStore } from '../store/useFinancialStore';
 
 export default function PathSelection() {
   const currentPath = useGamificationStore(s => s.path);
   const setPath = useGamificationStore(s => s.setPath);
+  const currentUser = useAuthStore(s => s.currentUser);
+  const wallets = useWalletStore(s => s.wallets);
+  const transactions = useFinancialStore(s => s.transactions);
+  const savingsGoals = useFinancialStore(s => s.savingsGoals);
+  const tierData = useGamificationStore(s => s.tierData);
+  const upgradeToEliteCategories = useFinancialStore(s => s.upgradeToEliteCategories);
 
   const paths = [
     {
@@ -94,7 +103,12 @@ export default function PathSelection() {
               key={p.id}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setPath(p.id as any)}
+              onClick={() => currentUser?.id && setPath(
+                p.id as any,
+                currentUser.id,
+                currentUser.currency,
+                (level: number) => upgradeToEliteCategories(level, currentUser.id)
+              )}
               className={`relative p-6 rounded-[2.5rem] border text-left transition-all overflow-hidden flex flex-col h-full ${
                 isActive
                   ? 'bg-surface-container-high border-primary/50 shadow-[0_0_30px_rgba(242,202,80,0.15)]'

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { Profile, Category } from '../types';
 import { profileService } from '../services/profile.service';
 import { settingsService } from '../services/settings.service';
 import { financialService } from '../services/financial.service';
@@ -6,30 +7,30 @@ import { budgetService } from '../services/budget.service';
 import { databaseService } from '../services/database.service';
 
 interface AuthState {
-  profiles: any[];
+  profiles: Profile[];
   isPasscodeEnabled: boolean;
   hasCompletedOnboarding: boolean;
   hasCompletedSetup: boolean;
-  currentUser: any | null;
+  currentUser: Profile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   
   setLoading: (loading: boolean) => void;
-  setProfiles: (profiles: any[]) => void;
+  setProfiles: (profiles: Profile[]) => void;
   setIsPasscodeEnabledState: (enabled: boolean) => void;
   setHasCompletedOnboarding: (completed: boolean) => void;
   setHasCompletedSetup: (completed: boolean) => void;
-  setCurrentUser: (user: any | null) => void;
+  setCurrentUser: (user: Profile | null) => void;
   setIsAuthenticated: (auth: boolean) => void;
 
   setIsPasscodeEnabled: (enabled: boolean) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   resetOnboarding: () => Promise<void>;
   completeSetup: () => Promise<void>;
-  login: (profile: any) => Promise<void>;
+  login: (profile: Profile) => Promise<void>;
   logout: () => Promise<void>;
   hashPasscode: (plain: string) => Promise<string>;
-  addProfile: (profile: any, initialCategories: any[]) => Promise<any>;
+  addProfile: (profile: Omit<Profile, 'id'>, initialCategories: Category[]) => Promise<Profile>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -84,7 +85,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   addProfile: async (profile, initialCategories) => {
-    const profileToSave = await profileService.addProfile(profile);
+    const profileToSave = await profileService.addProfile(profile as any);
     set(state => ({ profiles: [...state.profiles, profileToSave] }));
 
     // Initialize defaults for the new profile

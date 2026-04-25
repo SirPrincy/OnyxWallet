@@ -1,5 +1,6 @@
-import { Mission, Achievement, Transaction, Wallet, SavingsGoal } from '../types';
+import { Mission, Achievement, Transaction, Wallet, SavingsGoal, TierData } from '../types';
 import { convertCurrency } from '../utils/currency';
+import { getThresholds } from '../constants/thresholds';
 
 export interface GamificationData {
   wallets: Wallet[];
@@ -82,6 +83,84 @@ export const INITIAL_MISSIONS: Omit<Mission, 'id'>[] = [
 ];
 
 export class GamificationService {
+  public isSyncing = false;
+  private lastSyncedData: string | null = null;
+  private syncTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  private getDirtyString(data: GamificationData): string {
+    return JSON.stringify({
+      w: data.wallets.length,
+      t: data.transactions.length,
+      g: data.savingsGoals.length,
+      b: data.wallets.map(w => w.balance),
+      p: data.savingsGoals.map(g => g.current),
+      l: data.currentLevel,
+      path: data.path
+    });
+  }
+
+  async sync(
+    profileId: string,
+    data: GamificationData,
+    missions: Mission[],
+    achievements: Achievement[],
+    actions: {
+      updateMission: (id: string, updates: Partial<Mission>) => Promise<void>;
+      updateAchievement: (id: string, earned: boolean) => Promise<void>;
+      refreshData: () => Promise<{ missions: Mission[], achievements: Achievement[] }>;
+      onComplete: () => void;
+    }
+  ): Promise<void> {
+    // 1. Locking
+    if (this.isSyncing) return;
+
+    // 2. Dirty Checking
+    const dataString = this.getDirtyString(data);
+    if (dataString === this.lastSyncedData) return;
+
+    // 3. Debouncing (1000ms)
+    if (this.syncTimeout) clearTimeout(this.syncTimeout);
+
+    this.syncTimeout = setTimeout(async () => {
+      if (this.isSyncing) return;
+
+      console.count('GamificationSync_Execution');
+      console.time('GamificationSync_Process');
+      this.isSyncing = true;
+
+      try {
+        const missionUpdates = this.evaluateMissions(data, missions);
+        const achievementUpdates = await this.evaluateAchievements(data, achievements);
+
+        let needsRefresh = false;
+        if (missionUpdates.length > 0) {
+          for (const update of missionUpdates) {
+            await actions.updateMission(update.id, update);
+          }
+          needsRefresh = true;
+        }
+        if (achievementUpdates.length > 0) {
+          for (const id of achievementUpdates) {
+            await actions.updateAchievement(id, true);
+          }
+          needsRefresh = true;
+        }
+
+        if (needsRefresh) {
+          await actions.refreshData();
+        }
+
+        this.lastSyncedData = dataString;
+      } catch (error) {
+        console.error('CRITICAL: Gamification Sync Failure', error);
+      } finally {
+        this.isSyncing = false;
+        actions.onComplete();
+        console.timeEnd('GamificationSync_Process');
+      }
+    }, 1000);
+  }
+
   evaluateMissions(data: GamificationData, currentMissions: Mission[]): (Partial<Mission> & { id: string })[] {
     const { wallets, transactions, currentLevel, path } = data;
     
@@ -170,6 +249,99 @@ export class GamificationService {
     });
 
     return updates;
+  }
+
+  calculateXP(
+    data: GamificationData,
+    missions: Mission[],
+    achievements: Achievement[],
+    profileCurrency: string = 'USD'
+  ): { xp: number; tierData: TierData } {
+    const { wallets, transactions, savingsGoals, path } = data;
+
+    const totalLiquidity = wallets.reduce((sum, w) => {
+      const signedBalance = w.type === 'Credit Card' ? -Math.abs(w.balance) : w.balance;
+      return sum + convertCurrency(signedBalance, w.currency || 'USD', 'USD');
+    }, 0);
+
+    const xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
+    const xpFromGoals = savingsGoals.reduce((count, goal) => count + (goal.current >= goal.target ? 1 : 0), 0) * 500;
+
+    let txCount = 0;
+    let expenseTxCount = 0;
+    let investorBonusCount = 0;
+    let totalIncome = 0;
+
+    for (const tx of transactions) {
+      txCount++;
+      if (tx.type === 'income') totalIncome += tx.amount;
+      if (tx.type === 'expense') expenseTxCount++;
+      if (tx.category === 'Investment' || (tx.category === 'Transfer' && tx.goalId)) investorBonusCount++;
+    }
+
+    let xpFromTx = txCount * 50;
+
+    if (path === 'investor') {
+      xpFromTx += investorBonusCount * 25;
+    } else if (path === 'frugal') {
+      xpFromTx += Math.max(0, (100 - expenseTxCount)) * 10;
+    }
+
+    const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
+    const thresholds = getThresholds(profileCurrency);
+
+    const TIERS = [
+      { name: 'Bronze', level: 1, threshold: 0 },
+      { name: 'Silver', level: 2, threshold: thresholds.silverXP },
+      { name: 'Gold', level: 3, threshold: thresholds.goldXP },
+      { name: 'Platinum', level: 4, threshold: thresholds.platinumXP },
+      { name: 'Diamond', level: 5, threshold: thresholds.diamondXP },
+      { name: 'Archon', level: 6, threshold: thresholds.archonXP },
+    ];
+
+    const averageMonthlyIncome = totalIncome > 0 ? Math.max(thresholds.avgMonthlyIncome, totalIncome / 3) : thresholds.avgMonthlyIncome;
+    const runwayMonths = totalLiquidity / averageMonthlyIncome;
+
+    let currentTier = TIERS[0];
+    let next = TIERS[1];
+
+    for (let i = 0; i < TIERS.length; i++) {
+      if (xp >= TIERS[i].threshold) {
+        currentTier = TIERS[i];
+        next = TIERS[i+1] || TIERS[i];
+      }
+    }
+
+    if (runwayMonths >= 6 && currentTier.level < 4) {
+      currentTier = TIERS[3];
+      next = TIERS[4];
+    } else if (runwayMonths >= 3 && currentTier.level < 3) {
+      currentTier = TIERS[2];
+      next = TIERS[3];
+    } else if (runwayMonths >= 1 && currentTier.level < 2) {
+      currentTier = TIERS[1];
+      next = TIERS[2];
+    }
+
+    let progress = 100;
+    let left = 0;
+    if (currentTier !== next) {
+      const range = next.threshold - currentTier.threshold;
+      const currentXPInTier = Math.max(0, xp - currentTier.threshold);
+      progress = (currentXPInTier / range) * 100;
+      left = Math.max(0, next.threshold - xp);
+    }
+
+    return {
+      xp,
+      tierData: {
+        tierName: currentTier.name,
+        level: currentTier.level,
+        progressPercent: Math.min(100, Math.max(0, progress)),
+        xpLeft: left,
+        nextTier: next.name
+      }
+    };
   }
 
   async evaluateAchievements(data: GamificationData, currentAchievements: Achievement[]): Promise<string[]> {

@@ -356,7 +356,7 @@ export default function WalletScreen() {
                 </div>
 
                 <motion.button 
-                  whileActive={{ scale: 0.98 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleActionSubmit}
                   disabled={isSuccess}
                   className="w-full py-6 metallic-gradient rounded-2xl text-background font-bold uppercase tracking-[0.25em] text-xs shadow-2xl shadow-primary/20 flex items-center justify-center gap-3"

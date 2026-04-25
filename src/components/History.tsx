@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCurrency } from '../hooks/useCurrency';
 import { Transaction } from '../types';
 import NewTransaction from './NewTransaction';
@@ -20,6 +21,7 @@ export default function History() {
   const transactions = useFinancialStore(s => s.transactions);
   const wallets = useWalletStore(s => s.wallets);
   const deleteTransaction = useFinancialStore(s => s.deleteTransaction);
+  const currentUser = useAuthStore(s => s.currentUser);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'expense' | 'income' | 'transfer'>('all');
@@ -42,8 +44,8 @@ export default function History() {
   }, []);
 
   const handleDelete = () => {
-    if (selectedTx) {
-      deleteTransaction(selectedTx.id);
+    if (selectedTx && currentUser?.id) {
+      deleteTransaction(selectedTx.id, currentUser.id);
       setSelectedTx(null);
       setShowDeleteConfirm(false);
     }
