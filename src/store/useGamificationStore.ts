@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Mission, Achievement, TierData, Wallet, Transaction, SavingsGoal } from '../types';
+import { Mission, Achievement, TierData, Wallet, Transaction, SavingsGoal, WealthPath } from '../types';
 import { gamificationService, GamificationData } from '../services/gamification.service';
 import { financialService } from '../services/financial.service';
 import { walletService } from '../services/wallet.service';
@@ -11,12 +11,12 @@ export interface GamificationState {
   xp: number;
   isSyncing: boolean;
   tierData: TierData;
-  path: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
+  path: WealthPath;
 
   setMissions: (m: Mission[]) => void;
   setAchievements: (a: Achievement[]) => void;
   setPath: (
-    path: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy',
+    path: WealthPath,
     profileId: string,
     profileCurrency?: string,
     onLevelUp?: (level: number) => void

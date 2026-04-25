@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Profile, Category } from '../types';
+import { Profile, Category, Mission, Achievement } from '../types';
 import { profileService } from '../services/profile.service';
 import { settingsService } from '../services/settings.service';
 import { financialService } from '../services/financial.service';
@@ -32,6 +32,9 @@ interface AuthState {
   hashPasscode: (plain: string) => Promise<string>;
   addProfile: (profile: Omit<Profile, 'id'>, initialCategories: Category[]) => Promise<Profile>;
 }
+
+type NewMission = Omit<Mission, 'id' | 'status' | 'unlockedAtLevel' | 'path' | 'maxLevel'>;
+type NewAchievement = Omit<Achievement, 'id' | 'earnedDate' | 'rarity' | 'description'>;
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   profiles: [],
@@ -85,7 +88,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   addProfile: async (profile, initialCategories) => {
-    const profileToSave = await profileService.addProfile(profile as any);
+    const profileToSave = await profileService.addProfile(profile);
     set(state => ({ profiles: [...state.profiles, profileToSave] }));
 
     // Initialize defaults for the new profile
@@ -96,23 +99,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const primaryCurrency = profileToSave.currency || 'USD';
     const thresholds = (await import('../constants/thresholds')).getThresholds(primaryCurrency);
 
-    const defaultMissions = [
-      { title: 'Security Buffer', description: 'Establish a fundamental liquidity reserve', progress: 0, total: thresholds.avgMonthlyIncome, icon: 'shield', type: 'growth', level: 1 },
-      { title: 'Diversification', description: 'Establish multiple reserves', progress: 0, total: 3, icon: 'account_balance', type: 'growth', level: 1 },
-      { title: 'Positive Cashflow', description: 'Maintain income > expenses', progress: 0, total: 1, icon: 'trending-up', type: 'growth', level: 1 }
+    const defaultMissions: NewMission[] = [
+      { title: 'Security Buffer', description: 'Establish a fundamental liquidity reserve', progress: 0, total: thresholds.avgMonthlyIncome, icon: 'shield', type: 'short', category: 'growth', level: 1 },
+      { title: 'Diversification', description: 'Establish multiple reserves', progress: 0, total: 3, icon: 'account_balance', type: 'short', category: 'growth', level: 1 },
+      { title: 'Positive Cashflow', description: 'Maintain income > expenses', progress: 0, total: 1, icon: 'trending-up', type: 'short', category: 'growth', level: 1 }
     ];
     for (const m of defaultMissions) {
-      await financialService.addMission(m as any, profileToSave.id);
+      await financialService.addMission(m, profileToSave.id);
     }
 
-    const defaultAchievements = [
+    const defaultAchievements: NewAchievement[] = [
       { title: 'First $10k', icon: 'star', earned: false },
       { title: 'Master Saver', icon: 'workspace_premium', earned: false },
       { title: 'Globalist', icon: 'public', earned: false },
       { title: 'Fast Starter', icon: 'rocket_launch', earned: false }
     ];
     for (const a of defaultAchievements) {
-      await financialService.addAchievement(a as any, profileToSave.id);
+      await financialService.addAchievement(a, profileToSave.id);
     }
     
     await databaseService.saveToStore();

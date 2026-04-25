@@ -5,6 +5,8 @@ import { useAuthStore } from './useAuthStore';
 import { useGamificationStore } from './useGamificationStore';
 import { convertCurrency } from '../utils/currency';
 
+const getCurrency = (): string => useAuthStore.getState().currentUser?.currency ?? 'USD';
+
 export interface WalletState {
   wallets: Wallet[];
   totalLiquidity: number;
@@ -25,7 +27,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
   totalLiquidityCurrency: 'USD',
 
   setWallets: (w, targetCurrency) => {
-    const currency = targetCurrency || useAuthStore.getState().currentUser?.currency || 'USD';
+    const currency = targetCurrency || getCurrency();
     const total = w.reduce((sum, wallet) => {
       const signedBalance = wallet.type === 'Credit Card' ? -Math.abs(wallet.balance) : wallet.balance;
       const normalizedBalance = convertCurrency(signedBalance, wallet.currency || 'USD', currency);
@@ -44,7 +46,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     await get().reloadWallets(profileId);
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency);
   },
 
@@ -53,7 +55,7 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     await get().reloadWallets(profileId);
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency);
   },
 
@@ -63,11 +65,11 @@ export const useWalletStore = create<WalletState>((set, get) => ({
     get().setWallets(updatedWallets);
 
     const gamStore = useGamificationStore.getState();
-    const profileCurrency = useAuthStore.getState().currentUser?.currency;
+    const profileCurrency = getCurrency();
     await gamStore.syncGamification(profileId, profileCurrency);
   },
 
-  reorderWallets: async (newWallets) => {
-    get().setWallets(newWallets);
+  reorderWallets: async (newWallets, targetCurrency) => {
+    get().setWallets(newWallets, targetCurrency);
   }
 }));
