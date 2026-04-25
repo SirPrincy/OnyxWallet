@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { Transaction, Wallet, Budget } from '../types';
 
 export interface AISuggestion {
@@ -9,12 +9,12 @@ export interface AISuggestion {
 }
 
 export class AIService {
-  private genAI: GoogleGenAI;
+  private genAI: GoogleGenerativeAI;
 
   constructor() {
     // Note: In a real production app, the API key should be handled via a secure backend or encrypted storage.
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
-    this.genAI = new GoogleGenAI({ apiKey });
+    this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
   async getSafeToSpendSuggestion(
@@ -54,25 +54,26 @@ export class AIService {
       - riskLevel ("Low", "Medium", "High")
       - tips (array of strings, max 2 tips)`;
 
-      const response = await this.genAI.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
+      const model = this.genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
-            type: Type.OBJECT,
+            type: SchemaType.OBJECT,
             properties: {
-              dailyLimit: { type: Type.NUMBER },
-              reasoning: { type: Type.STRING },
-              riskLevel: { type: Type.STRING },
-              tips: { type: Type.ARRAY, items: { type: Type.STRING } }
+              dailyLimit: { type: SchemaType.NUMBER },
+              reasoning: { type: SchemaType.STRING },
+              riskLevel: { type: SchemaType.STRING },
+              tips: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } }
             },
             required: ["dailyLimit", "reasoning", "riskLevel", "tips"]
           }
         }
       });
 
-      return JSON.parse(response.text);
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return JSON.parse(response.text());
     } catch (error) {
       console.error('AI Service Error:', error);
       return null;

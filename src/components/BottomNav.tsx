@@ -1,23 +1,23 @@
 import React from 'react';
 import { Home, History, Wallet, TrendingUp, Plus } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Link } from '@tanstack/react-router';
 
 type NavItem = 'home' | 'history' | 'budget' | 'growth' | 'profile';
 
-export default function BottomNav({ active, onChange, onPlusClick }: { active: NavItem; onChange: (item: NavItem) => void; onPlusClick: () => void }) {
-  const items: { id: NavItem; label: string; icon: React.ElementType }[] = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'history', label: 'History', icon: History },
-    { id: 'budget', label: 'Budget', icon: Wallet },
-    { id: 'growth', label: 'Growth', icon: TrendingUp },
+export default function BottomNav({ active, onPlusClick }: { active: NavItem; onChange?: (item: NavItem) => void; onPlusClick: () => void }) {
+  const items: { id: NavItem; label: string; icon: React.ElementType; to: string }[] = [
+    { id: 'home', label: 'Home', icon: Home, to: '/' },
+    { id: 'history', label: 'History', icon: History, to: '/transactions' },
+    { id: 'budget', label: 'Budget', icon: Wallet, to: '/budget' },
+    { id: 'growth', label: 'Growth', icon: TrendingUp, to: '/growth' },
   ];
 
   return (
     <nav className="fixed bottom-0 left-0 w-full h-24 flex justify-around items-center px-4 pb-4 bg-[#1c1b1b]/80 backdrop-blur-2xl rounded-t-[24px] z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
       {items.slice(0, 2).map((item) => (
-        <button
+        <Link
           key={item.id}
-          onClick={() => onChange(item.id)}
+          to={item.to}
           aria-label={item.label}
           aria-current={active === item.id ? 'page' : undefined}
           className={`flex flex-col items-center justify-center transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] rounded-xl px-2 ${
@@ -28,7 +28,7 @@ export default function BottomNav({ active, onChange, onPlusClick }: { active: N
         >
           <item.icon className="w-6 h-6" fill="none" />
           <span className="font-sans text-[10px] font-semibold tracking-widest uppercase mt-1">{item.label}</span>
-        </button>
+        </Link>
       ))}
 
       <div className="relative -top-4">
@@ -42,9 +42,9 @@ export default function BottomNav({ active, onChange, onPlusClick }: { active: N
       </div>
 
       {items.slice(2).map((item) => (
-        <button
+        <Link
           key={item.id}
-          onClick={() => onChange(item.id)}
+          to={item.to}
           aria-label={item.label}
           aria-current={active === item.id ? 'page' : undefined}
           className={`flex flex-col items-center justify-center transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] rounded-xl px-2 ${
@@ -55,7 +55,7 @@ export default function BottomNav({ active, onChange, onPlusClick }: { active: N
         >
           <item.icon className="w-6 h-6" fill="none" />
           <span className="font-sans text-[10px] font-semibold tracking-widest uppercase mt-1">{item.label}</span>
-        </button>
+        </Link>
       ))}
       <div className="absolute inset-0 -z-10 bg-gradient-to-t from-background to-transparent pointer-events-none"></div>
     </nav>

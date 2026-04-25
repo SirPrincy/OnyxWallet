@@ -1,33 +1,47 @@
 import { create } from 'zustand';
-import { Mission, Achievement, TierData } from '../types';
-import { gamificationService } from '../services/gamification.service';
+import { Mission, Achievement, TierData, Wallet, Transaction, SavingsGoal } from '../types';
+import { gamificationService, GamificationData } from '../services/gamification.service';
 import { financialService } from '../services/financial.service';
-import { useFinancialStore } from './useFinancialStore';
-import { useWalletStore } from './useWalletStore';
-import { useAuthStore } from './useAuthStore';
-import { getThresholds } from '../constants/thresholds';
+import { walletService } from '../services/wallet.service';
+import { transactionService } from '../services/transaction.service';
 
-interface GamificationState {
+export interface GamificationState {
   missions: Mission[];
   achievements: Achievement[];
   xp: number;
+  isSyncing: boolean;
   tierData: TierData;
   path: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy';
 
   setMissions: (m: Mission[]) => void;
   setAchievements: (a: Achievement[]) => void;
-  setPath: (path: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy') => Promise<void>;
+  setPath: (
+    path: 'investor' | 'frugal' | 'neutral' | 'guardian' | 'catalyst' | 'alchemist' | 'nomad' | 'legacy',
+    profileId: string,
+    profileCurrency?: string,
+    onLevelUp?: (level: number) => void
+  ) => Promise<void>;
   
   updateMission: (id: string, progress: number, total: number, level?: number, description?: string) => Promise<void>;
   updateAchievement: (id: string, earned: boolean) => Promise<void>;
-  syncGamification: (profileId: string) => Promise<void>;
-  calculateXP: () => void;
+  syncGamification: (
+    profileId: string,
+    profileCurrency?: string,
+    onLevelUp?: (level: number) => void
+  ) => Promise<void>;
+  calculateXP: (
+    profileId: string,
+    data: GamificationData,
+    profileCurrency?: string,
+    onLevelUp?: (level: number) => void
+  ) => void;
 }
 
 export const useGamificationStore = create<GamificationState>((set, get) => ({
   missions: [],
   achievements: [],
   xp: 0,
+  isSyncing: false,
   path: 'neutral',
   tierData: {
     tierName: 'Bronze',
@@ -39,115 +53,28 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
 
   setMissions: (m) => set({ missions: m }),
   setAchievements: (a) => set({ achievements: a }),
-  setPath: async (path) => {
-    const profileId = useAuthStore.getState().currentUser?.id;
-    if (!profileId) return;
+  setPath: async (path, profileId, profileCurrency, onLevelUp) => {
     await financialService.updateProfile(profileId, { path });
     set({ path });
-    get().syncGamification(profileId);
+    await get().syncGamification(profileId, profileCurrency, onLevelUp);
   },
 
-  calculateXP: () => {
-    const { wallets, totalLiquidity } = useWalletStore.getState();
-    const transactions = useFinancialStore.getState().transactions;
-    const savingsGoals = useFinancialStore.getState().savingsGoals;
-    const path = get().path;
-
-    const xpFromLiquidity = Math.max(0, totalLiquidity) / 10;
-    const xpFromGoals = savingsGoals.reduce((count, goal) => count + (goal.current >= goal.target ? 1 : 0), 0) * 500;
-
-    let txCount = 0;
-    let expenseTxCount = 0;
-    let investorBonusCount = 0;
-    let totalIncome = 0;
-
-    for (const tx of transactions) {
-      txCount++;
-      if (tx.type === 'income') totalIncome += tx.amount;
-      if (tx.type === 'expense') expenseTxCount++;
-      if (tx.category === 'Investment' || (tx.category === 'Transfer' && tx.goalId)) investorBonusCount++;
-    }
-
-    let xpFromTx = txCount * 50;
-
-    // Passive Bonuses
-    if (path === 'investor') {
-      xpFromTx += investorBonusCount * 25; // +50% XP for investment related actions
-    } else if (path === 'frugal') {
-      // Reward lower number of expense transactions (discipline)
-      xpFromTx += Math.max(0, (100 - expenseTxCount)) * 10;
-    }
-
-    const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
-
-    // Stability Bonus (Runway)
-    const currentUser = useAuthStore.getState().currentUser;
-    const currency = currentUser?.currency || 'USD';
-    const thresholds = getThresholds(currency);
-
-    const TIERS = [
-      { name: 'Bronze', level: 1, threshold: 0 },
-      { name: 'Silver', level: 2, threshold: thresholds.silverXP },
-      { name: 'Gold', level: 3, threshold: thresholds.goldXP },
-      { name: 'Platinum', level: 4, threshold: thresholds.platinumXP },
-      { name: 'Diamond', level: 5, threshold: thresholds.diamondXP },
-      { name: 'Archon', level: 6, threshold: thresholds.archonXP },
-    ];
-
-    const averageMonthlyIncome = totalIncome > 0 ? Math.max(thresholds.avgMonthlyIncome, totalIncome / 3) : thresholds.avgMonthlyIncome;
-    const runwayMonths = totalLiquidity / averageMonthlyIncome;
-
-    let currentTier = TIERS[0];
-    let next = TIERS[1];
+  calculateXP: (profileId, data, profileCurrency, onLevelUp) => {
+    const { missions, achievements, tierData } = get();
+    const currency = profileCurrency || 'USD';
     
-    // Calculate Tier based on XP
-    for (let i = 0; i < TIERS.length; i++) {
-      if (xp >= TIERS[i].threshold) {
-        currentTier = TIERS[i];
-        next = TIERS[i+1] || TIERS[i];
-      }
-    }
+    const { xp, tierData: newTierData } = gamificationService.calculateXP(
+      data,
+      missions,
+      achievements,
+      currency
+    );
 
-    // Bump Tier based on Stability (Runway)
-    // 1 month = at least Silver (2)
-    // 3 months = at least Gold (3)
-    // 6 months = at least Platinum (4)
-    if (runwayMonths >= 6 && currentTier.level < 4) {
-      currentTier = TIERS[3];
-      next = TIERS[4];
-    } else if (runwayMonths >= 3 && currentTier.level < 3) {
-      currentTier = TIERS[2];
-      next = TIERS[3];
-    } else if (runwayMonths >= 1 && currentTier.level < 2) {
-      currentTier = TIERS[1];
-      next = TIERS[2];
-    }
-    
-    let progress = 100;
-    let left = 0;
-    if (currentTier !== next) {
-      const range = next.threshold - currentTier.threshold;
-      const currentXPInTier = Math.max(0, xp - currentTier.threshold);
-      progress = (currentXPInTier / range) * 100;
-      left = Math.max(0, next.threshold - xp);
-    }
+    const oldLevel = tierData.level;
+    set({ xp, tierData: newTierData });
 
-    const oldLevel = get().tierData.level;
-
-    set({
-      xp,
-      tierData: {
-        tierName: currentTier.name,
-        level: currentTier.level,
-        progressPercent: Math.min(100, Math.max(0, progress)),
-        xpLeft: left,
-        nextTier: next.name
-      }
-    });
-
-    // If upgraded to Platinum (4) or higher, trigger category upgrades
-    if (oldLevel < 4 && currentTier.level >= 4) {
-      useFinancialStore.getState().upgradeToEliteCategories();
+    if (oldLevel < newTierData.level && onLevelUp) {
+      onLevelUp(newTierData.level);
     }
   },
 
@@ -156,7 +83,6 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     set(state => ({
       missions: state.missions.map(m => m.id === id ? { ...m, progress, total, level: level ?? m.level, description: description ?? m.description } : m)
     }));
-    get().calculateXP();
   },
 
   updateAchievement: async (id, earned) => {
@@ -164,45 +90,54 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     set(state => ({
       achievements: state.achievements.map(a => a.id === id ? { ...a, earned } : a)
     }));
-    get().calculateXP();
   },
 
-  syncGamification: async (profileId) => {
-    const wallets = useWalletStore.getState().wallets;
-    const transactions = useFinancialStore.getState().transactions;
-    const savingsGoals = useFinancialStore.getState().savingsGoals;
-    const currentLevel = get().tierData.level;
-    const path = get().path;
+  syncGamification: async (profileId, profileCurrency, onLevelUp) => {
+    if (get().isSyncing) return;
+    set({ isSyncing: true });
 
-    const data = { wallets, transactions, savingsGoals, currentLevel, path };
-    const missions = get().missions;
-    const achievements = get().achievements;
-
-    const missionUpdates = gamificationService.evaluateMissions(data, missions);
-    const achievementUpdates = await gamificationService.evaluateAchievements(data, achievements);
-    
-    let needsRefresh = false;
-    if (missionUpdates.length > 0) {
-      for (const update of missionUpdates) {
-        await financialService.updateMission(update.id, update);
-      }
-      needsRefresh = true;
-    }
-    if (achievementUpdates.length > 0) {
-      for (const id of achievementUpdates) {
-        await financialService.updateAchievement(id, true);
-      }
-      needsRefresh = true;
-    }
-    
-    if (needsRefresh) {
-      const [m, a] = await Promise.all([
-        financialService.getMissions(profileId),
-        financialService.getAchievements(profileId)
+    try {
+      const [wallets, transactions, savingsGoals] = await Promise.all([
+        walletService.getWallets(profileId),
+        transactionService.getTransactions(profileId),
+        financialService.getSavingsGoals(profileId)
       ]);
-      set({ missions: m, achievements: a });
-    }
 
-    get().calculateXP();
-  }
+      const data: GamificationData = {
+        wallets,
+        transactions,
+        savingsGoals,
+        currentLevel: get().tierData.level,
+        path: get().path
+      };
+
+      const { missions, achievements } = get();
+
+      await gamificationService.sync(
+        profileId,
+        data,
+        missions,
+        achievements,
+        {
+          updateMission: (id, updates) => financialService.updateMission(id, updates),
+          updateAchievement: (id, earned) => financialService.updateAchievement(id, earned),
+          refreshData: async () => {
+            const [m, a] = await Promise.all([
+              financialService.getMissions(profileId),
+              financialService.getAchievements(profileId)
+            ]);
+            set({ missions: m, achievements: a });
+            return { missions: m, achievements: a };
+          },
+          onComplete: () => {
+            get().calculateXP(profileId, data, profileCurrency, onLevelUp);
+            set({ isSyncing: false });
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Gamification sync failed:', error);
+      set({ isSyncing: false });
+    }
+  },
 }));

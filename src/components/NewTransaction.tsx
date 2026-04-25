@@ -11,6 +11,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCurrency } from '../hooks/useCurrency';
 import { Transaction } from '../types';
 import { ICON_MAP } from '../constants';
@@ -20,6 +21,7 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
   const addTransaction = useFinancialStore(s => s.addTransaction);
   const updateTransaction = useFinancialStore(s => s.updateTransaction);
   const categories = useFinancialStore(s => s.categories);
+  const currentUser = useAuthStore(s => s.currentUser);
   const liabilities = useFinancialStore(s => s.liabilities);
   const savingsGoals = useFinancialStore(s => s.savingsGoals);
   
@@ -135,10 +137,12 @@ export default function NewTransaction({ onClose, editTransaction }: { onClose: 
       goalId: selectedGoalId || undefined,
     };
 
-    if (editTransaction) {
-      updateTransaction(editTransaction.id, txData);
-    } else {
-      addTransaction(txData);
+    if (currentUser?.id) {
+      if (editTransaction) {
+        updateTransaction(editTransaction.id, txData, currentUser.id);
+      } else {
+        addTransaction(txData, currentUser.id);
+      }
     }
 
     // Simulate API call for UI feedback

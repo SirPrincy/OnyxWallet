@@ -8,13 +8,14 @@ export class ProfileService {
     return res.values || [];
   }
 
-  async addProfile(profile: Omit<Profile, 'passcode'> & { passcode?: string }): Promise<Profile> {
+  async addProfile(profile: Omit<Profile, 'id' | 'passcode'> & { passcode?: string }): Promise<Profile> {
+    const id = crypto.randomUUID();
     const hashedPasscode = profile.passcode ? await this.hashPasscode(profile.passcode) : null;
-    const profileToSave = { ...profile, passcode: hashedPasscode } as Profile;
+    const profileToSave = { ...profile, id, passcode: hashedPasscode } as Profile;
     
     await databaseService.run(
-      'INSERT INTO profiles (id, name, passcode, role, tier, status, lastActive, image, color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [profileToSave.id, profileToSave.name, profileToSave.passcode, profileToSave.role, profileToSave.tier, profileToSave.status, profileToSave.lastActive, profileToSave.image, profileToSave.color]
+      'INSERT INTO profiles (id, name, passcode, role, tier, status, lastActive, image, color, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [profileToSave.id, profileToSave.name, profileToSave.passcode, profileToSave.role, profileToSave.tier, profileToSave.status, profileToSave.lastActive, profileToSave.image, profileToSave.color, profileToSave.currency]
     );
     await databaseService.saveToStore();
     return profileToSave;

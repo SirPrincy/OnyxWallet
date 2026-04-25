@@ -22,7 +22,8 @@ export default function WalletManagement() {
   const addWallet = useWalletStore(s => s.addWallet);
   const updateWallet = useWalletStore(s => s.updateWallet);
   const deleteWallet = useWalletStore(s => s.deleteWallet);
-  const profileCurrency = useAuthStore(s => s.currentUser?.currency || 'USD');
+  const currentUser = useAuthStore(s => s.currentUser);
+  const profileCurrency = currentUser?.currency || 'USD';
   const { formatCurrency } = useCurrency();
   const [showAddWallet, setShowAddWallet] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
@@ -88,10 +89,12 @@ export default function WalletManagement() {
       isVisible: true
     };
 
-    if (editingWallet) {
-      updateWallet(editingWallet.id, walletData);
-    } else {
-      addWallet(walletData);
+    if (currentUser?.id) {
+      if (editingWallet) {
+        updateWallet(editingWallet.id, walletData, currentUser.id);
+      } else {
+        addWallet(walletData, currentUser.id);
+      }
     }
 
     closeModal();
@@ -339,9 +342,9 @@ export default function WalletManagement() {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  {editingWallet && (
+                  {editingWallet && currentUser?.id && (
                     <button 
-                      onClick={() => { deleteWallet(editingWallet.id); closeModal(); }}
+                      onClick={() => { deleteWallet(editingWallet.id, currentUser.id); closeModal(); }}
                       className="flex-1 py-8 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-400 font-bold uppercase tracking-[0.3em] text-xs flex items-center justify-center gap-2 hover:bg-red-500/20 transition-all font-sans"
                     >
                       <Trash2 className="w-4 h-4" />

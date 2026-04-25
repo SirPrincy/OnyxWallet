@@ -10,6 +10,7 @@ import {
 import { financialService } from '../services/financial.service';
 import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { SUPPORTED_CURRENCIES } from '../constants/currencies';
 import { Category, RecurringTransaction } from '../types';
 import { ICON_OPTIONS, COLOR_OPTIONS } from '../constants';
@@ -27,6 +28,7 @@ export default function IncomeStatement() {
   const addRecurringTransaction = useFinancialStore(s => s.addRecurringTransaction);
   const updateRecurringTransaction = useFinancialStore(s => s.updateRecurringTransaction);
   const deleteRecurringTransaction = useFinancialStore(s => s.deleteRecurringTransaction);
+  const currentUser = useAuthStore(s => s.currentUser);
   const [period, setPeriod] = useState<Period>('Monthly');
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
   const [showManageDrawer, setShowManageDrawer] = useState(false);
@@ -104,7 +106,7 @@ export default function IncomeStatement() {
 
   const handleSaveRecurring = () => {
     const amount = parseFloat(newRecAmount);
-    if (!newRecName.trim() || isNaN(amount)) return;
+    if (!newRecName.trim() || isNaN(amount) || !currentUser?.id) return;
 
     if (isAddingRecurring) {
       addRecurringTransaction({
@@ -113,7 +115,7 @@ export default function IncomeStatement() {
         type: newRecType,
         category: newRecCategory,
         frequency: newRecFreq
-      });
+      }, currentUser.id);
     } else if (editingRecurring) {
       updateRecurringTransaction(editingRecurring.id, {
         name: newRecName,
@@ -121,14 +123,14 @@ export default function IncomeStatement() {
         type: newRecType,
         category: newRecCategory,
         frequency: newRecFreq
-      });
+      }, currentUser.id);
     }
     setEditingRecurring(null);
     setIsAddingRecurring(false);
   };
 
   const handleSaveCategory = () => {
-    if (!newCatName.trim()) return;
+    if (!newCatName.trim() || !currentUser?.id) return;
 
     if (isAddingCategory) {
       addCategory({
@@ -137,14 +139,14 @@ export default function IncomeStatement() {
         color: newCatColor,
         type: newCatType,
         subcategories: []
-      });
+      }, currentUser.id);
     } else if (editingCategory) {
       updateCategory(editingCategory.id, {
         name: newCatName,
         icon: newCatIcon,
         color: newCatColor,
         type: newCatType
-      });
+      }, currentUser.id);
     }
     setEditingCategory(null);
     setIsAddingCategory(false);
@@ -337,7 +339,7 @@ export default function IncomeStatement() {
                             <button onClick={() => handleOpenEdit(cat)} className="p-2 text-on-surface-variant hover:text-primary transition-colors">
                               <Edit3 className="w-4 h-4" />
                             </button>
-                            <button onClick={() => deleteCategory(cat.id)} className="p-2 text-on-surface-variant hover:text-red-400 transition-colors">
+                            <button onClick={() => currentUser?.id && deleteCategory(cat.id, currentUser.id)} className="p-2 text-on-surface-variant hover:text-red-400 transition-colors">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -464,7 +466,7 @@ export default function IncomeStatement() {
                               <button onClick={() => handleOpenEditRec(rec)} className="p-2 text-on-surface-variant hover:text-primary transition-colors">
                                 <Edit3 className="w-4 h-4" />
                               </button>
-                              <button onClick={() => deleteRecurringTransaction(rec.id)} className="p-2 text-on-surface-variant hover:text-red-400 transition-colors">
+                              <button onClick={() => currentUser?.id && deleteRecurringTransaction(rec.id, currentUser.id)} className="p-2 text-on-surface-variant hover:text-red-400 transition-colors">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
