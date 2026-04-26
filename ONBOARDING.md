@@ -45,11 +45,11 @@ Displays the recommended path based on the quiz. The path dictates specific pass
 
 ---
 
-## 8. Post-Onboarding: Next Steps
-Upon reaching the dashboard, the user is encouraged to complete their "Strategic Firsts":
+## 8. Guided First Acts (Tutorial)
+After the final setup, a dedicated screen guides the user through their first strategic actions:
 1.  **Set First Budget**: Define monthly spending limits to start tracking efficiency.
 2.  **Define First Goal**: Create a target (e.g., Emergency Fund) to visualize progress.
-3.  **Configure Automated Savings**: Set a percentage of income to be automatically allocated to the "Vault".
+3.  **Launch AI Audit**: Introduce the AI assistant for portfolio analysis.
 4.  **Accept First Mission**: Engage with the gamification system by starting a challenge.
 
 ---

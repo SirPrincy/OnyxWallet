@@ -31,7 +31,15 @@ To maintain the application's unique identity, specific terms are used throughou
 - **Strategic Path**: Refers to the user's financial persona (e.g., Investor, Frugal).
 - **XP & Tiers**: Used to measure financial discipline and literacy rather than just wealth.
 
-## 4. Development Standards
+## 4. Onboarding Quiz Logic (3+3+1)
+The strategic profiling uses a weighted dimension-based algorithm:
+- **Behavior (3 questions)**: Weighted at **1x**. Captures immediate financial habits.
+- **Vision (3 questions)**: Weighted at **2x**. Captures long-term alignment and purpose.
+- **Tie-Breaker (1 question)**: Weighted at **3x**. Used to settle conflicts between similar paths (e.g., Catalyst vs. Investor).
+
+The path with the highest total weighted score is recommended to the user.
+
+## 5. Development Standards
 - **Strict Typing**: All financial operations must use the centralized `Currency` types and formatting hooks.
 - **Component Isolation**: Use domain-specific Zustand stores (e.g., `useWalletStore`) to keep business logic separate from UI components.
 - **Performance**: Consolidate calculations and use memoization to ensure smooth 60fps animations during heavy data processing.
