@@ -13,11 +13,11 @@ Modify the `WealthPath` system to include dynamic titles that evolve as the user
 - **Level 9+ (Emerald/Archon)**: Legendary, mythic titles.
 
 ### Examples for "The Investor"
-- **Level 1**: Investisseur Fauché (Broke Investor)
-- **Level 3**: Apprenti Spéculateur (Apprentice Speculator)
-- **Level 5**: Investisseur du Dimanche (Weekend Investor)
-- **Level 7**: Loup d'Onyx (Wolf of Onyx)
-- **Level 10**: Oracle des Marchés (Market Oracle)
+- **Level 1**: Investisseur Fauché
+- **Level 5**: Investisseur du Dimanche
+- **Level 10**: Investisseur Débutant
+- **Level 20**: Investisseur Pro
+- **Level Max**: Hedge Fund Investisseur
 
 ### Examples for "The Frugal Architect"
 - **Level 1**: Chasseur de Promos (Promo Hunter)
