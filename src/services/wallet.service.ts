@@ -16,7 +16,7 @@ export class WalletService {
     const newWallet = { ...wallet, id };
     
     await databaseService.run(
-      'INSERT INTO wallets (id, name, type, balance, currency, color, icon, lastFour, provider, isVisible, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO wallets (id, name, type, balance, currency, color, icon, lastFour, provider, isVisible, autoSavePercent, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         id, 
         newWallet.name, 
@@ -28,6 +28,7 @@ export class WalletService {
         newWallet.lastFour, 
         newWallet.provider, 
         newWallet.isVisible ? 1 : 0, 
+        (newWallet as any).autoSavePercent || 0,
         profileId
       ]
     );

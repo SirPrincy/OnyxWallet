@@ -52,7 +52,7 @@ Modify the `WealthPath` system to include dynamic titles that evolve as the user
 ---
 
 ## 3. Immediate Functional Tasks (Strategic Firsts)
-- [ ] Implement "First Budget" creation flow.
-- [ ] Implement "First Goal" setup wizard.
-- [ ] Add "Automated Savings" percentage selector in Wallet settings.
-- [ ] Create the "Mission Board" for the first mission acceptance.
+- [x] Implement "First Budget" creation flow. (Added BudgetWizard)
+- [x] Implement "First Goal" setup wizard. (Added GoalWizard)
+- [x] Add "Automated Savings" percentage selector in Wallet settings.
+- [x] Create the "Mission Board" for the first mission acceptance.
