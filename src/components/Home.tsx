@@ -6,7 +6,9 @@ import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
 import { useGamificationStore } from '../store/useGamificationStore';
 import IncomeStatement from './IncomeStatement';
+import FinancialHealthGauge from './FinancialHealthGauge';
 import { ICON_MAP } from '../constants';
+import { financialService } from '../services/financial.service';
 import { useCurrency } from '../hooks/useCurrency';
 
 export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'history' | 'budget' | 'growth' | 'investing') => void }) {
@@ -17,6 +19,16 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
   const budgets = useFinancialStore(s => s.budgets);
   const totalLiquidity = useWalletStore(s => s.totalLiquidity);
   const { primaryCurrencySymbol, formatCurrency } = useCurrency();
+
+  const healthScore = useMemo(() => {
+    return financialService.calculateHealthScore(
+      totalLiquidity,
+      budgets,
+      transactions,
+      savingsGoals,
+      3000 // Fallback avg income
+    );
+  }, [totalLiquidity, budgets, transactions, savingsGoals]);
 
   const tierData = useGamificationStore(s => s.tierData);
   const missions = useGamificationStore(s => s.missions);
@@ -130,8 +142,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
 
   return (
     <div className="space-y-10 pb-12">
-      {/* Total Liquidity Section */}
-      <header className="flex flex-col items-center text-center space-y-2 pt-4">
+      {/* Health & Liquidity Header */}
+      <header className="flex flex-col items-center text-center space-y-6 pt-4">
+        <FinancialHealthGauge score={healthScore} />
+
+        <div className="space-y-2">
         <span className="text-on-surface-variant tracking-[0.1em] uppercase font-semibold text-[0.75rem]">Total Liquidity</span>
         <div className="flex items-baseline gap-2 relative">
           <div className="absolute inset-0 -z-10 flex items-center justify-center opacity-10">
@@ -143,14 +158,15 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
             {formatCurrency(totalLiquidity)}
           </span>
         </div>
-        {transactions.length > 0 && (
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container-low text-primary text-sm font-medium">
-            <TrendingUp className={`w-4 h-4 ${stats.growthPercent < 0 ? 'rotate-180 text-error' : ''}`} />
-            <span className={stats.growthPercent < 0 ? 'text-error' : ''}>
-              {stats.growthPercent >= 0 ? '+' : ''}{stats.growthPercent.toFixed(1)}% this month
-            </span>
-          </div>
-        )}
+          {transactions.length > 0 && (
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface-container-low text-primary text-sm font-medium">
+              <TrendingUp className={`w-4 h-4 ${stats.growthPercent < 0 ? 'rotate-180 text-error' : ''}`} />
+              <span className={stats.growthPercent < 0 ? 'text-error' : ''}>
+                {stats.growthPercent >= 0 ? '+' : ''}{stats.growthPercent.toFixed(1)}% this month
+              </span>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Private Reserve Card */}
@@ -396,7 +412,14 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
                     </div>
                     <div>
                       <p className="text-sm font-medium">{tx.title}</p>
-                      <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{tx.category}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">{tx.category}</p>
+                        {currentUser?.hourlyRate && (
+                          <span className="text-[9px] text-primary/40 font-mono">
+                            ({financialService.calculateTrueCost(Math.abs(tx.amount), currentUser.hourlyRate).toFixed(1)}h)
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">

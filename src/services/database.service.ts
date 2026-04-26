@@ -337,6 +337,24 @@ class DatabaseService {
       await this.sqliteConnection.saveToStore(this.dbName);
     }
   }
+
+  /**
+   * Returns a disposable database session that automatically handles
+   * any cleanup or specific session-level logic.
+   * Leverages TS 6.0 'using' keyword support.
+   */
+  async getSession() {
+    await this.init();
+    const self = this;
+    return {
+      db: this.db!,
+      [Symbol.asyncDispose]: async () => {
+        // In a more complex app, we might close the connection or
+        // release a lock here. For Onyx, we ensure the store is saved.
+        await self.saveToStore();
+      }
+    };
+  }
 }
 
 export const databaseService = new DatabaseService();

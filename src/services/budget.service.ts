@@ -1,3 +1,4 @@
+import { Temporal } from '@js-temporal/polyfill';
 import { databaseService } from './database.service';
 import { Budget, Transaction } from '../types';
 
@@ -66,9 +67,9 @@ export class BudgetService {
   }
 
   calculateForecast(totalSpent: number, totalLimit: number, projectionAdjustment: number): ForecastData {
-    const today = new Date();
-    const dayOfMonth = today.getDate();
-    const totalDays = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+    const today = Temporal.Now.plainDateISO();
+    const dayOfMonth = today.day;
+    const totalDays = today.daysInMonth;
     
     const linearProjection = (totalSpent / dayOfMonth) * totalDays;
     const adjustedProjection = linearProjection + projectionAdjustment;

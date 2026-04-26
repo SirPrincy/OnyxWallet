@@ -1,5 +1,7 @@
 import { databaseService } from './database.service';
-import { SavingsGoal, Category, Liability, Mission, Achievement, Transaction, RecurringTransaction, Profile, GoalContribution } from '../types';
+import { SavingsGoal, Category, Liability, Mission, Achievement, Transaction, RecurringTransaction, Profile, GoalContribution, Budget } from '../types';
+import * as ss from 'simple-statistics';
+import { Temporal } from '@js-temporal/polyfill';
 
 export class FinancialService {
   // PROFILE
@@ -212,7 +214,7 @@ export class FinancialService {
   }
 
   async updateAchievement(id: string, earned: boolean): Promise<void> {
-    const earnedDate = earned ? new Date().toISOString() : null;
+    const earnedDate = earned ? Temporal.Now.instant().toString() : null;
     await databaseService.run('UPDATE achievements SET earned = ?, earnedDate = ? WHERE id = ?', [earned ? 1 : 0, earnedDate, id]);
     await databaseService.saveToStore();
   }
@@ -268,6 +270,81 @@ export class FinancialService {
         amount: amount * multiplier
       })).sort((a, b) => b.amount - a.amount)
     };
+  }
+
+  // FINANCIAL INTELLIGENCE
+  calculateHealthScore(
+    totalLiquidity: number,
+    budgets: Budget[],
+    transactions: Transaction[],
+    savingsGoals: SavingsGoal[],
+    avgMonthlyIncome: number
+  ): number {
+    // 1. Runway Score (0-40) - 6 months = 40 pts
+    const runway = totalLiquidity / (avgMonthlyIncome || 1);
+    const runwayScore = Math.min(40, (runway / 6) * 40);
+
+    // 2. Budget Adherence (0-30)
+    let budgetScore = 30;
+    if (budgets.length > 0) {
+      const overBudgetCount = budgets.filter(b => b.spent > b.limit).length;
+      budgetScore = Math.max(0, 30 - (overBudgetCount / budgets.length) * 30);
+    }
+
+    // 3. Savings Rate (0-30) - 20% savings = 30 pts
+    const monthStart = Temporal.Now.instant().toZonedDateTimeISO('UTC').toPlainDate().with({ day: 1 }).toZonedDateTime('UTC').toInstant();
+    const monthTxs = transactions.filter(t => t.timestamp >= monthStart.epochMilliseconds);
+    const income = monthTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const expenses = monthTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const savings = income - expenses;
+    const savingsRate = income > 0 ? (savings / income) : 0;
+    const savingsScore = Math.min(30, Math.max(0, (savingsRate / 0.2) * 30));
+
+    return Math.round(runwayScore + budgetScore + savingsScore);
+  }
+
+  generateCashFlowForecast(transactions: Transaction[], daysToProject: number = 30): { x: number, y: number }[] {
+    if (transactions.length < 5) return [];
+
+    // Group transactions by day for the last 90 days
+    const ninetyDaysAgo = Temporal.Now.zonedDateTimeISO().subtract({ days: 90 }).toInstant();
+    const history = transactions
+      .filter(t => t.timestamp >= ninetyDaysAgo.epochMilliseconds)
+      .sort((a, b) => a.timestamp - b.timestamp);
+
+    if (history.length < 5) return [];
+
+    // Simple Linear Regression on daily balance changes
+    const points: [number, number][] = [];
+    let cumulative = 0;
+    const firstTimestamp = history[0].timestamp;
+
+    history.forEach(t => {
+      const day = (t.timestamp - firstTimestamp) / (24 * 60 * 60 * 1000);
+      cumulative += (t.type === 'income' ? t.amount : -Math.abs(t.amount));
+      points.push([day, cumulative]);
+    });
+
+    const l = ss.linearRegression(points);
+    const line = ss.linearRegressionLine(l);
+
+    const lastDay = points[points.length - 1][0];
+    const lastBalance = points[points.length - 1][1];
+
+    const forecast: { x: number, y: number }[] = [];
+    for (let i = 1; i <= daysToProject; i++) {
+      forecast.push({
+        x: lastDay + i,
+        y: line(lastDay + i) - line(lastDay) + lastBalance
+      });
+    }
+
+    return forecast;
+  }
+
+  calculateTrueCost(amount: number, hourlyRate: number): number {
+    if (!hourlyRate || hourlyRate <= 0) return 0;
+    return amount / hourlyRate;
   }
 }
 
