@@ -110,6 +110,24 @@ export default function Onboarding() {
         { text: "A foundation for future generations", path: "legacy" },
         { text: "A scoreboard for strategic success", path: "investor" }
       ]
+    },
+    {
+      question: "How important is immediate access to your capital (liquidity)?",
+      options: [
+        { text: "Extremely. I need to move funds across borders instantly", path: "nomad" },
+        { text: "Important. I prefer liquid stocks and crypto", path: "investor" },
+        { text: "Moderately. I balance cash with long-term assets", path: "guardian" },
+        { text: "Low. I prioritize illiquid, high-value legacy assets", path: "legacy" }
+      ]
+    },
+    {
+      question: "What is your stance on using debt (leverage) to grow?",
+      options: [
+        { text: "I use strategic debt to accelerate high-risk growth", path: "catalyst" },
+        { text: "I use moderate leverage for proven investments", path: "investor" },
+        { text: "I avoid debt at all costs to remain agile", path: "frugal" },
+        { text: "I focus on paying down existing debt first", path: "neutral" }
+      ]
     }
   ];
 
@@ -394,7 +412,7 @@ export default function Onboarding() {
               className="w-full max-w-sm space-y-8"
             >
               <div className="space-y-2">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">Question {quizStep + 1} of 5</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">Question {quizStep + 1} of 7</p>
                 <h2 className="text-2xl font-headline italic text-on-surface leading-tight">
                   {QUIZ_QUESTIONS[quizStep].question}
                 </h2>
@@ -403,7 +421,7 @@ export default function Onboarding() {
                 {QUIZ_QUESTIONS[quizStep].options.map((opt, i) => (
                   <button
                     key={i}
-                    onClick={() => quizStep < 4 ? handleQuizAnswer(opt.path) : submitQuiz(opt.path)}
+                    onClick={() => quizStep < 6 ? handleQuizAnswer(opt.path) : submitQuiz(opt.path)}
                     className="w-full text-left p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group"
                   >
                     <div className="flex items-center justify-between">

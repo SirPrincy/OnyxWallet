@@ -21,8 +21,8 @@ The user creates their local identity:
 - **Secure Passcode**: The master key for app access.
 
 ## 4. Financial Profiling Quiz (Quiz)
-A 5-question assessment to determine the user's "Strategic Path".
-- **Questions**: Focus, budgeting style, investment preferences, risk tolerance, and wealth philosophy.
+A 7-question assessment to determine the user's "Strategic Path".
+- **Questions**: Focus, budgeting style, investment preferences, risk tolerance, wealth philosophy, liquidity needs, and leverage/debt stance.
 - **Paths**: Strategic Investor, Frugal Architect, Wealth Guardian, Legacy Builder, Venture Catalyst, Digital Nomad, Ethical Alchemist.
 
 ## 5. Strategic Alignment Result (Path Result)
