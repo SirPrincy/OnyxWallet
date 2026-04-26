@@ -17,7 +17,8 @@ Modify the `WealthPath` system to include dynamic titles that evolve as the user
 - **Level 5**: Investisseur du Dimanche
 - **Level 10**: Investisseur Débutant
 - **Level 20**: Investisseur Pro
-- **Level Max**: Hedge Fund Investisseur
+- **Level 50**: Hedge Fund Investisseur
+- **Level 100**: Onyx Legend (End-game Mastery)
 
 ### Examples for "The Frugal Architect"
 - **Level 1**: Chasseur de Promos (Promo Hunter)
