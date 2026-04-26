@@ -6,11 +6,15 @@ This document outlines the planned rework for the "Evolving Paths" system and pr
 Modify the `WealthPath` system to include dynamic titles that evolve as the user's Level/Tier increases.
 
 ### Concept: Title Tiers
-- **Level 1-10 (Bronze/Silver)**: Entry-level, slightly humorous or "struggling" titles.
-- **Level 11-25 (Gold)**: Developing, more serious and professional titles.
-- **Level 26-49 (Platinum/Diamond)**: Elite, mastery-level and institutional titles.
-- **Level 50-75 (Archon/Emerald)**: Legendary, high-stake leadership titles.
-- **Level 76-90 (Obsidian Master)**: Elite elite, master of the dark assets and strategy.
+- **Level 1-10 (Bronze)**: Entry-level, slightly humorous or "struggling" titles.
+- **Level 11-20 (Silver)**: Developing, more serious but amateur titles.
+- **Level 21-30 (Gold)**: Competent, professional titles.
+- **Level 31-40 (Platinum)**: Elite, mastery-level titles.
+- **Level 41-50 (Diamond)**: Institutional-level expertise.
+- **Level 51-60 (Archon)**: High-stake leadership titles.
+- **Level 61-70 (Emerald)**: Legendary wealth status.
+- **Level 71-80 (Obsidian)**: Master of the dark assets and strategy.
+- **Level 81-90 (Master)**: Universal financial authority.
 - **Level 91-100 (Grand Master)**: Onyx Legend, ultimate end-game financial sovereignty.
 
 ### Examples for "The Investor"
