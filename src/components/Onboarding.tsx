@@ -66,67 +66,79 @@ export default function Onboarding() {
   const [recommendedPath, setRecommendedPath] = useState<string>('neutral');
 
   const QUIZ_QUESTIONS = [
+    // --- DIMENSION 1: BEHAVIOR (Comportement) ---
     {
-      question: "What is your primary financial focus right now?",
+      dimension: "Behavior",
+      question: "How do you handle unexpected financial opportunities?",
       options: [
-        { text: "Maximizing investment growth and crypto returns", path: "investor" },
-        { text: "Cutting expenses and eliminating debt", path: "frugal" },
-        { text: "Maintaining a balanced and secure portfolio", path: "guardian" },
-        { text: "Building a long-term legacy for my family", path: "legacy" }
+        { text: "I analyze the math and optimize for the best ROI", path: "frugal" },
+        { text: "I act quickly to capitalize on high-growth trends", path: "catalyst" },
+        { text: "I check if it fits within my balanced reserve plan", path: "guardian" },
+        { text: "I consult my long-term strategy before moving", path: "legacy" }
       ]
     },
     {
-      question: "How do you prefer to manage your monthly budget?",
+      dimension: "Behavior",
+      question: "When it comes to monthly expenses, what is your habit?",
       options: [
-        { text: "I optimize every penny for efficiency", path: "frugal" },
-        { text: "I automate everything for a hands-off approach", path: "nomad" },
-        { text: "I prioritize ethical and sustainable investments", path: "alchemist" },
-        { text: "I take high risks for potentially high rewards", path: "catalyst" }
+        { text: "I track every single cent with absolute precision", path: "frugal" },
+        { text: "I spend to maintain a global, mobile lifestyle", path: "nomad" },
+        { text: "I prioritize ethical and high-impact consumption", path: "alchemist" },
+        { text: "I invest the majority and live on the rest", path: "investor" }
       ]
     },
     {
-      question: "Which of these sounds most like your 'Dream Portfolio'?",
+      dimension: "Behavior",
+      question: "How do you prepare for financial 'Black Swan' events?",
       options: [
-        { text: "A mix of blue-chip stocks and real estate", path: "guardian" },
-        { text: "Early-stage startups and emerging tech", path: "catalyst" },
-        { text: "Global assets accessible from anywhere", path: "nomad" },
-        { text: "Diversified impact and social bonds", path: "alchemist" }
+        { text: "Massive cash reserves and physical assets", path: "guardian" },
+        { text: "Highly liquid global assets and crypto", path: "nomad" },
+        { text: "Diversified income streams across sectors", path: "investor" },
+        { text: "Strict debt elimination and cost reduction", path: "frugal" }
+      ]
+    },
+
+    // --- DIMENSION 2: VISION ---
+    {
+      dimension: "Vision",
+      question: "What is the ultimate purpose of your capital?",
+      options: [
+        { text: "To achieve total borderless freedom of movement", path: "nomad" },
+        { text: "To create a lasting impact on society/environment", path: "alchemist" },
+        { text: "To build a dynasty and multi-generational wealth", path: "legacy" },
+        { text: "To win the 'game' of strategic accumulation", path: "investor" }
       ]
     },
     {
-      question: "In a market downturn, what is your first reaction?",
+      dimension: "Vision",
+      question: "Which market environment do you thrive in?",
       options: [
-        { text: "Hold firm and stick to the defensive plan", path: "guardian" },
-        { text: "Buy the dip aggressively", path: "investor" },
-        { text: "Review my lifestyle costs immediately", path: "frugal" },
-        { text: "Check if my long-term mission is still valid", path: "legacy" }
+        { text: "High volatility where disruption is constant", path: "catalyst" },
+        { text: "Stable, predictable growth with low risk", path: "guardian" },
+        { text: "Efficient markets where math dictates success", path: "frugal" },
+        { text: "Emerging markets and new asset classes", path: "investor" }
       ]
     },
     {
-      question: "How do you view wealth in the grand scheme of things?",
+      dimension: "Vision",
+      question: "How do you want to be remembered financially?",
       options: [
-        { text: "A tool for absolute freedom and mobility", path: "nomad" },
-        { text: "A responsibility to leave the world better", path: "alchemist" },
-        { text: "A foundation for future generations", path: "legacy" },
-        { text: "A scoreboard for strategic success", path: "investor" }
+        { text: "As a master of strategic market growth", path: "investor" },
+        { text: "As a visionary who funded the future", path: "alchemist" },
+        { text: "As the bedrock of a secure family legacy", path: "legacy" },
+        { text: "As a pioneer of a new, decentralized economy", path: "catalyst" }
       ]
     },
+
+    // --- DIMENSION 3: TIE-BREAKER (Brise-égalité) ---
     {
-      question: "How important is immediate access to your capital (liquidity)?",
+      dimension: "Tie-Breaker",
+      question: "Final choice: If you had to pick only one focus...",
       options: [
-        { text: "Extremely. I need to move funds across borders instantly", path: "nomad" },
-        { text: "Important. I prefer liquid stocks and crypto", path: "investor" },
-        { text: "Moderately. I balance cash with long-term assets", path: "guardian" },
-        { text: "Low. I prioritize illiquid, high-value legacy assets", path: "legacy" }
-      ]
-    },
-    {
-      question: "What is your stance on using debt (leverage) to grow?",
-      options: [
-        { text: "I use strategic debt to accelerate high-risk growth", path: "catalyst" },
-        { text: "I use moderate leverage for proven investments", path: "investor" },
-        { text: "I avoid debt at all costs to remain agile", path: "frugal" },
-        { text: "I focus on paying down existing debt first", path: "neutral" }
+        { text: "Pure Precision: Math, logic, and optimization", path: "frugal" },
+        { text: "Pure Growth: Risk, reward, and disruption", path: "catalyst" },
+        { text: "Pure Security: Stability, safety, and preservation", path: "guardian" },
+        { text: "Pure Freedom: Mobility, global access, and flow", path: "nomad" }
       ]
     }
   ];
