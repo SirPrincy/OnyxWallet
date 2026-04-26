@@ -49,20 +49,3 @@ Upon reaching the dashboard, the user is encouraged to complete their "Strategic
 4.  **Accept First Mission**: Engage with the gamification system by starting a challenge.
 
 ---
-
-## 9. Design & Technical Specifications
-
-### UX Design Philosophy
-- **Glassmorphism**: UI elements use semi-transparent backgrounds with backdrop filters for a premium, deep-layered feel.
-- **Metallic Gradients**: Primary buttons and highlights use gold/silver gradients (`metallic-gradient`) to evoke wealth and luxury.
-- **Interactive Feedback**: All inputs and buttons utilize Framer Motion for smooth transitions and haptic-like visual feedback.
-
-### Mobile Permissions & Requirements
-- **Local Storage**: Required to maintain the SQLite database.
-- **Capacitor SQLite**: Uses the `@capacitor-community/sqlite` plugin for native performance.
-- **Biometrics (Optional)**: Support for FaceID/Fingerprint can be enabled in settings to bypass the manual passcode entry.
-
-### Terminology
-- Use "Vault" or "Reserve" instead of simple "Account".
-- Use "Strategic Path" instead of "User Type".
-- "XP" and "Levels" are used to track financial literacy and discipline growth.
