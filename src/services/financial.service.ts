@@ -165,18 +165,23 @@ export class FinancialService {
     await databaseService.saveToStore();
   }
 
+  async getRecurringTransactions(profileId: string): Promise<RecurringTransaction[]> {
+    const res = await databaseService.query('SELECT * FROM recurring_transactions WHERE profileId = ?', [profileId]);
+    return (res.values ?? []) as RecurringTransaction[];
+  }
+
   // MISSIONS & ACHIEVEMENTS
   async getMissions(profileId: string): Promise<Mission[]> {
     const res = await databaseService.query('SELECT * FROM missions WHERE profileId = ?', [profileId]);
     return res.values || [];
   }
 
-  async addMission(mission: Omit<Mission, 'id'>, profileId: string): Promise<Mission> {
+  async addMission(mission: Omit<Mission, 'id' | 'status' | 'unlockedAtLevel'> & { status?: Mission['status'], unlockedAtLevel?: number }, profileId: string): Promise<Mission> {
     const id = crypto.randomUUID();
-    const newMission = { ...mission, id };
+    const newMission = { ...mission, id, status: mission.status || 'active', unlockedAtLevel: mission.unlockedAtLevel || 1 };
     await databaseService.run(
       'INSERT INTO missions (id, title, description, progress, total, icon, type, category, level, maxLevel, status, unlockedAtLevel, path, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [id, newMission.title, newMission.description, newMission.progress, newMission.total, newMission.icon, newMission.type, newMission.category || 'growth', newMission.level || 1, newMission.maxLevel, newMission.status || 'active', newMission.unlockedAtLevel || 1, newMission.path || 'neutral', profileId]
+      [id, newMission.title, newMission.description, newMission.progress, newMission.total, newMission.icon, newMission.type, newMission.category || 'growth', newMission.level || 1, newMission.maxLevel, newMission.status, newMission.unlockedAtLevel, newMission.path || 'neutral', profileId]
     );
     await databaseService.saveToStore();
     return newMission;
@@ -197,12 +202,12 @@ export class FinancialService {
     return res.values.map((a: any) => ({ ...a, earned: a.earned === 1 }));
   }
 
-  async addAchievement(achievement: Omit<Achievement, 'id'>, profileId: string): Promise<Achievement> {
+  async addAchievement(achievement: Omit<Achievement, 'id' | 'rarity'> & { rarity?: Achievement['rarity'] }, profileId: string): Promise<Achievement> {
     const id = crypto.randomUUID();
-    const newAchievement = { ...achievement, id };
+    const newAchievement = { ...achievement, id, rarity: achievement.rarity || 'common' };
     await databaseService.run(
       'INSERT INTO achievements (id, title, icon, earned, rarity, description, earnedDate, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [id, newAchievement.title, newAchievement.icon, newAchievement.earned ? 1 : 0, newAchievement.rarity || 'common', newAchievement.description, newAchievement.earnedDate, profileId]
+      [id, newAchievement.title, newAchievement.icon, newAchievement.earned ? 1 : 0, newAchievement.rarity, newAchievement.description, newAchievement.earnedDate, profileId]
     );
     await databaseService.saveToStore();
     return newAchievement;
