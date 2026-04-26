@@ -189,7 +189,7 @@ export class GamificationService {
       // Unlock logic based on level and path
       if (m.status === 'locked' && currentLevel >= m.unlockedAtLevel) {
         if (!m.path || m.path === 'neutral' || m.path === path) {
-          newStatus = 'active';
+          newStatus = 'available';
           changed = true;
         }
       }

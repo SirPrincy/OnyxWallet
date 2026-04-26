@@ -22,7 +22,7 @@ export interface GamificationState {
     onLevelUp?: (level: number) => void
   ) => Promise<void>;
   
-  updateMission: (id: string, progress: number, total: number, level?: number, description?: string) => Promise<void>;
+  updateMission: (id: string, progress: number, total: number, level?: number, description?: string, status?: string) => Promise<void>;
   updateAchievement: (id: string, earned: boolean) => Promise<void>;
   syncGamification: (
     profileId: string,
@@ -78,10 +78,10 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
     }
   },
 
-  updateMission: async (id, progress, total, level, description) => {
-    await financialService.updateMission(id, { progress, total, level, description });
+  updateMission: async (id, progress, total, level, description, status) => {
+    await financialService.updateMission(id, { progress, total, level, description, status: status as any });
     set(state => ({
-      missions: state.missions.map(m => m.id === id ? { ...m, progress, total, level: level ?? m.level, description: description ?? m.description } : m)
+      missions: state.missions.map(m => m.id === id ? { ...m, progress, total, level: level ?? m.level, description: description ?? m.description, status: (status as any) ?? m.status } : m)
     }));
   },
 

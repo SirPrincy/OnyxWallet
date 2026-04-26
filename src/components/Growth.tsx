@@ -16,6 +16,8 @@ import { useCurrency } from '../hooks/useCurrency';
 import SafeToSpendAI from './SafeToSpendAI';
 import VaultVisual from './VaultVisual';
 import PathSelection from './PathSelection';
+import GoalWizard from './GoalWizard';
+import MissionBoard from './MissionBoard';
 
 export default function Growth() {
   const savingsGoals = useFinancialStore(s => s.savingsGoals);
@@ -52,6 +54,7 @@ export default function Growth() {
 
   const [historyGoalId, setHistoryGoalId] = useState<string | null>(null);
   const [goalHistory, setGoalHistory] = useState<any[]>([]);
+  const [view, setView] = useState<'overview' | 'missions'>('overview');
 
   const totalLiquidity = useWalletStore(s => s.totalLiquidity);
   const { primaryCurrencySymbol, formatCurrency } = useCurrency();
@@ -117,8 +120,32 @@ export default function Growth() {
   const selectedMission = missions.find(m => m.id === selectedMissionId);
   const getGoalHistory = useFinancialStore(s => s.getGoalHistory);
 
+  if (savingsGoals.length === 0) {
+    return <GoalWizard onComplete={() => {}} />;
+  }
+
   return (
     <div className="space-y-12 pb-24">
+      {/* Sub-Navigation */}
+      <div className="flex gap-4 p-1.5 bg-surface-container-highest/30 rounded-2xl border border-white/5">
+        <button
+          onClick={() => setView('overview')}
+          className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${view === 'overview' ? 'bg-primary text-background shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setView('missions')}
+          className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${view === 'missions' ? 'bg-primary text-background shadow-lg' : 'text-on-surface-variant hover:text-on-surface'}`}
+        >
+          Missions
+        </button>
+      </div>
+
+      {view === 'missions' ? (
+        <MissionBoard />
+      ) : (
+        <>
       {/* Wealth Ascension Status */}
       <section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -310,80 +337,8 @@ export default function Growth() {
         </div>
       </section>
 
-      {/* Strategic Roadmap (Missions) */}
-      <section className="space-y-8">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="font-headline text-2xl text-on-surface italic">Roadmap Stratégique</h3>
-          <div className="flex gap-2">
-            {['short', 'medium', 'long', 'flash'].map(t => (
-              <span key={t} className="text-[8px] bg-white/5 text-on-surface-variant px-2 py-1 rounded-full font-bold uppercase tracking-widest">{t}</span>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative space-y-12 before:absolute before:left-7 before:top-2 before:bottom-2 before:w-0.5 before:bg-surface-container-highest">
-          {missions
-            .filter(m => !m.path || m.path === 'neutral' || m.path === path)
-            .sort((a, b) => a.unlockedAtLevel - b.unlockedAtLevel)
-            .map((mission, i) => {
-            const Icon = ICON_MAP[mission.icon] || Landmark;
-            const progressPct = mission.total > 0 ? (mission.progress / mission.total) * 100 : 0;
-            const isLocked = mission.status === 'locked';
-
-            return (
-              <motion.div
-                key={mission.id} 
-                onClick={() => !isLocked && setSelectedMissionId(mission.id)}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                className={`relative pl-20 group ${isLocked ? 'opacity-50 grayscale' : 'cursor-pointer'}`}
-              >
-                {/* Timeline Node */}
-                <div className={`absolute left-0 w-14 h-14 rounded-2xl flex items-center justify-center border-4 border-background z-10 transition-all ${
-                  isLocked ? 'bg-surface-container text-on-surface-variant/40' :
-                  mission.progress >= mission.total ? 'bg-primary text-background shadow-[0_0_20px_rgba(242,202,80,0.4)]' :
-                  'bg-surface-container-highest text-primary'
-                }`}>
-                  {isLocked ? <Lock className="w-6 h-6" /> : <Icon className="w-6 h-6" />}
-                </div>
-
-                <div className={`bg-surface-container-low p-6 rounded-3xl border border-white/5 transition-all ${!isLocked && 'hover:bg-surface-container hover:translate-x-2'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-headline text-lg text-on-surface">{mission.title}</h4>
-                      <span className={`text-[8px] px-2 py-0.5 rounded-full font-bold uppercase tracking-widest ${
-                        mission.type === 'flash' ? 'bg-error/20 text-error' : 'bg-primary/10 text-primary'
-                      }`}>
-                        {mission.type}
-                      </span>
-                    </div>
-                    {isLocked ? (
-                       <span className="text-[9px] text-on-surface-variant/60 font-bold uppercase">Unlock at LVL {mission.unlockedAtLevel}</span>
-                    ) : (
-                      <span className="text-[9px] text-primary font-bold">LVL {mission.level}</span>
-                    )}
-                  </div>
-                  <p className="text-xs text-on-surface-variant/70 mb-6">{mission.description}</p>
-
-                  {!isLocked && (
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, progressPct)}%` }}
-                          className="h-full bg-primary shadow-[0_0_10px_rgba(242,202,80,0.3)]"
-                        />
-                      </div>
-                      <span className="text-[10px] font-bold text-primary font-mono">{Math.min(100, Math.round(progressPct))}%</span>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </section>
+        </>
+      )}
 
       {/* Haute Collection (Achievements) */}
       <section className="space-y-8">

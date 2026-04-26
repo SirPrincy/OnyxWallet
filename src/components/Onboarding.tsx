@@ -47,7 +47,7 @@ const STEPS: OnboardingStep[] = [
 
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [setupStep, setSetupStep] = useState<'info' | 'identity' | 'quiz' | 'path-result' | 'wallet' | 'finish'>('info');
+  const [setupStep, setSetupStep] = useState<'entry' | 'caution' | 'info' | 'identity' | 'quiz' | 'path-result' | 'wallet' | 'finish' | 'tutorial'>('entry');
   const completeOnboarding = useAuthStore(s => s.completeOnboarding);
   const completeSetup = useAuthStore(s => s.completeSetup);
   const login = useAuthStore(s => s.login);
@@ -62,53 +62,83 @@ export default function Onboarding() {
 
   // Quiz state
   const [quizStep, setQuizStep] = useState(0);
-  const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
+  const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
   const [recommendedPath, setRecommendedPath] = useState<string>('neutral');
 
   const QUIZ_QUESTIONS = [
+    // --- DIMENSION 1: BEHAVIOR (Comportement) ---
     {
-      question: "What is your primary financial focus right now?",
+      dimension: "Behavior",
+      question: "How do you handle unexpected financial opportunities?",
       options: [
-        { text: "Maximizing investment growth and crypto returns", path: "investor" },
-        { text: "Cutting expenses and eliminating debt", path: "frugal" },
-        { text: "Maintaining a balanced and secure portfolio", path: "guardian" },
-        { text: "Building a long-term legacy for my family", path: "legacy" }
+        { text: "I analyze the math and optimize for the best ROI", path: "frugal" },
+        { text: "I act quickly to capitalize on high-growth trends", path: "catalyst" },
+        { text: "I check if it fits within my balanced reserve plan", path: "guardian" },
+        { text: "I consult my long-term strategy before moving", path: "legacy" }
       ]
     },
     {
-      question: "How do you prefer to manage your monthly budget?",
+      dimension: "Behavior",
+      question: "When it comes to monthly expenses, what is your habit?",
       options: [
-        { text: "I optimize every penny for efficiency", path: "frugal" },
-        { text: "I automate everything for a hands-off approach", path: "nomad" },
-        { text: "I prioritize ethical and sustainable investments", path: "alchemist" },
-        { text: "I take high risks for potentially high rewards", path: "catalyst" }
+        { text: "I track every single cent with absolute precision", path: "frugal" },
+        { text: "I spend to maintain a global, mobile lifestyle", path: "nomad" },
+        { text: "I prioritize ethical and high-impact consumption", path: "alchemist" },
+        { text: "I invest the majority and live on the rest", path: "investor" }
       ]
     },
     {
-      question: "Which of these sounds most like your 'Dream Portfolio'?",
+      dimension: "Behavior",
+      question: "How do you prepare for financial 'Black Swan' events?",
       options: [
-        { text: "A mix of blue-chip stocks and real estate", path: "guardian" },
-        { text: "Early-stage startups and emerging tech", path: "catalyst" },
-        { text: "Global assets accessible from anywhere", path: "nomad" },
-        { text: "Diversified impact and social bonds", path: "alchemist" }
+        { text: "Massive cash reserves and physical assets", path: "guardian" },
+        { text: "Highly liquid global assets and crypto", path: "nomad" },
+        { text: "Diversified income streams across sectors", path: "investor" },
+        { text: "Strict debt elimination and cost reduction", path: "frugal" }
+      ]
+    },
+
+    // --- DIMENSION 2: VISION ---
+    {
+      dimension: "Vision",
+      question: "What is the ultimate purpose of your capital?",
+      options: [
+        { text: "To achieve total borderless freedom of movement", path: "nomad" },
+        { text: "To create a lasting impact on society/environment", path: "alchemist" },
+        { text: "To build a dynasty and multi-generational wealth", path: "legacy" },
+        { text: "To win the 'game' of strategic accumulation", path: "investor" }
       ]
     },
     {
-      question: "In a market downturn, what is your first reaction?",
+      dimension: "Vision",
+      question: "Which market environment do you thrive in?",
       options: [
-        { text: "Hold firm and stick to the defensive plan", path: "guardian" },
-        { text: "Buy the dip aggressively", path: "investor" },
-        { text: "Review my lifestyle costs immediately", path: "frugal" },
-        { text: "Check if my long-term mission is still valid", path: "legacy" }
+        { text: "High volatility where disruption is constant", path: "catalyst" },
+        { text: "Stable, predictable growth with low risk", path: "guardian" },
+        { text: "Efficient markets where math dictates success", path: "frugal" },
+        { text: "Emerging markets and new asset classes", path: "investor" }
       ]
     },
     {
-      question: "How do you view wealth in the grand scheme of things?",
+      dimension: "Vision",
+      question: "How do you want to be remembered financially?",
       options: [
-        { text: "A tool for absolute freedom and mobility", path: "nomad" },
-        { text: "A responsibility to leave the world better", path: "alchemist" },
-        { text: "A foundation for future generations", path: "legacy" },
-        { text: "A scoreboard for strategic success", path: "investor" }
+        { text: "As a master of strategic market growth", path: "investor" },
+        { text: "As a visionary who funded the future", path: "alchemist" },
+        { text: "As the bedrock of a secure family legacy", path: "legacy" },
+        { text: "As a pioneer of a new, decentralized economy", path: "catalyst" }
+      ]
+    },
+
+    // --- DIMENSION 3: TIE-BREAKER (Brise-égalité) ---
+    {
+      dimension: "Tie-Breaker",
+      question: "Final choice: If you had to pick only one focus...",
+      options: [
+        { text: "Pure Precision: Math, logic, and optimization", path: "frugal" },
+        { text: "Pure Growth: Risk, reward, and disruption", path: "catalyst" },
+        { text: "Pure Security: Stability, safety, and preservation", path: "guardian" },
+        { text: "Pure Freedom: Mobility, global access, and flow", path: "nomad" }
       ]
     }
   ];
@@ -144,27 +174,62 @@ export default function Onboarding() {
   );
 
   const handleQuizAnswer = (path: string) => {
-    const nextAnswers = [...quizAnswers, 0]; // Index doesn't matter much now, we use paths
+    // We store the literal path string for the answer
+    const nextAnswers = [...quizAnswers, path];
     setQuizAnswers(nextAnswers);
 
     if (quizStep < QUIZ_QUESTIONS.length - 1) {
       setQuizStep(quizStep + 1);
     } else {
-      // Calculate result
-      // Simplified: use the last answer or most frequent. Let's use frequency
-      const allPaths = [...quizAnswers.map((_, i) => QUIZ_QUESTIONS[i].options[0].path), path]; // This is wrong, let's fix
+      calculateResult(nextAnswers);
     }
   };
 
-  const submitQuiz = (finalPath: string) => {
-    // Determine the path based on answers
-    // For now, let's just use the last choice or a simple logic
+  const calculateResult = (answers: string[]) => {
+    // Dimension-based weights (3 Behavior, 3 Vision, 1 Tie-breaker)
+    // Behavior: answers[0, 1, 2]
+    // Vision: answers[3, 4, 5]
+    // Tie-Breaker: answers[6]
+
+    const behaviorPaths = answers.slice(0, 3);
+    const visionPaths = answers.slice(3, 6);
+    const tieBreaker = answers[6];
+
+    // Count frequencies
+    const counts: Record<string, number> = {};
+
+    // Vision counts double for long-term alignment
+    visionPaths.forEach(p => counts[p] = (counts[p] || 0) + 2);
+    // Behavior counts single for current habits
+    behaviorPaths.forEach(p => counts[p] = (counts[p] || 0) + 1);
+    // Tie breaker counts triple to finalize decision
+    counts[tieBreaker] = (counts[tieBreaker] || 0) + 3;
+
+    // Find the max
+    let maxCount = -1;
+    let finalPath = 'neutral';
+
+    Object.entries(counts).forEach(([path, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        finalPath = path;
+      }
+    });
+
     setRecommendedPath(finalPath);
     setSetupStep('path-result');
   };
 
+  const submitQuiz = (finalPath: string) => {
+    handleQuizAnswer(finalPath);
+  };
+
   const nextStep = () => {
-    if (setupStep === 'info') {
+    if (setupStep === 'entry') {
+      setSetupStep('caution');
+    } else if (setupStep === 'caution') {
+      setSetupStep('info');
+    } else if (setupStep === 'info') {
       if (currentStep < STEPS.length - 1) {
         setDirection(1);
         setCurrentStep(prev => prev + 1);
@@ -179,6 +244,8 @@ export default function Onboarding() {
       if (walletName && (walletType === 'Crypto' ? (cryptoQuantity && cryptoPrice) : walletBalance)) {
         handleFinalize();
       }
+    } else if (setupStep === 'finish') {
+      setSetupStep('tutorial');
     }
   };
 
@@ -294,13 +361,11 @@ export default function Onboarding() {
 
       {/* Progress Indicator */}
       <div className="relative z-10 px-8 pt-12 flex gap-2">
-        {[0, 1, 2, 3, 4, 5].map((index) => {
-          const isInfo = setupStep === 'info';
-          const steps = ['info', 'identity', 'quiz', 'path-result', 'wallet', 'finish'];
+        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => {
+          const steps = ['entry', 'caution', 'info', 'identity', 'quiz', 'path-result', 'wallet', 'finish', 'tutorial'];
           const currentSetupIndex = steps.indexOf(setupStep);
 
-          const isActive = (isInfo && index <= currentStep) || 
-                           (!isInfo && index <= currentSetupIndex);
+          const isActive = index <= currentSetupIndex;
           
           return (
             <div 
@@ -321,7 +386,83 @@ export default function Onboarding() {
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 text-center">
         <AnimatePresence custom={direction} mode="wait">
-          {setupStep === 'info' ? (
+          {setupStep === 'entry' ? (
+            <motion.div
+              key="entry"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="w-full max-w-sm space-y-12"
+            >
+              <div className="space-y-4">
+                <Sparkles className="w-12 h-12 text-primary mx-auto mb-6" strokeWidth={1} />
+                <h1 className="text-4xl font-headline italic text-on-surface">Choose Entry</h1>
+                <p className="text-sm text-on-surface-variant/80 max-w-[280px] mx-auto">
+                  Initialize a new financial reserve or restore your existing vault.
+                </p>
+              </div>
+
+              <div className="grid gap-4">
+                <button
+                  onClick={() => setSetupStep('caution')}
+                  className="w-full p-6 rounded-3xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all text-left group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-primary font-bold uppercase tracking-widest text-[11px] mb-1">Create New Vault</h3>
+                      <p className="text-xs text-on-surface-variant">Start your journey from scratch.</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-primary group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => alert('Restore feature coming soon: Import your .json vault file.')}
+                  className="w-full p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-left group opacity-60"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-on-surface font-bold uppercase tracking-widest text-[11px] mb-1">Restore from Export</h3>
+                      <p className="text-xs text-on-surface-variant">Import an existing local backup.</p>
+                    </div>
+                    <Lock className="w-4 h-4 text-white/20" />
+                  </div>
+                </button>
+              </div>
+            </motion.div>
+          ) : setupStep === 'caution' ? (
+            <motion.div
+              key="caution"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-sm space-y-12"
+            >
+              <div className="mx-auto w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center">
+                <Lock className="w-10 h-10 text-red-500" strokeWidth={1} />
+              </div>
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <p className="text-[10px] uppercase tracking-[0.4em] text-red-500 font-bold italic">Critical Warning</p>
+                  <h1 className="text-4xl font-headline italic text-on-surface">Absolute Privacy</h1>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/20 text-left space-y-4">
+                  <p className="text-sm text-on-surface/80 leading-relaxed">
+                    Onyx Wallet is <span className="text-red-500 font-bold">100% Offline</span>.
+                  </p>
+                  <ul className="space-y-3">
+                    <li className="flex gap-3 text-xs text-on-surface-variant leading-relaxed">
+                      <div className="w-1 h-1 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                      <span>No data ever leaves your device. We have no servers and no access to your money.</span>
+                    </li>
+                    <li className="flex gap-3 text-xs text-on-surface-variant leading-relaxed">
+                      <div className="w-1 h-1 rounded-full bg-red-500 mt-1.5 shrink-0" />
+                      <span>If you lose your device or forget your passcode, <span className="text-on-surface font-bold">your funds cannot be recovered</span> by us.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </motion.div>
+          ) : setupStep === 'info' ? (
             <motion.div
               key={`info-${currentStep}`}
               custom={direction}
@@ -394,7 +535,7 @@ export default function Onboarding() {
               className="w-full max-w-sm space-y-8"
             >
               <div className="space-y-2">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">Question {quizStep + 1} of 5</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">Question {quizStep + 1} of 7</p>
                 <h2 className="text-2xl font-headline italic text-on-surface leading-tight">
                   {QUIZ_QUESTIONS[quizStep].question}
                 </h2>
@@ -403,7 +544,7 @@ export default function Onboarding() {
                 {QUIZ_QUESTIONS[quizStep].options.map((opt, i) => (
                   <button
                     key={i}
-                    onClick={() => quizStep < 4 ? handleQuizAnswer(opt.path) : submitQuiz(opt.path)}
+                    onClick={() => quizStep < 6 ? handleQuizAnswer(opt.path) : submitQuiz(opt.path)}
                     className="w-full text-left p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all group"
                   >
                     <div className="flex items-center justify-between">
@@ -563,23 +704,67 @@ export default function Onboarding() {
                 </p>
               </div>
             </motion.div>
+          ) : setupStep === 'tutorial' ? (
+            <motion.div
+              key="tutorial"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="w-full max-w-sm space-y-10"
+            >
+              <div className="space-y-2">
+                <p className="text-[10px] uppercase tracking-[0.4em] text-primary font-bold">Strategic Path</p>
+                <h1 className="text-3xl font-headline italic text-on-surface">Your First Acts</h1>
+                <p className="text-xs text-on-surface-variant">Recommended actions for your {PATHS_DATA[recommendedPath].name} profile.</p>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  { title: "Define First Budget", desc: "Track every penny of your expenses.", icon: <Filter className="w-4 h-4" /> },
+                  { title: "Set Savings Goal", desc: "Visualize your path to the first $10k.", icon: <TrendingUp className="w-4 h-4" /> },
+                  { title: "Launch AI Audit", desc: "Get strategic insights from the Onyx AI.", icon: <Sparkles className="w-4 h-4" /> },
+                  { title: "Accept Mission", desc: "Earn XP by completing tactical challenges.", icon: <TrendingUp className="w-4 h-4" /> }
+                ].map((act, i) => (
+                  <div key={i} className="flex items-start gap-4 p-5 rounded-3xl bg-white/5 border border-white/10 text-left">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
+                      {act.icon}
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="text-[11px] font-bold uppercase tracking-wider text-on-surface">{act.title}</h4>
+                      <p className="text-[10px] text-on-surface-variant leading-relaxed">{act.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
 
       {/* Bottom Actions */}
       <div className="relative z-10 p-12 flex flex-col items-center gap-6">
-        {(setupStep === 'quiz') ? null : setupStep === 'finish' ? (
+        {(setupStep === 'quiz' || setupStep === 'entry') ? null : setupStep === 'finish' ? (
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={handleComplete}
+            onClick={nextStep}
             className="w-full max-w-sm bg-green-500 py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_20px_40px_-10px_rgba(34,197,94,0.3)] group"
           >
             <span className="font-bold uppercase tracking-[0.2em] text-[11px] text-white">
               Launch Dashboard
             </span>
             <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+        ) : setupStep === 'tutorial' ? (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleComplete}
+            className="w-full max-w-sm metallic-gradient py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_20px_40px_-10px_rgba(242,202,80,0.3)] group"
+          >
+            <span className="font-bold uppercase tracking-[0.2em] text-[11px] text-on-primary">
+              Enter Vault
+            </span>
+            <ChevronRight className="w-4 h-4 text-on-primary group-hover:translate-x-1 transition-transform" />
           </motion.button>
         ) : (
           <motion.button
@@ -596,7 +781,8 @@ export default function Onboarding() {
             className="w-full max-w-sm metallic-gradient py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_20px_40px_-10px_rgba(242,202,80,0.3)] group disabled:opacity-50"
           >
             <span className="font-bold uppercase tracking-[0.2em] text-[11px] text-on-primary">
-              {setupStep === 'info' && currentStep === STEPS.length - 1 ? "Start Setup" : 
+              {setupStep === 'caution' ? "I Understand" :
+               setupStep === 'info' && currentStep === STEPS.length - 1 ? "Start Setup" :
                setupStep === 'wallet' ? "Finalize" : "Continue"}
             </span>
             <ChevronRight className="w-4 h-4 text-on-primary group-hover:translate-x-1 transition-transform" />

@@ -4,7 +4,7 @@ import {
   Coins, Smartphone, DollarSign, Edit3,
   ChevronRight, BadgeCheck, Globe, Library,
   Settings2, Eye, EyeOff, GripVertical, X, Check,
-  TrendingUp, Trash2
+  TrendingUp, Trash2, Zap, Info
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { useWalletStore } from '../store/useWalletStore';
@@ -36,6 +36,7 @@ export default function WalletManagement() {
   const [modalProvider, setModalProvider] = useState('');
   const [modalLastFour, setModalLastFour] = useState('');
   const [modalCurrency, setModalCurrency] = useState<string>('USD');
+  const [autoSavePercent, setAutoSavePercent] = useState<number>(0);
 
   const [currency, setCurrency] = useState<string>(profileCurrency);
 
@@ -86,7 +87,8 @@ export default function WalletManagement() {
       currency: modalCurrency,
       color: '#B4947C',
       icon: 'landmark',
-      isVisible: true
+      isVisible: true,
+      autoSavePercent: autoSavePercent // Note: Assuming the Wallet type supports this or we add it to the DB soon
     };
 
     if (currentUser?.id) {
@@ -108,6 +110,7 @@ export default function WalletManagement() {
     setModalProvider('');
     setModalLastFour('');
     setModalCurrency('USD');
+    setAutoSavePercent(0);
     setShowMore(false);
   };
 
@@ -119,6 +122,7 @@ export default function WalletManagement() {
     setModalProvider(w.provider || '');
     setModalLastFour(w.lastFour || '');
     setModalCurrency(w.currency);
+    setAutoSavePercent((w as any).autoSavePercent || 0);
     setShowAddWallet(true);
   };
 
@@ -295,8 +299,52 @@ export default function WalletManagement() {
                   </div>
                 </div>
 
+                {/* Automated Savings Protocol */}
+                {modalType !== 'Credit Card' && (
+                  <div className="p-8 rounded-[2.5rem] bg-primary/5 border border-primary/10 space-y-6">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                          <Zap className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold uppercase tracking-widest text-on-surface">Auto-Allocation</h4>
+                          <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-tight">Income Redirection Protocol</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl font-headline text-primary">{autoSavePercent}%</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <input
+                        type="range"
+                        min="0"
+                        max="50"
+                        step="5"
+                        value={autoSavePercent}
+                        onChange={e => setAutoSavePercent(parseInt(e.target.value))}
+                        className="w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary"
+                      />
+                      <div className="flex justify-between text-[8px] text-on-surface-variant uppercase tracking-widest font-bold">
+                        <span>Disabled</span>
+                        <span>Balanced (15%)</span>
+                        <span>Aggressive (50%)</span>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 p-3 bg-black/20 rounded-xl">
+                      <Info className="w-3 h-3 text-primary shrink-0 mt-0.5" />
+                      <p className="text-[9px] text-on-surface-variant leading-relaxed italic">
+                        Every income transaction into this wallet will automatically trigger a contribution to your highest-priority savings goal.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Collapsible More Section */}
-                <div className="space-y-4">
+                <div className="space-y-4 pt-4">
                   <button
                     onClick={() => setShowMore(!showMore)}
                     className="flex items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-primary font-bold"

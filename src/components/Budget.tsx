@@ -6,6 +6,7 @@ import { useFinancialStore } from '../store/useFinancialStore';
 import { useWalletStore } from '../store/useWalletStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCurrency } from '../hooks/useCurrency';
+import BudgetWizard from './BudgetWizard';
 
 export default function Budget() {
   const transactions = useFinancialStore(s => s.transactions);
@@ -95,6 +96,10 @@ export default function Budget() {
   }, [categories, budgets]);
 
   const { primaryCurrencySymbol, formatCurrency } = useCurrency();
+
+  if (budgets.length === 0) {
+    return <BudgetWizard onComplete={() => {}} />;
+  }
 
   return (
     <div className="space-y-12 pb-12">

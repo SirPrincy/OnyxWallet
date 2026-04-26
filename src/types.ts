@@ -28,7 +28,7 @@ export interface Mission {
   category: 'growth' | 'audit' | 'appraisal';
   level: number;
   maxLevel?: number;
-  status: 'active' | 'completed' | 'locked';
+  status: 'active' | 'completed' | 'locked' | 'available';
   unlockedAtLevel: number;
   path?: WealthPath;
 }

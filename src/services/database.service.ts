@@ -62,6 +62,7 @@ class DatabaseService {
         lastFour TEXT,
         provider TEXT,
         isVisible INTEGER DEFAULT 1,
+        autoSavePercent REAL DEFAULT 0,
         profileId TEXT
       );
 
@@ -278,6 +279,12 @@ class DatabaseService {
           }
           if (res.values && !res.values.some((col: any) => col.name === 'currency')) {
             await this.db.execute(`ALTER TABLE profiles ADD COLUMN currency TEXT DEFAULT 'USD'`);
+          }
+        }
+
+        if (table === 'wallets') {
+          if (res.values && !res.values.some((col: any) => col.name === 'autoSavePercent')) {
+            await this.db.execute(`ALTER TABLE wallets ADD COLUMN autoSavePercent REAL DEFAULT 0`);
           }
         }
 
