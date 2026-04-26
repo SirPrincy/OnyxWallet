@@ -10,7 +10,8 @@ Modify the `WealthPath` system to include dynamic titles that evolve as the user
 - **Level 11-25 (Gold)**: Developing, more serious and professional titles.
 - **Level 26-49 (Platinum/Diamond)**: Elite, mastery-level and institutional titles.
 - **Level 50-75 (Archon/Emerald)**: Legendary, high-stake leadership titles.
-- **Level 76-100 (Mythic)**: Onyx Legend, end-game financial sovereignty.
+- **Level 76-90 (Obsidian Master)**: Elite elite, master of the dark assets and strategy.
+- **Level 91-100 (Grand Master)**: Onyx Legend, ultimate end-game financial sovereignty.
 
 ### Examples for "The Investor"
 - **Level 1**: Investisseur Fauché
