@@ -17,7 +17,8 @@ import {
   Globe,
   Landmark,
   Clock,
-  Leaf
+  Leaf,
+  ShieldCheck
 } from 'lucide-react';
 import { useGamificationStore } from '../store/useGamificationStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -31,13 +32,12 @@ export default function MissionBoard() {
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
   const activeMissions = missions.filter(m => m.status === 'active' && (!m.path || m.path === 'neutral' || m.path === path));
-  const availableMissions = missions.filter(m => m.status === 'locked' && (!m.path || m.path === 'neutral' || m.path === path));
+  const availableMissions = missions.filter(m => m.status === 'available' && (!m.path || m.path === 'neutral' || m.path === path));
   const completedMissions = missions.filter(m => m.status === 'completed');
 
   const handleAccept = async (mission: Mission) => {
-    await updateMission(mission.id, 0, mission.total, mission.level, mission.description);
-    // Note: status change to active is handled by the gamification logic,
-    // but here we force immediate feedback if the service allows.
+    // Mark as active
+    await updateMission(mission.id, 0, mission.total, mission.level, mission.description, 'active');
     setSelectedMission(null);
   };
 
