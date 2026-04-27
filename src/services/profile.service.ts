@@ -14,8 +14,13 @@ export class ProfileService {
     const profileToSave = { ...profile, id, passcode: hashedPasscode } as Profile;
     
     await databaseService.run(
-      'INSERT INTO profiles (id, name, passcode, role, tier, status, lastActive, image, color, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [profileToSave.id, profileToSave.name, profileToSave.passcode, profileToSave.role, profileToSave.tier, profileToSave.status, profileToSave.lastActive, profileToSave.image, profileToSave.color, profileToSave.currency]
+      'INSERT INTO profiles (id, name, passcode, role, tier, status, lastActive, image, color, currency, monthlySalary, salaryDay, salarySource, salaryWalletId, autoAddSalary, lastSalaryAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        profileToSave.id, profileToSave.name, profileToSave.passcode, profileToSave.role, profileToSave.tier,
+        profileToSave.status, profileToSave.lastActive, profileToSave.image, profileToSave.color, profileToSave.currency,
+        profileToSave.monthlySalary || 0, profileToSave.salaryDay || 1, profileToSave.salarySource || null,
+        profileToSave.salaryWalletId || null, profileToSave.autoAddSalary ? 1 : 0, profileToSave.lastSalaryAdded || null
+      ]
     );
     await databaseService.saveToStore();
     return profileToSave;

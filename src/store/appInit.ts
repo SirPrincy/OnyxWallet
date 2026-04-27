@@ -6,6 +6,7 @@ import { walletService } from '../services/wallet.service';
 import { transactionService } from '../services/transaction.service';
 import { budgetService } from '../services/budget.service';
 import { financialService } from '../services/financial.service';
+import { salaryService } from '../services/salary.service';
 import { useAuthStore } from './useAuthStore';
 import { useFinancialStore, INITIAL_CATEGORIES } from './useFinancialStore';
 import { useWalletStore } from './useWalletStore';
@@ -49,6 +50,8 @@ export const loadUserData = async (profileId: string) => {
     if (missionsData.length > 0) gamStore.setMissions(missionsData);
     if (achievementsData.length > 0) gamStore.setAchievements(achievementsData);
     
+    await salaryService.processAutoSalary(useAuthStore.getState().currentUser!);
+
     await databaseService.saveToStore();
     await gamStore.syncGamification(profileId);
   } catch (error) {

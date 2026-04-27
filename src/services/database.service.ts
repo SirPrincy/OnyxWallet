@@ -185,7 +185,13 @@ class DatabaseService {
         image TEXT,
         color TEXT,
         currency TEXT DEFAULT 'USD',
-        path TEXT DEFAULT 'neutral'
+        path TEXT DEFAULT 'neutral',
+        monthlySalary REAL DEFAULT 0,
+        salaryDay INTEGER DEFAULT 1,
+        salarySource TEXT,
+        salaryWalletId TEXT,
+        autoAddSalary INTEGER DEFAULT 0,
+        lastSalaryAdded TEXT
       );
     `;
 
@@ -279,6 +285,24 @@ class DatabaseService {
           }
           if (res.values && !res.values.some((col: any) => col.name === 'currency')) {
             await this.db.execute(`ALTER TABLE profiles ADD COLUMN currency TEXT DEFAULT 'USD'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'monthlySalary')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN monthlySalary REAL DEFAULT 0`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'salaryDay')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN salaryDay INTEGER DEFAULT 1`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'salarySource')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN salarySource TEXT`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'salaryWalletId')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN salaryWalletId TEXT`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'autoAddSalary')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN autoAddSalary INTEGER DEFAULT 0`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'lastSalaryAdded')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN lastSalaryAdded TEXT`);
           }
         }
 

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, CreditCard, ShoppingBag, Landmark, Clock, Rocket } from 'lucide-react';
+import { TrendingUp, CreditCard, ShoppingBag, Landmark, Clock, Rocket, Calendar, ArrowRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useFinancialStore } from '../store/useFinancialStore';
@@ -9,6 +9,7 @@ import IncomeStatement from './IncomeStatement';
 import FinancialHealthGauge from './FinancialHealthGauge';
 import { ICON_MAP } from '../constants';
 import { financialService } from '../services/financial.service';
+import { salaryService } from '../services/salary.service';
 import { useCurrency } from '../hooks/useCurrency';
 
 export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'history' | 'budget' | 'growth' | 'investing') => void }) {
@@ -26,9 +27,9 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
       budgets,
       transactions,
       savingsGoals,
-      3000 // Fallback avg income
+      currentUser?.monthlySalary || 3000
     );
-  }, [totalLiquidity, budgets, transactions, savingsGoals]);
+  }, [totalLiquidity, budgets, transactions, savingsGoals, currentUser]);
 
   const tierData = useGamificationStore(s => s.tierData);
   const missions = useGamificationStore(s => s.missions);
@@ -110,11 +111,13 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
       totalRemainingToGoal += (goal.target - goal.current);
     }
 
+    const monthlySalary = currentUser?.monthlySalary || 0;
+
     const savingsTarget = activeGoalsCount > 0
       ? Math.max(0, totalRemainingToGoal / 12)
-      : (monthlyRecurringIncome + curMonthIncome) * 0.1;
+      : (monthlyRecurringIncome + curMonthIncome + monthlySalary) * 0.1;
 
-    const totalAvailable = monthlyRecurringIncome + curMonthIncome - monthlyRecurringExpense - savingsTarget;
+    const totalAvailable = monthlyRecurringIncome + curMonthIncome + monthlySalary - monthlyRecurringExpense - savingsTarget;
     const remainingForMonth = totalAvailable - curMonthSpent;
     const perDay = remainingForMonth / daysRemaining;
 
@@ -128,11 +131,16 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
         percent: Math.min(100, Math.max(0, (curMonthSpent / totalAvailable) * 100))
       }
     };
-  }, [transactions, totalLiquidity, recurringTransactions, savingsGoals]);
+  }, [transactions, totalLiquidity, recurringTransactions, savingsGoals, currentUser]);
 
   const totalInvested = useMemo(() => {
     return savingsGoals.reduce((sum, g) => sum + g.current, 0);
   }, [savingsGoals]);
+
+  const daysUntilSalary = useMemo(() => {
+    if (!currentUser?.salaryDay) return null;
+    return salaryService.getDaysUntilNextSalary(currentUser.salaryDay);
+  }, [currentUser]);
 
   const mainMission = useMemo(() => {
     const active = missions.filter(m => m.progress < m.total);
@@ -204,6 +212,33 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl"></div>
         </div>
       </div>
+
+      {/* Next Income Card (B) */}
+      {currentUser?.monthlySalary && (
+        <section className="relative overflow-hidden bg-surface-container-low rounded-2xl border border-primary/10 p-5 group cursor-pointer hover:bg-surface-container transition-all">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] text-on-surface-variant uppercase tracking-[0.2em] font-bold">Prochain Revenu</p>
+                <h4 className="text-lg font-headline text-on-surface italic">
+                  {daysUntilSalary === 0 ? "Aujourd'hui" : `Dans ${daysUntilSalary} jours`}
+                </h4>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-primary font-bold text-lg">{formatCurrency(currentUser.monthlySalary)}</p>
+              <p className="text-[8px] text-on-surface-variant uppercase tracking-widest">{currentUser.salarySource || 'Salaire Mensuel'}</p>
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+            <p className="text-[9px] text-on-surface-variant italic">Impact prévisionnel : <span className="text-primary">+{(currentUser.monthlySalary / (totalLiquidity || 1) * 100).toFixed(1)}% liquidité</span></p>
+            <ArrowRight className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+          </div>
+        </section>
+      )}
 
       {/* Safe-to-Spend Section */}
       <section className="space-y-4">

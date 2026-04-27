@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import Profile from '../components/Profile';
 import { useAuthStore } from '../store/useAuthStore';
 
@@ -8,5 +8,12 @@ export const Route = createFileRoute('/profile')({
 
 function ProfileComponent() {
   const { currentUser } = useAuthStore();
-  return <Profile profile={currentUser} />;
+  const navigate = useNavigate();
+
+  return (
+    <Profile
+      profile={currentUser}
+      onManageIncome={() => navigate({ to: '/settings', search: { openSection: 'income' } as any })}
+    />
+  );
 }

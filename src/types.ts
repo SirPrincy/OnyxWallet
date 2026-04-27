@@ -133,6 +133,12 @@ export interface Profile {
   currency: string;
   path?: WealthPath;
   hourlyRate?: number;
+  monthlySalary?: number;
+  salaryDay?: number; // 1-31
+  salarySource?: string;
+  salaryWalletId?: string;
+  autoAddSalary?: boolean;
+  lastSalaryAdded?: string; // ISO date string (YYYY-MM)
 }
 
 export interface TierData {
