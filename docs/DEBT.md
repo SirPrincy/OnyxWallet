@@ -1,49 +1,50 @@
-# Documentation de la Gestion des Dettes (Liabilities)
+# Debt Management (Liabilities) Documentation
 
-Ce document détaille le fonctionnement du système de gestion des dettes dans Onyx Wallet, tant du point de vue utilisateur que technique.
+This document details the functioning of the debt management system in Onyx Wallet, from both user experience (UX) and technical perspectives.
 
-## 1. Parcours Utilisateur (UX)
+## 1. User Experience (UX)
 
-L'utilisateur accède à la gestion des dettes via l'onglet **Liabilities** dans le menu de navigation.
+Users access debt management via the **Liabilities** tab in the navigation menu.
 
-### Étape 1 : Ajout d'une Dette
-L'utilisateur peut enregistrer une nouvelle dette en cliquant sur le bouton **"+"** (Add Liability). Il doit renseigner :
-- **Nom/Usage** : (ex: Crédit Immobilier, Prêt Étudiant)
-- **Type** : Mortgage, Personal Loan, Student Loan, Credit Card, Leasing, Other.
-- **Prêteur (Provider)** : (ex: BNP Paribas, Chase Bank)
-- **Montant Total** : Le capital initial emprunté.
-- **Montant Restant** : Le capital restant dû à ce jour.
-- **Mensualité** : Le montant payé chaque mois.
-- **Taux d'intérêt** : Le taux annuel (APR).
+### Step 1: Adding a Debt
+Users can register a new debt by clicking the **"+"** (Add Liability) button. The following information is required:
+- **Name/Purpose**: (e.g., Mortgage, Student Loan)
+- **Type**: Mortgage, Personal Loan, Student Loan, Credit Card, Leasing, Other.
+- **Provider**: (e.g., Chase Bank, HSBC)
+- **Total Amount**: The initial borrowed principal.
+- **Remaining Amount**: The current balance owed.
+- **Monthly Payment**: The amount paid each month.
+- **Interest Rate**: The annual percentage rate (APR).
 
-### Étape 2 : Visualisation du Portfolio
-L'écran affiche :
-- Le **Total Indebtedness** (Somme des montants restants).
-- Le **Debt-to-Income Ratio** (Ratio d'endettement, calculé par rapport au salaire mensuel du profil).
-- Le **Total Capital Repaid** (Part déjà remboursée).
-- La **Monthly Service** (Somme des mensualités).
+### Step 2: Portfolio Visualization
+The screen displays key financial health metrics:
+- **Total Indebtedness**: Sum of all remaining amounts.
+- **Debt-to-Income Ratio (DTI)**: Calculated based on the profile's monthly salary.
+- **Total Capital Repaid**: The portion of the principal already paid off.
+- **Total Interest Paid**: Cumulative interest paid across all liabilities.
+- **Monthly Service**: Sum of all monthly payments.
 
-Chaque dette est affichée sous forme de carte avec une barre de progression visuelle.
+Each debt is shown as a card with a visual progress bar indicating how much has been repaid.
 
-### Étape 3 : Stratégie de Remboursement
-L'application propose actuellement la stratégie **"The Snowball"** (Boule de neige).
-- Elle identifie automatiquement la dette avec le **plus petit solde restant**.
-- Elle encourage l'utilisateur à rembourser cette dette en priorité pour créer un élan psychologique.
-- Un bouton **"Boost Payment"** permet d'effectuer un remboursement exceptionnel sur cette cible.
+### Step 3: Repayment Strategy
+The application currently implements **"The Snowball"** strategy.
+- It automatically identifies the debt with the **smallest remaining balance**.
+- It encourages users to pay off this debt first to build psychological momentum.
+- A **"Boost Payment"** button allows for making extra payments toward this specific target.
 
-### Étape 4 : Paiement et Suivi
-Lorsqu'un utilisateur effectue un paiement via le modal "Boost Payment" :
-1. Il saisit le montant.
-2. Il choisit le portefeuille (Wallet) source.
-3. Le système crée une transaction de type `expense` catégorie `Debt Repayment`.
-4. Le montant restant de la dette est automatiquement déduit.
+### Step 4: Payment and Tracking
+When a user makes a payment (via "Boost Payment" or the debt card):
+1. They enter the amount and select the source **Wallet**.
+2. The system automatically calculates the **Interest Portion** of the payment based on the current balance and APR.
+3. An `expense` transaction is created with the category `Debt Repayment`.
+4. The debt's `remainingAmount` is reduced by the capital portion (Total - Interest), and `totalInterestPaid` is updated.
 
 ---
 
-## 2. Architecture Technique
+## 2. Technical Architecture
 
-### Schéma de la Base de Données (SQLite)
-La table `liabilities` est définie comme suit :
+### Database Schema (SQLite)
+The `liabilities` table is defined as follows:
 ```sql
 CREATE TABLE liabilities (
   id TEXT PRIMARY KEY,
@@ -55,29 +56,30 @@ CREATE TABLE liabilities (
   monthlyPayment REAL NOT NULL,
   dueDate TEXT NOT NULL,
   provider TEXT NOT NULL,
+  totalInterestPaid REAL DEFAULT 0,
   profileId TEXT
 );
 ```
 
-### Gestion de l'État (Zustand)
-Le store `useFinancialStore.ts` gère la logique métier :
-- `liabilities`: Liste réactive des dettes.
-- `addLiability()`: Appelle `financialService` et met à jour le store.
-- `payLiability()`: Orchestre le paiement. Si un `walletId` est fourni, il crée une transaction via `addTransaction` qui, par effet de bord, mettra à jour la dette.
+### State Management (Zustand)
+The `useFinancialStore.ts` handles business logic:
+- `liabilities`: Reactive list of debts.
+- `addLiability()`: Calls `financialService` and schedules local notifications.
+- `payLiability()`: Orchestrates the payment. It creates a transaction via `transactionService`, which triggers an atomic update of the liability balance.
 
 ### Services
-- **`financial.service.ts`**: Gère les opérations CRUD brutes sur la table `liabilities`.
-- **`transaction.service.ts`**: Contient la logique d'impact. Lorsqu'une transaction possède un `liabilityId`, le service exécute un `UPDATE` sur la table `liabilities` pour réduire le `remainingAmount` dans la même transaction atomique (via `executeSet`).
+- **`financial.service.ts`**: Handles raw CRUD operations on the `liabilities` table.
+- **`transaction.service.ts`**: Manages the impact of transactions. When a transaction has a `liabilityId`, it executes an `UPDATE` on the `liabilities` table to adjust the `remainingAmount` and `totalInterestPaid` in a single transaction.
+- **`notification.service.ts`**: Uses Capacitor Local Notifications to schedule reminders 24 hours before and on the day of the `dueDate`.
 
 ---
 
-## 3. Idées d'Évolutions (Roadmap)
+## 3. Roadmap (Future Enhancements)
 
-Voici quelques pistes pour enrichir le module "Debt" :
+Planned features to enrich the Debt module:
 
-1.  **Stratégie "Avalanche"** : Ajouter une option pour cibler la dette avec le **taux d'intérêt le plus élevé** (plus optimal financièrement que le Snowball).
-2.  **Calcul Réel du Ratio d'Endettement** : Lier le calcul au salaire mensuel configuré dans le profil de l'utilisateur.
-3.  **Simulateur de Crédit** : Permettre de voir l'impact d'une augmentation de la mensualité sur la date de fin de crédit et les intérêts économisés.
-4.  **Alertes de Relance** : Notifications Capacitor pour les échéances (`dueDate`) approchantes.
-5.  **Graphique d'Extinction** : Visualisation temporelle de la décroissance de la dette totale jusqu'à zéro.
-6.  **Gestion des Intérêts** : Distinguer le remboursement du capital et le paiement des intérêts dans les transactions.
+1.  **"Avalanche" Strategy**: Add an option to target the debt with the **highest interest rate** (mathematically optimal for saving money).
+2.  **Credit Simulator**: Visualize the impact of increasing monthly payments on the payoff date and total interest saved.
+3.  **Extinction Chart**: A temporal visualization of total debt decreasing to zero over time.
+4.  **Amortization Tables**: Generate a full schedule of future payments showing interest vs. principal breakdown.
+5.  **Debt Consolidation Insights**: AI-powered suggestions for consolidating high-interest debts into lower-interest options.
