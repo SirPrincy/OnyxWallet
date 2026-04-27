@@ -110,6 +110,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const thresholds = (await import('../constants/thresholds')).getThresholds(primaryCurrency);
 
     const defaultMissions: NewMission[] = [
+      { title: 'Budget Protocol', description: 'Establish your first spending limit to activate precision tracking.', progress: 0, total: 1, icon: 'filter', type: 'short', category: 'growth', level: 1 },
+      { title: 'Wealth Objective', description: 'Define a primary financial target to begin your capital accumulation journey.', progress: 0, total: 1, icon: 'target', type: 'short', category: 'growth', level: 1 },
       { title: 'Security Buffer', description: 'Establish a fundamental liquidity reserve', progress: 0, total: thresholds.avgMonthlyIncome, icon: 'shield', type: 'short', category: 'growth', level: 1 },
       { title: 'Diversification', description: 'Establish multiple reserves', progress: 0, total: 3, icon: 'account_balance', type: 'short', category: 'growth', level: 1 },
       { title: 'Positive Cashflow', description: 'Maintain income > expenses', progress: 0, total: 1, icon: 'trending-up', type: 'short', category: 'growth', level: 1 }
