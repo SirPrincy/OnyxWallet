@@ -65,6 +65,15 @@ export class ProfileService {
     const enabled = await settingsService.getSetting<boolean>('is_passcode_enabled');
     return enabled !== false; // Default to true
   }
+
+  async setBiometricEnabled(enabled: boolean): Promise<void> {
+    await settingsService.setSetting('is_biometric_enabled', enabled);
+  }
+
+  async isBiometricEnabled(): Promise<boolean> {
+    const enabled = await settingsService.getSetting<boolean>('is_biometric_enabled');
+    return enabled === true; // Default to false
+  }
 }
 
 export const profileService = new ProfileService();

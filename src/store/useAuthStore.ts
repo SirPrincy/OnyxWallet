@@ -9,6 +9,7 @@ import { databaseService } from '../services/database.service';
 interface AuthState {
   profiles: Profile[];
   isPasscodeEnabled: boolean;
+  isBiometricEnabled: boolean;
   hasCompletedOnboarding: boolean;
   hasCompletedSetup: boolean;
   currentUser: Profile | null;
@@ -18,12 +19,14 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
   setProfiles: (profiles: Profile[]) => void;
   setIsPasscodeEnabledState: (enabled: boolean) => void;
+  setIsBiometricEnabledState: (enabled: boolean) => void;
   setHasCompletedOnboarding: (completed: boolean) => void;
   setHasCompletedSetup: (completed: boolean) => void;
   setCurrentUser: (user: Profile | null) => void;
   setIsAuthenticated: (auth: boolean) => void;
 
   setIsPasscodeEnabled: (enabled: boolean) => Promise<void>;
+  setIsBiometricEnabled: (enabled: boolean) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   resetOnboarding: () => Promise<void>;
   completeSetup: () => Promise<void>;
@@ -39,6 +42,7 @@ type NewAchievement = Omit<Achievement, 'id' | 'earnedDate' | 'rarity' | 'descri
 export const useAuthStore = create<AuthState>((set, get) => ({
   profiles: [],
   isPasscodeEnabled: true,
+  isBiometricEnabled: false,
   hasCompletedOnboarding: false,
   hasCompletedSetup: false,
   currentUser: null,
@@ -48,6 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setLoading: (loading) => set({ isLoading: loading }),
   setProfiles: (profiles) => set({ profiles }),
   setIsPasscodeEnabledState: (enabled) => set({ isPasscodeEnabled: enabled }),
+  setIsBiometricEnabledState: (enabled) => set({ isBiometricEnabled: enabled }),
   setHasCompletedOnboarding: (completed) => set({ hasCompletedOnboarding: completed }),
   setHasCompletedSetup: (completed) => set({ hasCompletedSetup: completed }),
   setCurrentUser: (user) => set({ currentUser: user }),
@@ -56,6 +61,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   setIsPasscodeEnabled: async (enabled) => {
     set({ isPasscodeEnabled: enabled });
     await profileService.setPasscodeEnabled(enabled);
+  },
+
+  setIsBiometricEnabled: async (enabled) => {
+    set({ isBiometricEnabled: enabled });
+    await profileService.setBiometricEnabled(enabled);
   },
 
   completeOnboarding: async () => {

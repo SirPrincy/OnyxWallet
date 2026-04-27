@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Lock, Fingerprint, PlusCircle } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { Profile } from '../types';
+import BiometricAuth from 'capacitor-biometric-authentication';
 
 interface LoginProps {
   onLogin: (passcode: string | null, userProfile: Profile) => void;
@@ -12,11 +13,35 @@ interface LoginProps {
 
 export default function Login({ onLogin, onAddProfile, isPasscodeEnabled }: LoginProps) {
   const profiles = useAuthStore(s => s.profiles);
+  const isBiometricEnabled = useAuthStore(s => s.isBiometricEnabled);
   const hashPasscode = useAuthStore(s => s.hashPasscode);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(profiles[0] || null);
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState(false);
   const [step, setStep] = useState<'profile' | 'passcode'>('profile');
+
+  useEffect(() => {
+    if (step === 'passcode' && isBiometricEnabled) {
+      handleBiometricLogin();
+    }
+  }, [step, isBiometricEnabled]);
+
+  const handleBiometricLogin = async () => {
+    try {
+      const isAvailable = await BiometricAuth.isAvailable();
+      if (isAvailable) {
+        const result = await BiometricAuth.authenticate({
+          reason: 'Authenticate to access your vault',
+          cancelTitle: 'Use Passcode'
+        });
+        if (result.success && selectedProfile) {
+          onLogin(null, selectedProfile);
+        }
+      }
+    } catch (err) {
+      console.error('Biometric auth failed:', err);
+    }
+  };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -188,19 +213,22 @@ export default function Login({ onLogin, onAddProfile, isPasscodeEnabled }: Logi
             </button>
 
             {/* Secondary Action: Biometrics */}
-            <div className="mt-12 flex items-center justify-center w-full">
-              <button 
-                type="button"
-                className="flex flex-col items-center space-y-3 group focus:outline-none"
-              >
-                <div className="w-12 h-12 rounded-full border border-outline-variant/20 flex items-center justify-center group-hover:border-primary/50 transition-colors duration-300">
-                  <Fingerprint className="text-on-surface-variant group-hover:text-primary transition-colors duration-300 w-6 h-6" strokeWidth={1} />
-                </div>
-                <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant group-hover:text-on-surface transition-colors duration-300 font-medium">
-                  Biometric Login
-                </span>
-              </button>
-            </div>
+            {isBiometricEnabled && (
+              <div className="mt-12 flex items-center justify-center w-full">
+                <button
+                  type="button"
+                  onClick={handleBiometricLogin}
+                  className="flex flex-col items-center space-y-3 group focus:outline-none"
+                >
+                  <div className="w-12 h-12 rounded-full border border-outline-variant/20 flex items-center justify-center group-hover:border-primary/50 transition-colors duration-300">
+                    <Fingerprint className="text-on-surface-variant group-hover:text-primary transition-colors duration-300 w-6 h-6" strokeWidth={1} />
+                  </div>
+                  <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant group-hover:text-on-surface transition-colors duration-300 font-medium">
+                    Biometric Login
+                  </span>
+                </button>
+              </div>
+            )}
           </form>
         )}
       </main>

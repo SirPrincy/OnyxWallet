@@ -348,6 +348,18 @@ export class FinancialService {
     return amount / hourlyRate;
   }
 
+  async calculateEmergencyFundBase(profileId: string): Promise<number> {
+    const threeMonthsAgo = Temporal.Now.zonedDateTimeISO().subtract({ months: 3 }).toInstant();
+    const res = await databaseService.query(
+      "SELECT amount FROM transactions WHERE profileId = ? AND type = 'expense' AND timestamp >= ?",
+      [profileId, threeMonthsAgo.epochMilliseconds]
+    );
+    const expenses = res.values || [];
+    if (expenses.length === 0) return 0;
+
+    const totalExpenses = expenses.reduce((sum: number, e: any) => sum + Math.abs(e.amount), 0);
+    return totalExpenses / 3;
+  }
 }
 
 export const financialService = new FinancialService();
