@@ -13,8 +13,8 @@ Modify the `WealthPath` system to include dynamic titles that evolve as the user
 - **Level 41-50 (Diamond)**: Institutional-level expertise.
 - **Level 51-60 (Archon)**: High-stake leadership titles.
 - **Level 61-70 (Emerald)**: Legendary wealth status.
-- **Level 71-80 (Obsidian)**: Master of the dark assets and strategy.
-- **Level 81-90 (Master)**: Universal financial authority.
+- **Level 71-75 (Obsidian)**: Master of the dark assets and strategy.
+- **Level 76-90 (Obsidian Master)**: Advanced strategic authority.
 - **Level 91-100 (Grand Master)**: Onyx Legend, ultimate end-game financial sovereignty.
 
 ### Examples for "The Investor"
@@ -52,7 +52,7 @@ Modify the `WealthPath` system to include dynamic titles that evolve as the user
 ---
 
 ## 3. Immediate Functional Tasks (Strategic Firsts)
-- [x] Implement "First Budget" creation flow. (Added BudgetWizard)
-- [x] Implement "First Goal" setup wizard. (Added GoalWizard)
-- [x] Add "Automated Savings" percentage selector in Wallet settings.
-- [x] Create the "Mission Board" for the first mission acceptance.
+- [x] Implement "First Budget" creation flow. (Added `BudgetWizard.tsx`)
+- [x] Implement "First Goal" setup wizard. (Added `GoalWizard.tsx`)
+- [x] Add "Automated Savings" percentage selector in Wallet settings. (Implemented via `autoSavePercent` in SQLite)
+- [x] Create the "Mission Board" for the first mission acceptance. (Added `MissionBoard.tsx`)
