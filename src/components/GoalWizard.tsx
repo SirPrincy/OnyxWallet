@@ -137,13 +137,13 @@ export default function GoalWizard({ onComplete }: GoalWizardProps) {
               <p className="text-xs text-on-surface-variant">How much liquidity is required for this objective?</p>
             </div>
             <div className="relative">
-              <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary/40 font-headline text-3xl">{primaryCurrencySymbol}</span>
+              <span className="absolute left-8 top-1/2 -translate-y-1/2 text-primary/40 font-headline text-5xl">{primaryCurrencySymbol}</span>
               <input
                 type="number"
                 autoFocus
                 value={target}
                 onChange={e => setTarget(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-3xl py-12 pl-16 pr-8 text-6xl font-headline text-on-surface focus:border-primary outline-none transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-3xl py-14 pl-24 pr-8 text-8xl font-headline text-on-surface focus:border-primary outline-none transition-all"
               />
             </div>
             <div className="space-y-4">

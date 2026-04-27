@@ -26,21 +26,24 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-sm space-y-10"
     >
-      <div className="relative mx-auto w-28 h-28">
-        <div className={`w-full h-full rounded-full border-4 ${profileColor} p-1 bg-surface-container overflow-hidden relative group`}>
-          <img
-            src={`https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${avatarSeed}`}
-            className="w-full h-full object-cover rounded-full"
-            alt="Profile"
-          />
-          <button
-            onClick={() => setAvatarSeed(Math.random().toString(36).substring(7))}
-            className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Sparkles className="w-6 h-6 text-primary" />
-          </button>
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative w-28 h-28">
+          <div className={`w-full h-full rounded-full border-4 ${profileColor} p-1 bg-surface-container overflow-hidden relative group`}>
+            <img
+              src={`https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${avatarSeed}`}
+              className="w-full h-full object-cover rounded-full"
+              alt="Profile"
+            />
+            <button
+              onClick={() => setAvatarSeed(Math.random().toString(36).substring(7))}
+              className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Sparkles className="w-6 h-6 text-primary" />
+            </button>
+          </div>
         </div>
-        <div className="absolute -bottom-2 -right-2 flex gap-1">
+
+        <div className="flex gap-3 justify-center">
           {[
             { c: 'border-primary', bg: 'bg-primary' },
             { c: 'border-blue-400', bg: 'bg-blue-400' },
@@ -50,7 +53,7 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
             <button
               key={color.c}
               onClick={() => setProfileColor(color.c)}
-              className={`w-6 h-6 rounded-full ${color.bg} border-2 ${profileColor === color.c ? 'border-white' : 'border-transparent'} shadow-lg`}
+              className={`w-8 h-8 rounded-full ${color.bg} border-2 ${profileColor === color.c ? 'border-white' : 'border-transparent'} shadow-lg transition-transform active:scale-95`}
             />
           ))}
         </div>
