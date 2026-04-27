@@ -41,6 +41,9 @@ importers:
       '@tanstack/react-router':
         specifier: ^1.168.23
         version: 1.168.23(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      capacitor-biometric-authentication:
+        specifier: ^2.2.0
+        version: 2.2.0(@capacitor/core@8.3.1)
       dotenv:
         specifier: ^17.2.3
         version: 17.4.2
@@ -1126,6 +1129,14 @@ packages:
 
   caniuse-lite@1.0.30001790:
     resolution: {integrity: sha512-bOoxfJPyYo+ds6W0YfptaCWbFnJYjh2Y1Eow5lRv+vI2u8ganPZqNm1JwNh0t2ELQCqIWg4B3dWEusgAmsoyOw==}
+
+  capacitor-biometric-authentication@2.2.0:
+    resolution: {integrity: sha512-cX9x7N3C1k7lr5pnwZbfPsTn89NL6gLzh/NlaexJz1ixJEqWtxXVRnlEpyHCXIUlsj8Uq5jc93NKd4rj/iNVrg==}
+    peerDependencies:
+      '@capacitor/core': ^8.0.1
+    peerDependenciesMeta:
+      '@capacitor/core':
+        optional: true
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -2741,6 +2752,10 @@ snapshots:
   buffer-crc32@0.2.13: {}
 
   caniuse-lite@1.0.30001790: {}
+
+  capacitor-biometric-authentication@2.2.0(@capacitor/core@8.3.1):
+    optionalDependencies:
+      '@capacitor/core': 8.3.1
 
   chokidar@3.6.0:
     dependencies:

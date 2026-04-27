@@ -22,6 +22,7 @@
     "@google/generative-ai": "^0.24.1",
     "@js-temporal/polyfill": "^0.5.1",
     "@tanstack/react-router": "^1.168.23",
+    "capacitor-biometric-authentication": "^2.2.0",
     "dotenv": "^17.2.3",
     "jeep-sqlite": "^2.8.0",
     "lucide-react": "^0.546.0",

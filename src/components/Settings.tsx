@@ -4,10 +4,11 @@ import {
   User, Diamond, Landmark, ScanFace, ShieldCheck, Key, 
   Banknote, Globe, Moon, CreditCard, HelpCircle, Shield, 
   ChevronRight, ArrowUpRight, Lock, Plus, Edit3, Trash2, X,
-  ShoppingBag, LayoutGrid
+  ShoppingBag, LayoutGrid, Download, Upload, Database
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useWalletStore } from '../store/useWalletStore';
+import { backupService } from '../services/backup.service';
 import CategoryManager from './CategoryManager';
 import ColorLibrary from './ColorLibrary';
 import { Palette, Calendar, Landmark as Bank, Check, ArrowLeft, Wallet } from 'lucide-react';
@@ -21,6 +22,7 @@ interface SettingsProps {
 
 export default function Settings({ profile, onLogout, initialOpenSection }: SettingsProps) {
   const isPasscodeEnabled = useAuthStore(s => s.isPasscodeEnabled);
+  const isBiometricEnabled = useAuthStore(s => s.isBiometricEnabled);
   const updateProfile = async (updates: Partial<Profile>) => {
     if (profile) {
       const { financialService } = await import('../services/financial.service');
@@ -29,10 +31,13 @@ export default function Settings({ profile, onLogout, initialOpenSection }: Sett
     }
   };
   const setIsPasscodeEnabled = useAuthStore(s => s.setIsPasscodeEnabled);
+  const setIsBiometricEnabled = useAuthStore(s => s.setIsBiometricEnabled);
 
   const [showCategoryHub, setShowCategoryHub] = useState(false);
   const [showColorLibrary, setShowColorLibrary] = useState(false);
   const [showIncomeManager, setShowIncomeManager] = useState(initialOpenSection === 'income');
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     if (initialOpenSection === 'income') {
@@ -51,6 +56,32 @@ export default function Settings({ profile, onLogout, initialOpenSection }: Sett
   if (showIncomeManager) {
     return <IncomeManager profile={profile} onBack={() => setShowIncomeManager(false)} onUpdate={updateProfile} />;
   }
+
+  const handleExport = async () => {
+    setIsBackingUp(true);
+    await backupService.downloadBackup();
+    setIsBackingUp(false);
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const content = event.target?.result as string;
+      try {
+        await backupService.importVault(content);
+        // Refresh app state
+        window.location.reload();
+      } catch (err) {
+        console.error('Import failed:', err);
+        setIsImporting(false);
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleSignOut = () => {
     localStorage.removeItem('isOnyxAuthenticated');
@@ -146,11 +177,17 @@ export default function Settings({ profile, onLogout, initialOpenSection }: Sett
             </div>
             <div className="flex items-center justify-between p-4 group border-b border-outline-variant/5">
               <div className="flex items-center gap-4">
-                <ScanFace className="w-5 h-5 text-on-surface-variant" />
+                <ScanFace className={`w-5 h-5 ${isBiometricEnabled ? 'text-primary' : 'text-on-surface-variant'}`} />
                 <span className="text-sm font-medium tracking-tight">Face ID / Biometrics</span>
               </div>
-              <div className="w-10 h-5 bg-surface-container-highest/50 rounded-full relative flex items-center px-0.5 opacity-50">
-                <div className="w-4 h-4 bg-on-surface-variant/50 rounded-full"></div>
+              <div
+                onClick={() => setIsBiometricEnabled(!isBiometricEnabled)}
+                className={`w-10 h-5 rounded-full relative flex items-center px-0.5 cursor-pointer transition-colors ${isBiometricEnabled ? 'bg-primary' : 'bg-surface-container-highest'}`}
+              >
+                <motion.div
+                  layout
+                  className={`w-4 h-4 rounded-full ${isBiometricEnabled ? 'bg-on-primary ml-auto' : 'bg-on-surface-variant'}`}
+                />
               </div>
             </div>
             <div className="flex items-center justify-between p-4 hover:bg-surface-container transition-colors group cursor-pointer border-b border-outline-variant/5">
@@ -285,6 +322,27 @@ export default function Settings({ profile, onLogout, initialOpenSection }: Sett
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={handleExport}
+                disabled={isBackingUp}
+                className="flex flex-col items-center gap-3 p-6 bg-surface-container-low border border-outline-variant/5 rounded-2xl hover:bg-surface-container transition-all group"
+              >
+                <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <Download className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface">Export Vault</span>
+              </button>
+
+              <label className="flex flex-col items-center gap-3 p-6 bg-surface-container-low border border-outline-variant/5 rounded-2xl hover:bg-surface-container transition-all group cursor-pointer">
+                <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface">Import Vault</span>
+                <input type="file" accept=".json" onChange={handleImport} className="hidden" />
+              </label>
             </div>
           </div>
         </div>

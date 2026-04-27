@@ -68,12 +68,14 @@ export const initApp = async () => {
     const [
       profilesRes,
       passcodeEnabled,
+      biometricEnabled,
       onboardingDone,
       setupDone,
       savedUser
     ] = await Promise.all([
       profileService.getProfiles(),
       profileService.isPasscodeEnabled(),
+      profileService.isBiometricEnabled(),
       settingsService.getSetting<boolean>('is_onboarding_complete'),
       settingsService.getSetting<boolean>('is_setup_complete'),
       profileService.getCurrentUser()
@@ -81,6 +83,7 @@ export const initApp = async () => {
 
     authStore.setProfiles(profilesRes);
     authStore.setIsPasscodeEnabledState(passcodeEnabled);
+    authStore.setIsBiometricEnabledState(biometricEnabled);
     
     if (onboardingDone !== null) authStore.setHasCompletedOnboarding(onboardingDone);
     if (setupDone !== null) authStore.setHasCompletedSetup(setupDone);

@@ -18,6 +18,7 @@ import VaultVisual from './VaultVisual';
 import PathSelection from './PathSelection';
 import GoalWizard from './GoalWizard';
 import MissionBoard from './MissionBoard';
+import { financialService } from '../services/financial.service';
 
 export default function Growth() {
   const savingsGoals = useFinancialStore(s => s.savingsGoals);
@@ -55,6 +56,9 @@ export default function Growth() {
   const [historyGoalId, setHistoryGoalId] = useState<string | null>(null);
   const [goalHistory, setGoalHistory] = useState<any[]>([]);
   const [view, setView] = useState<'overview' | 'missions'>('overview');
+  const [showEmergencyCalc, setShowEmergencyCalc] = useState(false);
+  const [avgExpense, setAvgExpense] = useState(0);
+  const [selectedMonths, setSelectedMonths] = useState(6);
 
   const totalLiquidity = useWalletStore(s => s.totalLiquidity);
   const { primaryCurrencySymbol, formatCurrency } = useCurrency();
@@ -119,6 +123,25 @@ export default function Growth() {
   const isHighLiquidity = totalLiquidity > 50000;
   const selectedMission = missions.find(m => m.id === selectedMissionId);
   const getGoalHistory = useFinancialStore(s => s.getGoalHistory);
+
+  const openEmergencyCalc = async () => {
+    if (!currentUser?.id) return;
+    const avg = await financialService.calculateEmergencyFundBase(currentUser.id);
+    setAvgExpense(avg);
+    setShowEmergencyCalc(true);
+  };
+
+  const applyEmergencyFund = () => {
+    const target = avgExpense * selectedMonths;
+    setNewGoalTitle(`Emergency Fund (${selectedMonths}M)`);
+    setNewGoalTarget(target.toFixed(2));
+    setNewGoalCategory('emergency');
+    setNewGoalColor('#F87171');
+    setNewGoalIcon('shield');
+    setNewGoalPriority('high');
+    setShowAddModal(true);
+    setShowEmergencyCalc(false);
+  };
 
   if (savingsGoals.length === 0) {
     return <GoalWizard onComplete={() => {}} />;
@@ -234,12 +257,21 @@ export default function Growth() {
             </h3>
             <span className="bg-primary/10 text-primary text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-primary/20">Active</span>
           </div>
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary border border-white/5 hover:bg-white/5 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={openEmergencyCalc}
+              className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest text-primary border border-white/5 rounded-full hover:bg-white/5 transition-colors text-[10px] font-bold uppercase tracking-widest"
+            >
+              <Zap className="w-3 h-3" />
+              Calculator
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary border border-white/5 hover:bg-white/5 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div className={`grid gap-6 ${isHighLiquidity ? 'md:grid-cols-2' : 'grid-cols-1'}`}>
@@ -744,6 +776,71 @@ export default function Growth() {
                     </div>
                   ))
                 )}
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {showEmergencyCalc && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowEmergencyCalc(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[110]"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              className="fixed bottom-0 left-0 right-0 bg-background rounded-t-[3rem] z-[120] p-10 border-t border-white/10"
+            >
+              <div className="w-12 h-1 bg-white/20 rounded-full mx-auto mb-10" />
+              <div className="flex justify-between items-center mb-10">
+                <div className="space-y-1">
+                  <h3 className="font-headline text-4xl text-on-surface italic">Reserves Calculator</h3>
+                  <p className="text-primary text-[10px] uppercase tracking-[0.3em] font-bold">Scientific Buffer Estimation</p>
+                </div>
+                <button onClick={() => setShowEmergencyCalc(false)} className="p-3 rounded-full bg-white/5 text-on-surface-variant">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-8">
+                <div className="bg-surface-container-low p-8 rounded-3xl border border-white/5 text-center">
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold mb-2">3-Month Average Expenses</p>
+                  <p className="font-headline text-5xl text-primary">{formatCurrency(avgExpense)}</p>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-[10px] uppercase tracking-[0.3em] text-on-surface-variant font-bold">Coverage Duration</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[3, 6, 12].map(m => (
+                      <button
+                        key={m}
+                        onClick={() => setSelectedMonths(m)}
+                        className={`py-6 rounded-2xl border transition-all text-center ${selectedMonths === m ? 'bg-primary/10 border-primary/40' : 'bg-surface-container-low border-white/5'}`}
+                      >
+                        <p className={`text-xl font-headline ${selectedMonths === m ? 'text-primary' : 'text-on-surface'}`}>{m} Months</p>
+                        <p className="text-[8px] text-on-surface-variant uppercase tracking-widest font-bold">Safety Net</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-surface-container-highest/30 p-6 rounded-2xl border border-white/5 flex justify-between items-center">
+                  <div>
+                    <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Recommended Goal</p>
+                    <p className="text-2xl font-headline text-on-surface">{formatCurrency(avgExpense * selectedMonths)}</p>
+                  </div>
+                  <button
+                    onClick={applyEmergencyFund}
+                    className="px-6 py-4 bg-primary text-background rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-primary/20"
+                  >
+                    Draft Objective
+                  </button>
+                </div>
               </div>
             </motion.div>
           </>
