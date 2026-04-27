@@ -437,6 +437,15 @@ export default function History() {
                     </div>
                     <p className="text-sm text-on-surface">{selectedTx.walletId || 'Main Vault'}</p>
                   </div>
+                  {selectedTx.interestAmount && selectedTx.interestAmount > 0 ? (
+                    <div className="p-4 rounded-xl bg-surface-container-highest/20 border border-white/5">
+                      <div className="flex items-center gap-2 mb-2 text-on-surface-variant">
+                        <Star className="w-3 h-3" />
+                        <span className="text-[10px] uppercase tracking-widest font-bold">Interest Included</span>
+                      </div>
+                      <p className="text-sm text-primary">{formatCurrency(selectedTx.interestAmount)}</p>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="flex gap-3 pt-6">

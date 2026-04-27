@@ -51,7 +51,7 @@ export interface FinancialState {
   addLiability: (liability: Omit<Liability, 'id'>, profileId: string) => Promise<void>;
   updateLiability: (id: string, updates: Partial<Liability>, profileId: string) => Promise<void>;
   deleteLiability: (id: string, profileId: string) => Promise<void>;
-  payLiability: (id: string, amount: number, profileId: string, walletId?: string) => Promise<void>;
+  payLiability: (id: string, amount: number, profileId: string, walletId?: string, interestAmount?: number) => Promise<void>;
 
   addRecurringTransaction: (recurring: Omit<RecurringTransaction, 'id'>, profileId: string) => Promise<void>;
   updateRecurringTransaction: (id: string, updates: Partial<RecurringTransaction>, profileId: string) => Promise<void>;
@@ -311,21 +311,34 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
   },
 
   addLiability: async (liability, profileId) => {
-    await financialService.addLiability(liability, profileId);
+    const newLiability = await financialService.addLiability(liability, profileId);
     set({ liabilities: await financialService.getLiabilities(profileId) });
+
+    const { notificationService } = await import('../services/notification.service');
+    await notificationService.scheduleLiabilityReminder(newLiability);
   },
 
   updateLiability: async (id, updates, profileId) => {
     await financialService.updateLiability(id, updates);
-    set({ liabilities: await financialService.getLiabilities(profileId) });
+    const updatedLiabilities = await financialService.getLiabilities(profileId);
+    set({ liabilities: updatedLiabilities });
+
+    const liability = updatedLiabilities.find(l => l.id === id);
+    if (liability) {
+      const { notificationService } = await import('../services/notification.service');
+      await notificationService.scheduleLiabilityReminder(liability);
+    }
   },
 
   deleteLiability: async (id, profileId) => {
     await financialService.deleteLiability(id);
     set({ liabilities: await financialService.getLiabilities(profileId) });
+
+    const { notificationService } = await import('../services/notification.service');
+    await notificationService.cancelLiabilityReminders(id);
   },
 
-  payLiability: async (id, amount, profileId, walletId) => {
+  payLiability: async (id, amount, profileId, walletId, interestAmount) => {
     if (walletId) {
       const liability = get().liabilities.find(l => l.id === id);
       await get().addTransaction({
@@ -337,8 +350,12 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
         subcategoryIcon: 'credit_card',
         walletId: walletId,
         icon: 'credit_card',
-        liabilityId: id
+        liabilityId: id,
+        interestAmount: interestAmount || 0
       }, profileId);
+
+      const updatedLiabilities = await financialService.getLiabilities(profileId);
+      set({ liabilities: updatedLiabilities });
     } else {
       await financialService.payLiability(id, amount);
       set({ liabilities: await financialService.getLiabilities(profileId) });
