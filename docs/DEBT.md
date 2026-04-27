@@ -19,7 +19,7 @@ L'utilisateur peut enregistrer une nouvelle dette en cliquant sur le bouton **"+
 ### Étape 2 : Visualisation du Portfolio
 L'écran affiche :
 - Le **Total Indebtedness** (Somme des montants restants).
-- Le **Debt-to-Income Ratio** (Ratio d'endettement, actuellement simulé).
+- Le **Debt-to-Income Ratio** (Ratio d'endettement, calculé par rapport au salaire mensuel du profil).
 - Le **Total Capital Repaid** (Part déjà remboursée).
 - La **Monthly Service** (Somme des mensualités).
 

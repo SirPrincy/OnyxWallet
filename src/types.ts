@@ -14,6 +14,7 @@ export interface Transaction {
   timestamp: number;
   walletId?: string;
   liabilityId?: string;
+  interestAmount?: number;
   goalId?: string;
 }
 
@@ -74,6 +75,7 @@ export interface Liability {
   monthlyPayment: number;
   dueDate: string;
   provider: string;
+  totalInterestPaid?: number;
 }
 
 export interface SavingsGoal {

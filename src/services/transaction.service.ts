@@ -39,12 +39,12 @@ export class TransactionService {
 
     // 1. Insert Transaction
     statements.push({
-      statement: `INSERT INTO transactions (id, title, category, subcategory, subcategoryIcon, amount, type, date, time, icon, timestamp, walletId, toWalletId, profileId, liabilityId, goalId) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      statement: `INSERT INTO transactions (id, title, category, subcategory, subcategoryIcon, amount, type, date, time, icon, timestamp, walletId, toWalletId, profileId, liabilityId, interestAmount, goalId)
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       values: [
         fullTx.id, fullTx.title, fullTx.category, fullTx.subcategory, fullTx.subcategoryIcon, 
         fullTx.amount, fullTx.type, fullTx.date, fullTx.time, fullTx.icon, fullTx.timestamp, 
-        fullTx.walletId, (fullTx as any).toWalletId, profileId, fullTx.liabilityId, fullTx.goalId
+        fullTx.walletId, (fullTx as any).toWalletId, profileId, fullTx.liabilityId, fullTx.interestAmount || 0, fullTx.goalId
       ]
     });
 
@@ -60,9 +60,12 @@ export class TransactionService {
 
     // 3. Update Liability
     if (fullTx.liabilityId) {
+      const interestPart = fullTx.interestAmount || 0;
+      const capitalPart = Math.max(0, Math.abs(fullTx.amount) - interestPart);
+
       statements.push({
-        statement: 'UPDATE liabilities SET remainingAmount = MAX(0, remainingAmount - ?) WHERE id = ?',
-        values: [Math.abs(fullTx.amount), fullTx.liabilityId]
+        statement: 'UPDATE liabilities SET remainingAmount = MAX(0, remainingAmount - ?), totalInterestPaid = totalInterestPaid + ? WHERE id = ?',
+        values: [capitalPart, interestPart, fullTx.liabilityId]
       });
     }
 
@@ -105,9 +108,12 @@ export class TransactionService {
 
     // 3. Revert Liability
     if (txToDelete.liabilityId) {
+      const interestPart = txToDelete.interestAmount || 0;
+      const capitalPart = Math.max(0, Math.abs(txToDelete.amount) - interestPart);
+
       statements.push({
-        statement: 'UPDATE liabilities SET remainingAmount = remainingAmount + ? WHERE id = ?',
-        values: [Math.abs(txToDelete.amount), txToDelete.liabilityId]
+        statement: 'UPDATE liabilities SET remainingAmount = remainingAmount + ?, totalInterestPaid = MAX(0, totalInterestPaid - ?) WHERE id = ?',
+        values: [capitalPart, interestPart, txToDelete.liabilityId]
       });
     }
 

@@ -69,10 +69,10 @@ export class FinancialService {
 
   async addLiability(liability: Omit<Liability, 'id'>, profileId: string): Promise<Liability> {
     const id = crypto.randomUUID();
-    const newLiability = { ...liability, id };
+    const newLiability = { ...liability, id, totalInterestPaid: 0 };
     await databaseService.run(
-      'INSERT INTO liabilities (id, name, type, totalAmount, remainingAmount, interestRate, monthlyPayment, dueDate, provider, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [id, newLiability.name, newLiability.type, newLiability.totalAmount, newLiability.remainingAmount, newLiability.interestRate, newLiability.monthlyPayment, newLiability.dueDate, newLiability.provider, profileId]
+      'INSERT INTO liabilities (id, name, type, totalAmount, remainingAmount, interestRate, monthlyPayment, dueDate, provider, totalInterestPaid, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [id, newLiability.name, newLiability.type, newLiability.totalAmount, newLiability.remainingAmount, newLiability.interestRate, newLiability.monthlyPayment, newLiability.dueDate, newLiability.provider, newLiability.totalInterestPaid, profileId]
     );
     await databaseService.saveToStore();
     return newLiability;

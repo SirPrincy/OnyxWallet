@@ -133,6 +133,7 @@ class DatabaseService {
         monthlyPayment REAL NOT NULL,
         dueDate TEXT NOT NULL,
         provider TEXT NOT NULL,
+        totalInterestPaid REAL DEFAULT 0,
         profileId TEXT
       );
 
@@ -324,6 +325,15 @@ class DatabaseService {
           if (res.values && !res.values.some((col: any) => col.name === 'goalId')) {
             await this.db.execute(`ALTER TABLE transactions ADD COLUMN goalId TEXT`);
             console.log(`Added goalId column to transactions`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'interestAmount')) {
+            await this.db.execute(`ALTER TABLE transactions ADD COLUMN interestAmount REAL DEFAULT 0`);
+          }
+        }
+
+        if (table === 'liabilities') {
+          if (res.values && !res.values.some((col: any) => col.name === 'totalInterestPaid')) {
+            await this.db.execute(`ALTER TABLE liabilities ADD COLUMN totalInterestPaid REAL DEFAULT 0`);
           }
         }
       } catch (error) {

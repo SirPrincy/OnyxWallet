@@ -74,7 +74,19 @@ export default function DebtScreen() {
   const handlePayment = () => {
     if (!selectedDebtId || !paymentAmount || !currentUser?.id) return;
     
-    payLiability(selectedDebtId, parseFloat(paymentAmount), currentUser.id, selectedWalletId);
+    const amount = parseFloat(paymentAmount);
+    const debt = liabilities.find(l => l.id === selectedDebtId);
+    let interestPart = 0;
+
+    if (debt) {
+      // Auto-calculate interest for this payment
+      // Formula: (Remaining Amount * (Interest Rate / 100)) / 12
+      interestPart = (debt.remainingAmount * (debt.interestRate / 100)) / 12;
+      // Ensure interest part doesn't exceed payment amount
+      interestPart = Math.min(amount, interestPart);
+    }
+
+    payLiability(selectedDebtId, amount, currentUser.id, selectedWalletId, interestPart);
 
     setIsSuccess(true);
     setTimeout(() => {
@@ -94,7 +106,21 @@ export default function DebtScreen() {
 
   const { primaryCurrencySymbol, formatCurrency } = useCurrency();
 
-  const debtToIncomeRatio = 18; // Mock for now
+  const monthlyService = useMemo(() =>
+    liabilities.reduce((sum, l) => sum + l.monthlyPayment, 0),
+  [liabilities]);
+
+  const debtToIncomeRatio = useMemo(() => {
+    if (!currentUser?.monthlySalary || currentUser.monthlySalary <= 0) return 0;
+    return Math.round((monthlyService / currentUser.monthlySalary) * 100);
+  }, [monthlyService, currentUser?.monthlySalary]);
+
+  const ratioStatus = useMemo(() => {
+    if (debtToIncomeRatio === 0) return 'Not available';
+    if (debtToIncomeRatio <= 33) return 'Healthy';
+    if (debtToIncomeRatio <= 45) return 'Manageable';
+    return 'Critical';
+  }, [debtToIncomeRatio]);
 
   return (
     <div className="space-y-12 pb-12">
@@ -105,19 +131,23 @@ export default function DebtScreen() {
           <h2 className="font-headline text-6xl md:text-7xl text-on-surface tracking-tight mb-4">{formatCurrency(totalRemaining)}</h2>
           <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-surface-container-low border border-outline-variant/10">
             <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(242,202,80,0.6)]"></span>
-            <p className="font-sans text-xs text-on-surface-variant">Debt-to-Income Ratio: <span className="text-primary font-medium">{debtToIncomeRatio}% (Healthy)</span></p>
+            <p className="font-sans text-xs text-on-surface-variant">Debt-to-Income Ratio: <span className="text-primary font-medium">{debtToIncomeRatio > 0 ? `${debtToIncomeRatio}%` : 'N/A'} ({ratioStatus})</span></p>
           </div>
         </div>
 
         {/* Asymmetric Stat Grid */}
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-7 bg-surface-container-low/40 backdrop-blur-xl p-6 rounded-xl border border-white/5 flex flex-col justify-between h-32">
-            <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant">Total Capital Repaid</span>
-            <span className="font-headline text-3xl text-on-surface">{formatCurrency(totalPaid)}</span>
+          <div className="col-span-4 bg-surface-container-low/40 backdrop-blur-xl p-6 rounded-xl border border-white/5 flex flex-col justify-between h-32">
+            <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant">Capital Repaid</span>
+            <span className="font-headline text-2xl text-on-surface">{formatCurrency(totalPaid)}</span>
           </div>
-          <div className="col-span-5 bg-primary/5 p-6 rounded-xl border border-primary/20 flex flex-col justify-between h-32">
+          <div className="col-span-4 bg-surface-container-low/40 backdrop-blur-xl p-6 rounded-xl border border-white/5 flex flex-col justify-between h-32">
+            <span className="font-sans text-[10px] uppercase tracking-widest text-on-surface-variant">Total Interest Paid</span>
+            <span className="font-headline text-2xl text-on-surface">{formatCurrency(liabilities.reduce((sum, l) => sum + (l.totalInterestPaid || 0), 0))}</span>
+          </div>
+          <div className="col-span-4 bg-primary/5 p-6 rounded-xl border border-primary/20 flex flex-col justify-between h-32">
             <span className="font-sans text-[10px] uppercase tracking-widest text-primary/80">Monthly Service</span>
-            <span className="font-headline text-3xl text-primary">{formatCurrency(liabilities.reduce((sum, l) => sum + l.monthlyPayment, 0))}</span>
+            <span className="font-headline text-2xl text-primary">{formatCurrency(monthlyService)}</span>
           </div>
         </div>
       </section>
@@ -253,9 +283,17 @@ export default function DebtScreen() {
 
               <div className="space-y-8">
                 <div className="p-6 rounded-2xl bg-surface-container-highest/30 border border-white/5">
-                  <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-2">Targeting</p>
-                  <p className="text-on-surface font-medium">{selectedDebt?.name}</p>
-                  <p className="text-primary text-xs mt-1">Remaining: {formatCurrency(selectedDebt ? selectedDebt.remainingAmount : 0)}</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-2">Targeting</p>
+                      <p className="text-on-surface font-medium">{selectedDebt?.name}</p>
+                      <p className="text-primary text-xs mt-1">Remaining: {formatCurrency(selectedDebt ? selectedDebt.remainingAmount : 0)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-2">Interest Paid</p>
+                      <p className="text-on-surface-variant text-xs">{formatCurrency(selectedDebt?.totalInterestPaid || 0)}</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
