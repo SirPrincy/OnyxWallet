@@ -48,11 +48,3 @@ Modify the `WealthPath` system to include dynamic titles that evolve as the user
 11. **Path-Specific Quests**: Missions that change depending on your Path (e.g., Frugal path gets "No-Spend Weekend" missions).
 12. **Financial News Aggregator**: A dedicated tab for news related to the user's specific investments (Crypto/Stocks).
 13. **Anonymous Sync**: Optional end-to-end encrypted sync between devices using a private key (no account needed).
-
----
-
-## 3. Immediate Functional Tasks (Strategic Firsts)
-- [x] Implement "First Budget" creation flow. (Added `BudgetWizard.tsx`)
-- [x] Implement "First Goal" setup wizard. (Added `GoalWizard.tsx`)
-- [x] Add "Automated Savings" percentage selector in Wallet settings. (Implemented via `autoSavePercent` in SQLite)
-- [x] Create the "Mission Board" for the first mission acceptance. (Added `MissionBoard.tsx`)
