@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   User, Diamond, Landmark, ScanFace, ShieldCheck, Key, 
@@ -7,22 +7,38 @@ import {
   ShoppingBag, LayoutGrid
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useWalletStore } from '../store/useWalletStore';
 import CategoryManager from './CategoryManager';
 import ColorLibrary from './ColorLibrary';
-import { Palette } from 'lucide-react';
+import { Palette, Calendar, Landmark as Bank, Check, ArrowLeft, Wallet } from 'lucide-react';
 import { Profile } from '../types';
 
 interface SettingsProps {
   profile: Profile | null;
   onLogout?: () => void;
+  initialOpenSection?: string;
 }
 
-export default function Settings({ profile, onLogout }: SettingsProps) {
+export default function Settings({ profile, onLogout, initialOpenSection }: SettingsProps) {
   const isPasscodeEnabled = useAuthStore(s => s.isPasscodeEnabled);
+  const updateProfile = async (updates: Partial<Profile>) => {
+    if (profile) {
+      const { financialService } = await import('../services/financial.service');
+      await financialService.updateProfile(profile.id, updates);
+      useAuthStore.getState().setCurrentUser({ ...profile, ...updates });
+    }
+  };
   const setIsPasscodeEnabled = useAuthStore(s => s.setIsPasscodeEnabled);
 
   const [showCategoryHub, setShowCategoryHub] = useState(false);
   const [showColorLibrary, setShowColorLibrary] = useState(false);
+  const [showIncomeManager, setShowIncomeManager] = useState(initialOpenSection === 'income');
+
+  useEffect(() => {
+    if (initialOpenSection === 'income') {
+      setShowIncomeManager(true);
+    }
+  }, [initialOpenSection]);
 
   if (showCategoryHub) {
     return <CategoryManager onBack={() => setShowCategoryHub(false)} />;
@@ -30,6 +46,10 @@ export default function Settings({ profile, onLogout }: SettingsProps) {
 
   if (showColorLibrary) {
     return <ColorLibrary onBack={() => setShowColorLibrary(false)} />;
+  }
+
+  if (showIncomeManager) {
+    return <IncomeManager profile={profile} onBack={() => setShowIncomeManager(false)} onUpdate={updateProfile} />;
   }
 
   const handleSignOut = () => {
@@ -73,6 +93,19 @@ export default function Settings({ profile, onLogout }: SettingsProps) {
                 <span className="text-sm font-medium tracking-tight">Personal Info</span>
               </div>
               <ChevronRight className="w-4 h-4 text-on-surface-variant" />
+            </div>
+            <div
+              onClick={() => setShowIncomeManager(true)}
+              className="flex items-center justify-between p-4 hover:bg-surface-container transition-colors group cursor-pointer border-b border-outline-variant/5"
+            >
+              <div className="flex items-center gap-4">
+                <Banknote className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
+                <span className="text-sm font-medium tracking-tight">Income Management</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {profile?.monthlySalary && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Active</span>}
+                <ChevronRight className="w-4 h-4 text-on-surface-variant" />
+              </div>
             </div>
             <div className="flex items-center justify-between p-4 hover:bg-surface-container transition-colors group cursor-pointer border-b border-outline-variant/5">
               <div className="flex items-center gap-4">
@@ -309,5 +342,148 @@ export default function Settings({ profile, onLogout }: SettingsProps) {
 
       </div>
     </div>
+  );
+}
+
+function IncomeManager({ profile, onBack, onUpdate }: { profile: Profile | null, onBack: () => void, onUpdate: (updates: Partial<Profile>) => Promise<void> }) {
+  const [salary, setSalary] = useState(profile?.monthlySalary?.toString() || '');
+  const [day, setDay] = useState(profile?.salaryDay?.toString() || '1');
+  const [source, setSource] = useState(profile?.salarySource || '');
+  const [walletId, setWalletId] = useState(profile?.salaryWalletId || '');
+  const [autoAdd, setAutoAdd] = useState(profile?.autoAddSalary || false);
+  const [isSaving, setIsSaving] = useState(false);
+  const wallets = useWalletStore(s => s.wallets);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    await onUpdate({
+      monthlySalary: parseFloat(salary) || 0,
+      salaryDay: parseInt(day) || 1,
+      salarySource: source,
+      salaryWalletId: walletId,
+      autoAddSalary: autoAdd
+    });
+    setIsSaving(false);
+    onBack();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="space-y-8 pb-20"
+    >
+      <header className="flex items-center justify-between pt-4">
+        <button onClick={onBack} className="p-2 -ml-2 text-on-surface-variant hover:text-primary transition-colors">
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <h2 className="font-headline text-3xl italic text-on-surface">Income Management</h2>
+        <div className="w-10" />
+      </header>
+
+      <section className="bg-surface-container-low rounded-3xl p-8 border border-white/5 relative overflow-hidden group">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -z-10"></div>
+        <label className="text-[10px] uppercase tracking-[0.4em] font-bold text-primary mb-6 block">Monthly Revenue</label>
+        <input
+          autoFocus
+          type="number"
+          value={salary}
+          onChange={(e) => setSalary(e.target.value)}
+          placeholder="0.00"
+          className="w-full bg-transparent border-none p-0 font-headline text-7xl focus:ring-0 text-on-surface placeholder:text-on-surface-variant/10"
+        />
+        <div className="mt-4 pt-4 border-t border-white/5">
+          <p className="text-[10px] text-on-surface-variant italic uppercase tracking-widest">Calculated Annual: {profile?.currency || '$'} {(parseFloat(salary) || 0) * 12}</p>
+        </div>
+      </section>
+
+      <div className="space-y-6">
+        <h3 className="text-[10px] font-bold tracking-[0.2em] uppercase text-on-surface-variant/60 px-1">Institutional Logistics (Pro)</h3>
+
+        <div className="bg-surface-container-low rounded-2xl border border-white/5 overflow-hidden">
+          <div className="p-5 flex items-center gap-5 border-b border-white/5">
+            <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary">
+              <Bank className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1 block">Source Name</label>
+              <input
+                type="text"
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                placeholder="e.g. Goldman Sachs"
+                className="w-full bg-transparent border-none p-0 text-sm font-medium focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30"
+              />
+            </div>
+          </div>
+
+          <div className="p-5 flex items-center gap-5 border-b border-white/5">
+            <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1 block">Monthly Receipt Day</label>
+              <input
+                type="number"
+                min="1"
+                max="31"
+                value={day}
+                onChange={(e) => setDay(e.target.value)}
+                className="w-full bg-transparent border-none p-0 text-sm font-medium focus:ring-0 text-on-surface"
+              />
+            </div>
+          </div>
+
+          <div className="p-5 flex items-center gap-5 border-b border-white/5">
+            <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary">
+              <Wallet className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold mb-1 block">Destination Vault</label>
+              <select
+                value={walletId}
+                onChange={(e) => setWalletId(e.target.value)}
+                className="w-full bg-transparent border-none p-0 text-sm font-medium focus:ring-0 text-on-surface appearance-none"
+              >
+                <option value="" className="bg-surface-container-high">Select Wallet</option>
+                {wallets.map(w => (
+                  <option key={w.id} value={w.id} className="bg-surface-container-high">{w.name} ({w.currency})</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="p-5 flex items-center justify-between">
+            <div className="flex items-center gap-5">
+              <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary">
+                <Check className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-on-surface">Auto-Add Transaction</p>
+                <p className="text-[9px] text-on-surface-variant uppercase tracking-widest mt-0.5">Automated Ledger Entry</p>
+              </div>
+            </div>
+            <div
+              onClick={() => setAutoAdd(!autoAdd)}
+              className={`w-10 h-5 rounded-full relative flex items-center px-0.5 cursor-pointer transition-colors ${autoAdd ? 'bg-primary' : 'bg-surface-container-highest'}`}
+            >
+              <motion.div
+                layout
+                className={`w-4 h-4 rounded-full ${autoAdd ? 'bg-on-primary ml-auto' : 'bg-on-surface-variant'}`}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={handleSave}
+        disabled={isSaving}
+        className="w-full metallic-gradient py-5 rounded-2xl text-background font-bold tracking-widest uppercase text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+      >
+        {isSaving ? 'Synchronizing...' : 'Update Strategy'}
+      </button>
+    </motion.div>
   );
 }

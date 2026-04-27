@@ -2,6 +2,7 @@ import { databaseService } from './database.service';
 import { SavingsGoal, Category, Liability, Mission, Achievement, Transaction, RecurringTransaction, Profile, GoalContribution, Budget } from '../types';
 import * as ss from 'simple-statistics';
 import { Temporal } from '@js-temporal/polyfill';
+import { transactionService } from './transaction.service';
 
 export class FinancialService {
   // PROFILE
@@ -346,6 +347,7 @@ export class FinancialService {
     if (!hourlyRate || hourlyRate <= 0) return 0;
     return amount / hourlyRate;
   }
+
 }
 
 export const financialService = new FinancialService();

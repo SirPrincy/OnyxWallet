@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { 
   Award, ChevronRight, Landmark, Verified, 
-  FileText, Shield, ExternalLink, LogOut, X, Plus, Search, CheckCircle
+  FileText, Shield, ExternalLink, LogOut, X, Plus, Search, CheckCircle,
+  Banknote
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Profile as ProfileType } from '../types';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface ProfileProps {
   profile: ProfileType | null;
+  onManageIncome?: () => void;
 }
 
 const MOCK_INSTITUTIONS = [
@@ -19,7 +22,8 @@ const MOCK_INSTITUTIONS = [
   { name: 'Barclays Wealth', icon: Landmark, color: 'bg-sky-500/10 text-sky-500' },
 ];
 
-export default function Profile({ profile }: ProfileProps) {
+export default function Profile({ profile, onManageIncome }: ProfileProps) {
+  const { formatCurrency } = useCurrency();
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLinking, setIsLinking] = useState(false);
@@ -97,6 +101,27 @@ export default function Profile({ profile }: ProfileProps) {
           <button className="text-primary text-[10px] font-bold tracking-[0.2em] uppercase flex items-center gap-2 hover:gap-3 transition-all relative z-10">
             Benefits Portfolio <ChevronRight className="w-4 h-4" />
           </button>
+        </div>
+      </section>
+
+      {/* Income Identity (C) */}
+      <section>
+        <div className="bg-surface-container-low rounded-2xl p-6 border border-white/5 flex items-center justify-between group cursor-pointer hover:bg-surface-container transition-colors" onClick={onManageIncome}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <Banknote className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-primary mb-1 italic">Annualized Revenue</p>
+              <h3 className="text-xl font-headline text-on-surface">
+                {profile?.monthlySalary ? formatCurrency(profile.monthlySalary * 12) : 'Unconfigured'}
+              </h3>
+              {profile?.monthlySalary && (
+                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5">Monthly: {formatCurrency(profile.monthlySalary)}</p>
+              )}
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
         </div>
       </section>
 
