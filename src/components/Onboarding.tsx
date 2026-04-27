@@ -7,7 +7,6 @@ import {
   Wallet as WalletIcon, 
   Sparkles,
   Lock,
-  User,
   CheckCircle2,
   Search,
   Filter,
@@ -37,17 +36,17 @@ const STEPS: OnboardingStep[] = [
     color: "from-primary/20 to-transparent"
   },
   {
-    title: "Absolute",
+    title: "Commitment to",
     subtitle: "PRIVACY",
-    description: "Your financial data never leaves your device. No cloud, no tracking, just secure local encryption.",
+    description: "Onyx Wallet is 100% offline. No servers, no tracking, total control over your financial legacy.",
     icon: <ShieldCheck className="w-12 h-12 text-primary" strokeWidth={1} />,
-    color: "from-red-500/20 to-transparent"
+    color: "from-primary/20 to-transparent"
   }
 ];
 
 export default function Onboarding() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [setupStep, setSetupStep] = useState<'entry' | 'caution' | 'info' | 'identity' | 'quiz' | 'path-result' | 'wallet' | 'finish' | 'tutorial'>('entry');
+  const [setupStep, setSetupStep] = useState<'entry' | 'info' | 'identity' | 'quiz' | 'path-result' | 'wallet' | 'finish' | 'tutorial'>('entry');
   const completeOnboarding = useAuthStore(s => s.completeOnboarding);
   const completeSetup = useAuthStore(s => s.completeSetup);
   const login = useAuthStore(s => s.login);
@@ -59,6 +58,9 @@ export default function Onboarding() {
   // Identity state
   const [name, setName] = useState('');
   const [passcode, setPasscode] = useState('');
+  const [confirmPasscode, setConfirmPasscode] = useState('');
+  const [avatarSeed, setAvatarSeed] = useState(Math.random().toString(36).substring(7));
+  const [profileColor, setProfileColor] = useState('border-primary');
 
   // Quiz state
   const [quizStep, setQuizStep] = useState(0);
@@ -144,14 +146,14 @@ export default function Onboarding() {
   ];
 
   const PATHS_DATA: Record<string, any> = {
-    investor: { name: 'The Strategic Investor', desc: 'Focus on market growth, crypto assets, and passive income generation.', color: 'text-emerald-400' },
-    frugal: { name: 'The Frugal Architect', desc: 'Master of discipline, budget optimization, and debt elimination.', color: 'text-blue-400' },
-    neutral: { name: 'The Balanced Path', desc: 'A versatile approach balancing growth and security.', color: 'text-primary' },
-    guardian: { name: 'Wealth Guardian', desc: 'Prioritizes capital preservation, stability, and risk mitigation.', color: 'text-amber-500' },
-    catalyst: { name: 'Venture Catalyst', desc: 'High-risk, high-reward strategy focusing on disruptive opportunities.', color: 'text-rose-500' },
-    alchemist: { name: 'Ethical Alchemist', desc: 'Aligns financial growth with social and environmental impact.', color: 'text-teal-400' },
-    nomad: { name: 'Digital Nomad', desc: 'Optimizes for global mobility, remote income, and borderless finance.', color: 'text-indigo-400' },
-    legacy: { name: 'Legacy Builder', desc: 'Long-term focused, emphasizing estate planning and generational wealth.', color: 'text-purple-400' }
+    investor: { name: 'The Strategic Investor', desc: 'Focus on market growth, crypto assets, and passive income generation.', color: 'text-emerald-400', bonus: '+10% XP on Crypto & Investment missions' },
+    frugal: { name: 'The Frugal Architect', desc: 'Master of discipline, budget optimization, and debt elimination.', color: 'text-blue-400', bonus: '+20% XP for staying under budget' },
+    neutral: { name: 'The Balanced Path', desc: 'A versatile approach balancing growth and security.', color: 'text-primary', bonus: 'Balanced XP growth across all categories' },
+    guardian: { name: 'Wealth Guardian', desc: 'Prioritizes capital preservation, stability, and risk mitigation.', color: 'text-amber-500', bonus: '+15% XP for Emergency Fund progress' },
+    catalyst: { name: 'Venture Catalyst', desc: 'High-risk, high-reward strategy focusing on disruptive opportunities.', color: 'text-rose-500', bonus: 'Double XP on high-growth asset discovery' },
+    alchemist: { name: 'Ethical Alchemist', desc: 'Aligns financial growth with social and environmental impact.', color: 'text-teal-400', bonus: '+15% XP on Philanthropy & ESG goals' },
+    nomad: { name: 'Digital Nomad', desc: 'Optimizes for global mobility, remote income, and borderless finance.', color: 'text-indigo-400', bonus: '+10% XP on Currency & Mobility missions' },
+    legacy: { name: 'Legacy Builder', desc: 'Long-term focused, emphasizing estate planning and generational wealth.', color: 'text-purple-400', bonus: '+20% XP on Property & Multi-gen goals' }
   };
 
   // Wallet state
@@ -174,7 +176,6 @@ export default function Onboarding() {
   );
 
   const handleQuizAnswer = (path: string) => {
-    // We store the literal path string for the answer
     const nextAnswers = [...quizAnswers, path];
     setQuizAnswers(nextAnswers);
 
@@ -186,26 +187,15 @@ export default function Onboarding() {
   };
 
   const calculateResult = (answers: string[]) => {
-    // Dimension-based weights (3 Behavior, 3 Vision, 1 Tie-breaker)
-    // Behavior: answers[0, 1, 2]
-    // Vision: answers[3, 4, 5]
-    // Tie-Breaker: answers[6]
-
     const behaviorPaths = answers.slice(0, 3);
     const visionPaths = answers.slice(3, 6);
     const tieBreaker = answers[6];
 
-    // Count frequencies
     const counts: Record<string, number> = {};
-
-    // Vision counts double for long-term alignment
     visionPaths.forEach(p => counts[p] = (counts[p] || 0) + 2);
-    // Behavior counts single for current habits
     behaviorPaths.forEach(p => counts[p] = (counts[p] || 0) + 1);
-    // Tie breaker counts triple to finalize decision
     counts[tieBreaker] = (counts[tieBreaker] || 0) + 3;
 
-    // Find the max
     let maxCount = -1;
     let finalPath = 'neutral';
 
@@ -226,8 +216,6 @@ export default function Onboarding() {
 
   const nextStep = () => {
     if (setupStep === 'entry') {
-      setSetupStep('caution');
-    } else if (setupStep === 'caution') {
       setSetupStep('info');
     } else if (setupStep === 'info') {
       if (currentStep < STEPS.length - 1) {
@@ -237,7 +225,7 @@ export default function Onboarding() {
         setSetupStep('identity');
       }
     } else if (setupStep === 'identity') {
-      if (name && passcode) setSetupStep('quiz');
+      if (name && passcode && passcode === confirmPasscode) setSetupStep('quiz');
     } else if (setupStep === 'path-result') {
       setSetupStep('wallet');
     } else if (setupStep === 'wallet') {
@@ -250,31 +238,23 @@ export default function Onboarding() {
   };
 
   const handleFinalize = async () => {
-    // 1. Create Profile
     const newProfile = {
-      id: Math.random().toString(36).substr(2, 9),
       name,
       passcode,
       role: 'Owner',
       tier: 'Bronze',
       status: 'Active',
       lastActive: 'Now',
-      image: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${name}`,
-      color: 'border-primary',
+      image: `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${avatarSeed}`,
+      color: profileColor,
       currency: walletCurrency,
       path: recommendedPath as any
     };
     
-    // Save profile to SQLite using context
-    // We use the INITIAL_CATEGORIES from useFinancialStore which are now STANDARD
     const { INITIAL_CATEGORIES } = await import('../store/useFinancialStore');
+    const savedProfile = await addProfile(newProfile, INITIAL_CATEGORIES);
+    await login(savedProfile);
 
-    await addProfile(newProfile, INITIAL_CATEGORIES);
-    
-    // Auto-login using context
-    await login(newProfile);
-
-    // 2. Create Wallet
     const balance = walletType === 'Crypto'
       ? (parseFloat(cryptoQuantity) || 0) * (parseFloat(cryptoPrice) || 0)
       : parseFloat(walletBalance);
@@ -290,22 +270,19 @@ export default function Onboarding() {
       provider: 'Onyx Reserve',
       isVisible: true
     };
-    await addWallet(wallet, newProfile.id);
+    await addWallet(wallet, savedProfile.id);
 
-    // Apply the recommended path to gamification store
     await setPath(
       recommendedPath as any,
-      newProfile.id,
+      savedProfile.id,
       walletCurrency,
-      (level) => useFinancialStore.getState().upgradeToEliteCategories(level, newProfile.id)
+      (level) => useFinancialStore.getState().upgradeToEliteCategories(level, savedProfile.id)
     );
 
-    // 3. Mark completion
     setSetupStep('finish');
   };
 
   const handleComplete = async () => {
-    // Force a gamification sync to calculate the initial tier based on the deposit
     const profileId = useAuthStore.getState().currentUser?.id;
     if (profileId) {
       const gamStore = useGamificationStore.getState();
@@ -319,7 +296,6 @@ export default function Onboarding() {
     }
     await completeSetup();
     await completeOnboarding();
-    // This will trigger App.tsx to show the main app since isAuthenticated is true
   };
 
   const variants = {
@@ -344,7 +320,6 @@ export default function Onboarding() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden font-sans">
-      {/* Ambient Background Gradient */}
       <div className="absolute inset-0 z-0">
         <AnimatePresence mode="wait">
           <motion.div
@@ -359,19 +334,13 @@ export default function Onboarding() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#131313_100%)] opacity-80" />
       </div>
 
-      {/* Progress Indicator */}
       <div className="relative z-10 px-8 pt-12 flex gap-2">
-        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((index) => {
-          const steps = ['entry', 'caution', 'info', 'identity', 'quiz', 'path-result', 'wallet', 'finish', 'tutorial'];
+        {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => {
+          const steps = ['entry', 'info', 'identity', 'quiz', 'path-result', 'wallet', 'finish', 'tutorial'];
           const currentSetupIndex = steps.indexOf(setupStep);
-
           const isActive = index <= currentSetupIndex;
-          
           return (
-            <div 
-              key={index} 
-              className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden"
-            >
+            <div key={index} className="h-1 flex-1 bg-white/10 rounded-full overflow-hidden">
               <motion.div 
                 className="h-full bg-primary"
                 initial={{ width: "0%" }}
@@ -383,7 +352,6 @@ export default function Onboarding() {
         })}
       </div>
 
-      {/* Main Content */}
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 text-center">
         <AnimatePresence custom={direction} mode="wait">
           {setupStep === 'entry' ? (
@@ -403,7 +371,7 @@ export default function Onboarding() {
 
               <div className="grid gap-4">
                 <button
-                  onClick={() => setSetupStep('caution')}
+                  onClick={() => setSetupStep('info')}
                   className="w-full p-6 rounded-3xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all text-left group"
                 >
                   <div className="flex items-center justify-between">
@@ -429,39 +397,6 @@ export default function Onboarding() {
                 </button>
               </div>
             </motion.div>
-          ) : setupStep === 'caution' ? (
-            <motion.div
-              key="caution"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-sm space-y-12"
-            >
-              <div className="mx-auto w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center">
-                <Lock className="w-10 h-10 text-red-500" strokeWidth={1} />
-              </div>
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <p className="text-[10px] uppercase tracking-[0.4em] text-red-500 font-bold italic">Critical Warning</p>
-                  <h1 className="text-4xl font-headline italic text-on-surface">Absolute Privacy</h1>
-                </div>
-
-                <div className="p-6 rounded-3xl bg-red-500/5 border border-red-500/20 text-left space-y-4">
-                  <p className="text-sm text-on-surface/80 leading-relaxed">
-                    Onyx Wallet is <span className="text-red-500 font-bold">100% Offline</span>.
-                  </p>
-                  <ul className="space-y-3">
-                    <li className="flex gap-3 text-xs text-on-surface-variant leading-relaxed">
-                      <div className="w-1 h-1 rounded-full bg-red-500 mt-1.5 shrink-0" />
-                      <span>No data ever leaves your device. We have no servers and no access to your money.</span>
-                    </li>
-                    <li className="flex gap-3 text-xs text-on-surface-variant leading-relaxed">
-                      <div className="w-1 h-1 rounded-full bg-red-500 mt-1.5 shrink-0" />
-                      <span>If you lose your device or forget your passcode, <span className="text-on-surface font-bold">your funds cannot be recovered</span> by us.</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </motion.div>
           ) : setupStep === 'info' ? (
             <motion.div
               key={`info-${currentStep}`}
@@ -485,6 +420,19 @@ export default function Onboarding() {
                 <p className="text-[10px] uppercase tracking-[0.4em] text-primary font-bold">{STEPS[currentStep].title}</p>
                 <h1 className="text-5xl font-headline italic text-on-surface tracking-tight">{STEPS[currentStep].subtitle}</h1>
                 <p className="text-sm text-on-surface-variant/80 leading-relaxed max-w-[280px] mx-auto">{STEPS[currentStep].description}</p>
+
+                {currentStep === 1 && (
+                  <div className="mt-8 p-6 rounded-3xl bg-primary/5 border border-primary/20 text-left space-y-3">
+                    <div className="flex gap-3 text-[11px] text-on-surface-variant leading-relaxed">
+                      <div className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
+                      <span>No servers, no tracking. Your data stays on your device.</span>
+                    </div>
+                    <div className="flex gap-3 text-[11px] text-on-surface-variant leading-relaxed">
+                      <div className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
+                      <span>If access key is lost, data recovery is <span className="text-on-surface font-bold">impossible</span>.</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           ) : setupStep === 'identity' ? (
@@ -492,12 +440,39 @@ export default function Onboarding() {
               key="identity"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-sm space-y-12"
+              className="w-full max-w-sm space-y-10"
             >
-              <div className="mx-auto w-24 h-24 rounded-full glass-card border border-white/10 flex items-center justify-center">
-                <User className="w-10 h-10 text-primary" strokeWidth={1} />
+              <div className="relative mx-auto w-28 h-28">
+                <div className={`w-full h-full rounded-full border-4 ${profileColor} p-1 bg-surface-container overflow-hidden relative group`}>
+                  <img
+                    src={`https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${avatarSeed}`}
+                    className="w-full h-full object-cover rounded-full"
+                    alt="Profile"
+                  />
+                  <button
+                    onClick={() => setAvatarSeed(Math.random().toString(36).substring(7))}
+                    className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Sparkles className="w-6 h-6 text-primary" />
+                  </button>
+                </div>
+                <div className="absolute -bottom-2 -right-2 flex gap-1">
+                  {[
+                    { c: 'border-primary', bg: 'bg-primary' },
+                    { c: 'border-blue-400', bg: 'bg-blue-400' },
+                    { c: 'border-emerald-400', bg: 'bg-emerald-400' },
+                    { c: 'border-purple-400', bg: 'bg-purple-400' }
+                  ].map(color => (
+                    <button
+                      key={color.c}
+                      onClick={() => setProfileColor(color.c)}
+                      className={`w-6 h-6 rounded-full ${color.bg} border-2 ${profileColor === color.c ? 'border-white' : 'border-transparent'} shadow-lg`}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="space-y-8 text-left">
+
+              <div className="space-y-6 text-left">
                 <div className="text-center space-y-2">
                   <h2 className="text-3xl font-headline italic text-on-surface">Establish Identity</h2>
                   <p className="text-xs text-on-surface-variant">Choose your name and a secure access key.</p>
@@ -513,16 +488,31 @@ export default function Onboarding() {
                       className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Secure Passcode</label>
-                    <input 
-                      type="password"
-                      value={passcode}
-                      onChange={e => setPasscode(e.target.value)}
-                      placeholder="Enter Access Key"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Secure Passcode</label>
+                      <input
+                        type="password"
+                        value={passcode}
+                        onChange={e => setPasscode(e.target.value)}
+                        placeholder="Key"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Confirm Key</label>
+                      <input
+                        type="password"
+                        value={confirmPasscode}
+                        onChange={e => setConfirmPasscode(e.target.value)}
+                        placeholder="Confirm"
+                        className={`w-full bg-white/5 border rounded-2xl px-5 py-4 text-on-surface focus:border-primary outline-none transition-all ${confirmPasscode && confirmPasscode !== passcode ? 'border-red-500/50' : 'border-white/10'}`}
+                      />
+                    </div>
                   </div>
+                  {confirmPasscode && confirmPasscode !== passcode && (
+                    <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest text-center">Keys do not match</p>
+                  )}
                 </div>
               </div>
             </motion.div>
@@ -575,13 +565,22 @@ export default function Onboarding() {
                 <h1 className="text-4xl font-headline italic text-on-surface">Congratulations</h1>
                 <p className="text-sm text-on-surface-variant/80">Your profile aligns perfectly with:</p>
 
-                <div className="p-8 rounded-[2.5rem] bg-white/5 border border-primary/20 space-y-3">
-                  <h3 className={`text-2xl font-headline italic ${PATHS_DATA[recommendedPath].color}`}>
-                    {PATHS_DATA[recommendedPath].name}
-                  </h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">
-                    {PATHS_DATA[recommendedPath].desc}
-                  </p>
+                <div className="p-8 rounded-[2.5rem] bg-white/5 border border-primary/20 space-y-4">
+                  <div className="space-y-1">
+                    <h3 className={`text-2xl font-headline italic ${PATHS_DATA[recommendedPath].color}`}>
+                      {PATHS_DATA[recommendedPath].name}
+                    </h3>
+                    <p className="text-xs text-on-surface-variant leading-relaxed">
+                      {PATHS_DATA[recommendedPath].desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-center gap-2 text-primary">
+                      <Sparkles className="w-3 h-3" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">{PATHS_DATA[recommendedPath].bonus}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <button
@@ -657,7 +656,7 @@ export default function Onboarding() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Price (USD)</label>
+                        <label className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-bold ml-1">Price ({walletCurrency})</label>
                         <input
                           type="number"
                           value={cryptoPrice}
@@ -687,7 +686,7 @@ export default function Onboarding() {
                 </div>
               </div>
             </motion.div>
-          ) : (
+          ) : setupStep === 'finish' ? (
             <motion.div
               key="finish"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -719,52 +718,56 @@ export default function Onboarding() {
 
               <div className="space-y-3">
                 {[
-                  { title: "Define First Budget", desc: "Track every penny of your expenses.", icon: <Filter className="w-4 h-4" /> },
-                  { title: "Set Savings Goal", desc: "Visualize your path to the first $10k.", icon: <TrendingUp className="w-4 h-4" /> },
-                  { title: "Launch AI Audit", desc: "Get strategic insights from the Onyx AI.", icon: <Sparkles className="w-4 h-4" /> },
-                  { title: "Accept Mission", desc: "Earn XP by completing tactical challenges.", icon: <TrendingUp className="w-4 h-4" /> }
+                  { title: "Security Buffer", desc: "Establish your first liquidity reserve.", xp: "+50 XP", icon: <ShieldCheck className="w-4 h-4" /> },
+                  { title: "Diversification", desc: "Open 3 different strategic wallets.", xp: "+75 XP", icon: <WalletIcon className="w-4 h-4" /> },
+                  { title: "Positive Cashflow", desc: "Earn more than you spend this month.", xp: "+100 XP", icon: <TrendingUp className="w-4 h-4" /> },
+                  { title: "AI Strategic Audit", desc: "Get your first automated portfolio analysis.", xp: "+25 XP", icon: <Sparkles className="w-4 h-4" /> }
                 ].map((act, i) => (
-                  <div key={i} className="flex items-start gap-4 p-5 rounded-3xl bg-white/5 border border-white/10 text-left">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 mt-1">
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-center gap-4 p-5 rounded-3xl bg-white/5 border border-white/10 text-left group hover:border-primary/30 transition-colors"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0 group-hover:scale-110 transition-transform">
                       {act.icon}
                     </div>
-                    <div className="space-y-1">
+                    <div className="flex-1 space-y-0.5">
                       <h4 className="text-[11px] font-bold uppercase tracking-wider text-on-surface">{act.title}</h4>
-                      <p className="text-[10px] text-on-surface-variant leading-relaxed">{act.desc}</p>
+                      <p className="text-[9px] text-on-surface-variant leading-relaxed line-clamp-1">{act.desc}</p>
                     </div>
-                  </div>
+                    <div className="text-[10px] font-bold text-primary italic whitespace-nowrap bg-primary/10 px-3 py-1 rounded-full">
+                      {act.xp}
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
       </div>
 
-      {/* Bottom Actions */}
       <div className="relative z-10 p-12 flex flex-col items-center gap-6">
-        {(setupStep === 'quiz' || setupStep === 'entry') ? null : setupStep === 'finish' ? (
+        {(setupStep === 'quiz' || setupStep === 'entry') ? null : (setupStep === 'finish' || setupStep === 'tutorial') ? (
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={nextStep}
-            className="w-full max-w-sm bg-green-500 py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_20px_40px_-10px_rgba(34,197,94,0.3)] group"
+            onClick={setupStep === 'finish' ? nextStep : handleComplete}
+            className={`w-full max-w-sm py-4 rounded-full flex items-center justify-center gap-2 group transition-all duration-300 ${
+              setupStep === 'finish'
+                ? 'bg-green-500 shadow-[0_20px_40px_-10px_rgba(34,197,94,0.3)]'
+                : 'metallic-gradient shadow-[0_20px_40px_-10px_rgba(242,202,80,0.3)]'
+            }`}
           >
-            <span className="font-bold uppercase tracking-[0.2em] text-[11px] text-white">
-              Launch Dashboard
+            <span className={`font-bold uppercase tracking-[0.2em] text-[11px] ${
+              setupStep === 'finish' ? 'text-white' : 'text-on-primary'
+            }`}>
+              {setupStep === 'finish' ? 'Launch Strategic Path' : 'Enter Vault'}
             </span>
-            <ChevronRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
-          </motion.button>
-        ) : setupStep === 'tutorial' ? (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleComplete}
-            className="w-full max-w-sm metallic-gradient py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_20px_40px_-10px_rgba(242,202,80,0.3)] group"
-          >
-            <span className="font-bold uppercase tracking-[0.2em] text-[11px] text-on-primary">
-              Enter Vault
-            </span>
-            <ChevronRight className="w-4 h-4 text-on-primary group-hover:translate-x-1 transition-transform" />
+            <ChevronRight className={`w-4 h-4 group-hover:translate-x-1 transition-transform ${
+              setupStep === 'finish' ? 'text-white' : 'text-on-primary'
+            }`} />
           </motion.button>
         ) : (
           <motion.button
@@ -772,7 +775,7 @@ export default function Onboarding() {
             whileTap={{ scale: 0.98 }}
             onClick={nextStep}
             disabled={
-              (setupStep === 'identity' && (!name || !passcode)) ||
+              (setupStep === 'identity' && (!name || !passcode || passcode !== confirmPasscode)) ||
               (setupStep === 'wallet' && (
                 !walletName ||
                 (walletType === 'Crypto' ? (!cryptoQuantity || !cryptoPrice) : !walletBalance)
@@ -781,7 +784,7 @@ export default function Onboarding() {
             className="w-full max-w-sm metallic-gradient py-4 rounded-full flex items-center justify-center gap-2 shadow-[0_20px_40px_-10px_rgba(242,202,80,0.3)] group disabled:opacity-50"
           >
             <span className="font-bold uppercase tracking-[0.2em] text-[11px] text-on-primary">
-              {setupStep === 'caution' ? "I Understand" :
+              {setupStep === 'info' && currentStep === 1 ? "I Accept & Continue" :
                setupStep === 'info' && currentStep === STEPS.length - 1 ? "Start Setup" :
                setupStep === 'wallet' ? "Finalize" : "Continue"}
             </span>
@@ -799,7 +802,6 @@ export default function Onboarding() {
         )}
       </div>
 
-      {/* Type Selector Modal */}
       <AnimatePresence>
         {showTypeSelector && (
           <>
@@ -832,7 +834,6 @@ export default function Onboarding() {
         )}
       </AnimatePresence>
 
-      {/* Currency Selector Modal */}
       <AnimatePresence>
         {showCurrencySelector && (
           <>
@@ -880,7 +881,6 @@ export default function Onboarding() {
         )}
       </AnimatePresence>
 
-      {/* Aesthetic Grain Overlay */}
       <div className="absolute inset-0 z-50 pointer-events-none opacity-[0.03] mix-blend-overlay" 
            style={{ backgroundImage: `url("https://grainy-gradients.vercel.app/noise.svg")` }} />
     </div>

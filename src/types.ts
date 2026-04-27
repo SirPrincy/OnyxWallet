@@ -132,6 +132,7 @@ export interface Profile {
   color: string;
   currency: string;
   path?: WealthPath;
+  hourlyRate?: number;
 }
 
 export interface TierData {
