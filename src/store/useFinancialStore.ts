@@ -136,6 +136,10 @@ export const useFinancialStore = create<FinancialState>((set, get) => ({
           }
         }
       }
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+      set({ transactions: previousTransactions, liabilities: previousLiabilities, savingsGoals: previousGoals });
+    }
 
     const gamStore = useGamificationStore.getState();
     const profileCurrency = getCurrency();
