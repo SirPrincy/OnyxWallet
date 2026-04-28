@@ -44,11 +44,11 @@ export const useGamificationStore = create<GamificationState>((set, get) => ({
   isSyncing: false,
   path: 'neutral',
   tierData: {
-    tierName: 'Bronze',
+    tierName: 'Nouveau Membre',
     level: 1,
     progressPercent: 0,
-    xpLeft: 5000,
-    nextTier: 'Silver'
+    xpLeft: 200,
+    nextTier: 'Bronze'
   },
 
   setMissions: (m) => set({ missions: m }),

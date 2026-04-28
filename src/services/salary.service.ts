@@ -17,10 +17,10 @@ export class SalaryService {
     if (now.day >= profile.salaryDay) {
       // Add the transaction
       await transactionService.addTransaction({
-        title: `Salary: ${profile.salarySource || 'Monthly Income'}`,
+        title: `Flux: ${profile.salarySource || 'Apport Mensuel'}`,
         amount: profile.monthlySalary,
         type: 'income',
-        category: 'Income',
+        category: 'Capital Inflow',
         walletId: profile.salaryWalletId,
         icon: 'payments',
         timestamp: Temporal.Now.instant().epochMilliseconds

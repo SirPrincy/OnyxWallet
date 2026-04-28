@@ -30,7 +30,7 @@ export const ALL_ACHIEVEMENTS: Omit<Achievement, 'earned' | 'earnedDate'>[] = [
 
   // LEGENDARY
   { id: 'half_millionaire', title: 'Demi-Millionnaire', icon: 'star', rarity: 'legendary', description: 'Atteindre un capital de 500 000 $' },
-  { id: 'onyx_titan', title: 'Titan d\'Onyx', icon: 'crown', rarity: 'legendary', description: 'Atteindre le niveau maximum (Archon)' },
+  { id: 'onyx_titan', title: 'Titan d\'Onyx', icon: 'crown', rarity: 'legendary', description: 'Atteindre le niveau maximum (Onyx Legend)' },
   { id: 'wealth_architect', title: 'Architecte de Fortune', icon: 'building', rarity: 'legendary', description: 'Avoir un patrimoine net de 1 000 000 $' },
   { id: 'legacy_builder', title: 'Bâtisseur d\'Héritage', icon: 'landmark', rarity: 'legendary', description: 'Posséder des actifs immobiliers' },
 
@@ -48,44 +48,171 @@ export const ALL_ACHIEVEMENTS: Omit<Achievement, 'earned' | 'earnedDate'>[] = [
 ];
 
 export const INITIAL_MISSIONS: Omit<Mission, 'id'>[] = [
-  { title: 'Security Buffer I', description: 'Save 1 month of salary', progress: 0, total: 3000, icon: 'shield', type: 'short', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
-  { title: 'Diversification', description: 'Own 3 different wallets', progress: 0, total: 3, icon: 'wallet', type: 'medium', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
-  { title: 'Positive Cashflow', description: 'Earn more than you spend this month', progress: 0, total: 1, icon: 'trending-up', type: 'short', category: 'audit', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
-  { title: 'Wealth Architect', description: 'Reach $50,000 in total assets', progress: 0, total: 50000, icon: 'landmark', type: 'long', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 2, path: 'neutral' },
+  { title: 'Security Buffer I', description: 'Initialize 1 month of coverage', progress: 0, total: 3000, icon: 'shield', type: 'short', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
+  { title: 'Asset Diversification', description: 'Expand to 3 distinct reserves', progress: 0, total: 3, icon: 'wallet', type: 'medium', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
+  { title: 'Positive Momentum', description: 'Maintain net positive monthly flow', progress: 0, total: 1, icon: 'trending-up', type: 'short', category: 'audit', level: 1, status: 'active', unlockedAtLevel: 1, path: 'neutral' },
+  { title: 'Capital Foundation', description: 'Accumulate $50,000 in total assets', progress: 0, total: 50000, icon: 'landmark', type: 'long', category: 'growth', level: 1, status: 'active', unlockedAtLevel: 2, path: 'neutral' },
 
   // Investor Path
-  { title: 'Market Entrant', description: 'Invest $1000 in volatile assets', progress: 0, total: 1000, icon: 'trending-up', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'investor' },
-  { title: 'Yield Hunter', description: 'Earn $10 in passive income', progress: 0, total: 10, icon: 'sparkles', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'investor' },
+  { title: 'Market Ingress', description: 'Deploy $1000 into strategic assets', progress: 0, total: 1000, icon: 'trending-up', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'investor' },
+  { title: 'Yield Acquisition', description: 'Secure passive returns of $10', progress: 0, total: 10, icon: 'sparkles', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'investor' },
 
   // Frugal Path
-  { title: 'Budget Ninja', description: 'Stay under budget for 3 categories', progress: 0, total: 3, icon: 'shield', type: 'short', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' },
-  { title: 'Minimalist', description: 'Reduce monthly expenses by 10%', progress: 0, total: 10, icon: 'target', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' },
+  { title: 'Optimization Protocol', description: 'Achieve 3 category efficiencies', progress: 0, total: 3, icon: 'shield', type: 'short', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' },
+  { title: 'Discipline Master', description: 'Refine monthly outflow by 10%', progress: 0, total: 10, icon: 'target', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'frugal' },
 
   // Guardian Path
-  { title: 'Capital Shield', description: 'Maintain 6 months of runway', progress: 0, total: 6, icon: 'shield', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'guardian' },
-  { title: 'Risk Auditor', description: 'Verify all asset providers', progress: 0, total: 5, icon: 'audit', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'guardian' },
+  { title: 'Reserve Integrity', description: 'Sustain 6 months of capital runway', progress: 0, total: 6, icon: 'shield', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'guardian' },
+  { title: 'Provider Audit', description: 'Authenticate 5 asset custodians', progress: 0, total: 5, icon: 'audit', type: 'medium', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'guardian' },
 
   // Catalyst Path
-  { title: 'Growth Engine', description: 'Reach 20% portfolio volatility', progress: 0, total: 20, icon: 'zap', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'catalyst' },
-  { title: 'Venture Ingress', description: 'Add 3 high-growth assets', progress: 0, total: 3, icon: 'rocket', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'catalyst' },
+  { title: 'Velocity Target', description: 'Reach 20% portfolio intensity', progress: 0, total: 20, icon: 'zap', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'catalyst' },
+  { title: 'Growth Catalysis', description: 'Incorporate 3 high-yield vectors', progress: 0, total: 3, icon: 'rocket', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'catalyst' },
 
   // Alchemist Path
-  { title: 'Impact Radius', description: 'Allocate $5000 to ESG goals', progress: 0, total: 5000, icon: 'gem', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'alchemist' },
-  { title: 'Green Ledger', description: 'Label 5 ethical transactions', progress: 0, total: 5, icon: 'leaf', type: 'short', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'alchemist' },
+  { title: 'Impact Radius', description: 'Commit $5000 to value-aligned goals', progress: 0, total: 5000, icon: 'gem', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'alchemist' },
+  { title: 'Ethical Alignment', description: 'Categorize 5 impact-driven events', progress: 0, total: 5, icon: 'leaf', type: 'short', category: 'audit', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'alchemist' },
 
   // Nomad Path
-  { title: 'Global Liquidity', description: 'Hold assets in 4 currencies', progress: 0, total: 4, icon: 'globe', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'nomad' },
-  { title: 'Borderless Flow', description: 'Make a cross-border transfer', progress: 0, total: 1, icon: 'plane', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'nomad' },
+  { title: 'Global Liquidity', description: 'Diversify across 4 global currencies', progress: 0, total: 4, icon: 'globe', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'nomad' },
+  { title: 'Borderless Flow', description: 'Execute a cross-jurisdiction transfer', progress: 0, total: 1, icon: 'plane', type: 'short', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'nomad' },
 
   // Legacy Path
-  { title: 'Estate Blueprint', description: 'Initialize a property asset', progress: 0, total: 1, icon: 'landmark', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'legacy' },
-  { title: 'Century Plan', description: 'Set a goal with 10yr+ target', progress: 0, total: 1, icon: 'clock', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'legacy' }
+  { title: 'Dynasty Blueprint', description: 'Initialize a generational asset', progress: 0, total: 1, icon: 'landmark', type: 'long', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'legacy' },
+  { title: 'Perpetual Horizon', description: 'Define a 10-year strategic objective', progress: 0, total: 1, icon: 'clock', type: 'medium', category: 'growth', level: 1, status: 'locked', unlockedAtLevel: 1, path: 'legacy' }
 ];
+
+const PATH_TITLES: Record<string, Record<number, string>> = {
+  investor: {
+    1: 'Aspirant Investisseur',
+    5: 'Investisseur du Dimanche',
+    10: 'Investisseur Débutant',
+    20: 'Investisseur Pro',
+    30: 'Analyste de Marché',
+    40: 'Gestionnaire d\'Actifs',
+    50: 'Hedge Fund Investisseur',
+    60: 'Visionnaire de Capital',
+    70: 'Titan de la Bourse',
+    80: 'Obsidian Investor',
+    90: 'Master Strategist',
+    100: 'Onyx Legend',
+  },
+  frugal: {
+    1: 'Apprenti Économe',
+    10: 'Chasseur de Gaspillage',
+    20: 'Optimisateur de Budget',
+    30: 'Maître de la Discipline',
+    40: 'Gardien des Centimes',
+    50: 'Architecte Frugal',
+    60: 'Minimaliste d\'Élite',
+    70: 'Ingénieur de Patrimoine',
+    80: 'Obsidian Minimalist',
+    90: 'Master of Flow',
+    100: 'Onyx Sage',
+  },
+  guardian: {
+    1: 'Vigilant de Réserve',
+    10: 'Gardien de Réserve',
+    20: 'Protecteur de Capital',
+    30: 'Analyste de Risque',
+    40: 'Bouclier Financier',
+    50: 'Wealth Guardian',
+    60: 'Forteresse de Patrimoine',
+    70: 'Titan de la Sécurité',
+    80: 'Obsidian Shield',
+    90: 'Grand Custodian',
+    100: 'Onyx Sentinel',
+  },
+  catalyst: {
+    1: 'Explorateur de Risque',
+    10: 'Chercheur d\'Opportunité',
+    20: 'Catalyseur de Croissance',
+    30: 'Disrupteur de Marché',
+    40: 'Architecte de Momentum',
+    50: 'Venture Catalyst',
+    60: 'Visionnaire de Rupture',
+    70: 'Moteur de Capital',
+    80: 'Obsidian Spark',
+    90: 'Master of Velocity',
+    100: 'Onyx Engine',
+  },
+  alchemist: {
+    1: 'Initié de l\'Impact',
+    10: 'Purificateur de Flux',
+    20: 'Alchimiste Social',
+    30: 'Visionnaire Éthique',
+    40: 'Architecte de Valeur',
+    50: 'Ethical Alchemist',
+    60: 'Maître de la Résonance',
+    70: 'Harmonisateur de Fortune',
+    80: 'Obsidian Essence',
+    90: 'Master of Balance',
+    100: 'Onyx Philosopher',
+  },
+  nomad: {
+    1: 'Voyageur Financier',
+    10: 'Nomade de Liquidité',
+    20: 'Citoyen du Monde',
+    30: 'Explorateur de Devises',
+    40: 'Architecte Sans Frontières',
+    50: 'Digital Nomad',
+    60: 'Maître du Flux Global',
+    70: 'Souverain de Mobilité',
+    80: 'Obsidian Traveler',
+    90: 'Master of Horizons',
+    100: 'Onyx Wayfarer',
+  },
+  legacy: {
+    1: 'Bâtisseur Junior',
+    10: 'Gardien d\'Héritage',
+    20: 'Architecte de Lignée',
+    30: 'Visionnaire de Long Terme',
+    40: 'Maître de la Transmission',
+    50: 'Legacy Builder',
+    60: 'Fondateur de Dynastie',
+    70: 'Titan de la Durée',
+    80: 'Obsidian Anchor',
+    90: 'Grand Patriarch',
+    100: 'Onyx Founder',
+  },
+  neutral: {
+    1: 'Nouveau Membre',
+    10: 'Adepte du Vault',
+    20: 'Gestionnaire Averti',
+    30: 'Maître de l\'Équilibre',
+    40: 'Praticien du Patrimoine',
+    50: 'Onyx Associate',
+    60: 'Visionnaire de Réserve',
+    70: 'Commandeur de Capital',
+    80: 'Obsidian Master',
+    90: 'Grand Strategist',
+    100: 'Onyx Legend',
+  }
+};
 
 export class GamificationService {
   public isSyncing = false;
   private lastSyncedData: string | null = null;
   private syncTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  private getPathTitle(path: string, level: number): string {
+    const titles = PATH_TITLES[path] || PATH_TITLES.neutral;
+    const sortedLevels = Object.keys(titles).map(Number).sort((a, b) => b - a);
+    const matchedLevel = sortedLevels.find(l => level >= l) || 1;
+    return titles[matchedLevel];
+  }
+
+  private getTierName(level: number): string {
+    if (level <= 10) return 'Bronze';
+    if (level <= 20) return 'Silver';
+    if (level <= 30) return 'Gold';
+    if (level <= 40) return 'Platinum';
+    if (level <= 50) return 'Diamond';
+    if (level <= 60) return 'Archon';
+    if (level <= 70) return 'Emerald';
+    if (level <= 90) return 'Obsidian';
+    return 'Onyx';
+  }
 
   private getDirtyString(data: GamificationData): string {
     return JSON.stringify({
@@ -200,17 +327,17 @@ export class GamificationService {
         
         newTotal = averageMonthlyIncome * currentMult;
         newProgress = Math.min(totalLiquidity, newTotal);
-        newDesc = `Save ${currentMult} month${currentMult > 1 ? 's' : ''} of salary`;
+        newDesc = `Initialize ${currentMult} month${currentMult > 1 ? 's' : ''} of coverage`;
 
         if (totalLiquidity >= newTotal && newLevel < MULTIPLIERS.length) {
           newLevel += 1;
           const nextMult = MULTIPLIERS[newLevel - 1];
           newTotal = averageMonthlyIncome * nextMult;
           newProgress = Math.min(totalLiquidity, newTotal);
-          newDesc = `Save ${nextMult} month${nextMult > 1 ? 's' : ''} of salary`;
+          newDesc = `Initialize ${nextMult} month${nextMult > 1 ? 's' : ''} of coverage`;
         }
         changed = true;
-      } else if (m.title === 'Diversification') {
+      } else if (m.title === 'Asset Diversification' || m.title === 'Diversification') {
         newTotal = 3 * newLevel;
         newProgress = wallets.length;
         if (newProgress >= newTotal && newLevel < 3) {
@@ -218,28 +345,31 @@ export class GamificationService {
           newTotal = 3 * newLevel;
         }
         changed = true;
-      } else if (m.title === 'Positive Cashflow') {
+      } else if (m.title === 'Positive Momentum') {
         newTotal = 1;
         newProgress = monthlyIncome > monthlyExpense ? 1 : 0;
         changed = true;
-      } else if (m.title === 'Market Entrant') {
+      } else if (m.title === 'Market Ingress') {
         const investmentTotal = wallets
           .filter(w => w.type === 'Investment' || w.type === 'Crypto')
           .reduce((sum, w) => sum + convertCurrency(w.balance, w.currency || 'USD', 'USD'), 0);
         newProgress = Math.min(m.total, investmentTotal);
         changed = true;
-      } else if (m.title === 'Capital Shield') {
+      } else if (m.title === 'Reserve Integrity') {
         const runway = totalLiquidity / averageMonthlyIncome;
         newProgress = Math.min(m.total, runway);
         changed = true;
       } else if (m.title === 'Global Liquidity') {
         newProgress = new Set(wallets.map(w => w.currency)).size;
         changed = true;
-      } else if (m.title === 'Estate Blueprint') {
+      } else if (m.title === 'Dynasty Blueprint') {
         newProgress = wallets.some(w => w.type === 'Property') ? 1 : 0;
         changed = true;
-      } else if (m.title === 'Venture Ingress') {
+      } else if (m.title === 'Growth Catalysis') {
         newProgress = wallets.filter(w => w.type === 'Investment' || w.type === 'Crypto').length;
+        changed = true;
+      } else if (m.title === 'Capital Foundation') {
+        newProgress = Math.min(m.total, totalLiquidity);
         changed = true;
       }
 
@@ -288,58 +418,61 @@ export class GamificationService {
     }
 
     const xp = xpFromLiquidity + xpFromTx + xpFromGoals;
+
+    // Level formula: level = Math.min(100, Math.floor(Math.sqrt(xp / 200)) + 1)
+    let level = Math.min(100, Math.floor(Math.sqrt(xp / 200)) + 1);
+
+    // Runway Booster: 1 month -> min Lvl 11, 3 months -> min Lvl 21, 6 months -> min Lvl 31
     const thresholds = getThresholds(profileCurrency);
-
-    const TIERS = [
-      { name: 'Bronze', level: 1, threshold: 0 },
-      { name: 'Silver', level: 2, threshold: thresholds.silverXP },
-      { name: 'Gold', level: 3, threshold: thresholds.goldXP },
-      { name: 'Platinum', level: 4, threshold: thresholds.platinumXP },
-      { name: 'Diamond', level: 5, threshold: thresholds.diamondXP },
-      { name: 'Archon', level: 6, threshold: thresholds.archonXP },
-    ];
-
     const averageMonthlyIncome = totalIncome > 0 ? Math.max(thresholds.avgMonthlyIncome, totalIncome / 3) : thresholds.avgMonthlyIncome;
     const runwayMonths = totalLiquidity / averageMonthlyIncome;
 
-    let currentTier = TIERS[0];
-    let next = TIERS[1];
+    if (runwayMonths >= 6) level = Math.max(level, 31);
+    else if (runwayMonths >= 3) level = Math.max(level, 21);
+    else if (runwayMonths >= 1) level = Math.max(level, 11);
 
-    for (let i = 0; i < TIERS.length; i++) {
-      if (xp >= TIERS[i].threshold) {
-        currentTier = TIERS[i];
-        next = TIERS[i+1] || TIERS[i];
-      }
-    }
+    const currentMaterialTier = this.getTierName(level);
+    const pathTitle = this.getPathTitle(path || 'neutral', level);
 
-    if (runwayMonths >= 6 && currentTier.level < 4) {
-      currentTier = TIERS[3];
-      next = TIERS[4];
-    } else if (runwayMonths >= 3 && currentTier.level < 3) {
-      currentTier = TIERS[2];
-      next = TIERS[3];
-    } else if (runwayMonths >= 1 && currentTier.level < 2) {
-      currentTier = TIERS[1];
-      next = TIERS[2];
-    }
+    // Calculate progress to next level
+    // XP for level L = 200 * (L-1)^2
+    const currentLevelXP = 200 * Math.pow(level - 1, 2);
+    const nextLevelXP = 200 * Math.pow(level, 2);
 
     let progress = 100;
     let left = 0;
-    if (currentTier !== next) {
-      const range = next.threshold - currentTier.threshold;
-      const currentXPInTier = Math.max(0, xp - currentTier.threshold);
-      progress = (currentXPInTier / range) * 100;
-      left = Math.max(0, next.threshold - xp);
+
+    if (level < 100) {
+      const range = nextLevelXP - currentLevelXP;
+      const progressXP = Math.max(0, xp - currentLevelXP);
+      progress = (progressXP / range) * 100;
+      left = Math.max(0, nextLevelXP - xp);
+    }
+
+    // Find the next material tier transition
+    let nextTierDisplay = 'MAX';
+    if (level < 100) {
+      for (let l = level + 1; l <= 100; l++) {
+        const t = this.getTierName(l);
+        if (t !== currentMaterialTier) {
+          nextTierDisplay = t;
+          break;
+        }
+      }
+      // If we are in the last material tier (Onyx) but not yet level 100
+      if (nextTierDisplay === 'MAX' && currentMaterialTier !== 'Onyx') {
+         nextTierDisplay = 'Onyx';
+      }
     }
 
     return {
       xp,
       tierData: {
-        tierName: currentTier.name,
-        level: currentTier.level,
+        tierName: pathTitle, // Using pathTitle as tierName for "Premium Semantics"
+        level: level,
         progressPercent: Math.min(100, Math.max(0, progress)),
         xpLeft: left,
-        nextTier: next.name
+        nextTier: nextTierDisplay
       }
     };
   }
@@ -375,7 +508,7 @@ export class GamificationService {
         case 'portfolio_pro': earned = new Set(wallets.map(w => w.type)).size >= 5; break;
         case 'investment_whale': earned = totalInvestments >= 50000; break;
         case 'half_millionaire': earned = totalLiquidity >= 500000; break;
-        case 'onyx_titan': earned = data.currentLevel >= 6; break;
+        case 'onyx_titan': earned = data.currentLevel >= 100; break;
         case 'wealth_architect': earned = totalLiquidity >= 1000000; break;
         case 'legacy_builder': earned = wallets.some(w => w.type === 'Property'); break;
 

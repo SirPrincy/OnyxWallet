@@ -143,8 +143,11 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
   }, [currentUser]);
 
   const mainMission = useMemo(() => {
-    const active = missions.filter(m => m.progress < m.total);
-    if (active.length === 0) return missions[0];
+    const active = missions.filter(m => m.status === 'active' && m.progress < m.total);
+    if (active.length === 0) {
+      const available = missions.filter(m => m.status === 'available');
+      return available.length > 0 ? available[0] : missions[0];
+    }
     return [...active].sort((a, b) => (b.progress / b.total) - (a.progress / a.total))[0];
   }, [missions]);
 
@@ -184,7 +187,7 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
           <div className="flex justify-between items-start">
             <div className="space-y-1">
               <p className="font-headline text-2xl text-primary leading-none">Private Reserve</p>
-              <p className="text-on-surface-variant text-[10px] tracking-widest uppercase">{tierData.tierName} Tier {['I','II','III','IV','V','VI'][tierData.level-1]}</p>
+              <p className="text-on-surface-variant text-[10px] tracking-widest uppercase">{tierData.tierName} • Lvl {tierData.level}</p>
             </div>
             <CreditCard className="w-10 h-10 text-primary/40" />
           </div>
