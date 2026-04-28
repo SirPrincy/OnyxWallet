@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { TrendingUp, CreditCard, ShoppingBag, Landmark, Clock, Rocket, Calendar, ArrowRight } from 'lucide-react';
+import { TrendingUp, CreditCard, ShoppingBag, Landmark, Clock, Rocket, Calendar, ArrowRight, Target, Filter } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useFinancialStore } from '../store/useFinancialStore';
@@ -241,47 +241,62 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
       )}
 
       {/* Safe-to-Spend Section */}
-      <section className="space-y-4">
-        <div className="flex justify-between items-end">
-          <h3 className="font-headline text-2xl uppercase tracking-wider text-on-surface-variant flex items-center gap-2">
-            <Clock className="w-5 h-5 text-primary" />
-            Safe-to-Spend
-          </h3>
-          <span className="text-[10px] text-on-surface-variant uppercase tracking-[0.2em]">Rest of month</span>
-        </div>
-        <div className="bg-surface-container p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -z-10 group-hover:bg-primary/10 transition-colors"></div>
-          
-          <div className="flex items-center justify-between mb-8">
-            <div className="space-y-1">
-              <p className="text-5xl font-headline text-on-surface tracking-tight">{formatCurrency(stats.safeToSpend.monthly)}</p>
-              <p className="text-[10px] text-on-surface-variant uppercase tracking-[0.3em] font-bold">Remaining in your vault</p>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-headline text-primary">{formatCurrency(stats.safeToSpend.daily).split('.')[0]}</p>
-              <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Per day limit</p>
-            </div>
+      {budgets.length > 0 ? (
+        <section className="space-y-4">
+          <div className="flex justify-between items-end">
+            <h3 className="font-headline text-2xl uppercase tracking-wider text-on-surface-variant flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Safe-to-Spend
+            </h3>
+            <span className="text-[10px] text-on-surface-variant uppercase tracking-[0.2em]">Rest of month</span>
           </div>
+          <div className="bg-surface-container p-8 rounded-3xl border border-white/5 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl -z-10 group-hover:bg-primary/10 transition-colors"></div>
 
-          <div className="space-y-3">
-            <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-widest">
-              <span className="text-on-surface-variant">Consumption Pulse</span>
-              <span className={stats.safeToSpend.percent > 90 ? 'text-error' : 'text-primary'}>{stats.safeToSpend.percent.toFixed(0)}%</span>
+            <div className="flex items-center justify-between mb-8">
+              <div className="space-y-1">
+                <p className="text-5xl font-headline text-on-surface tracking-tight">{formatCurrency(stats.safeToSpend.monthly)}</p>
+                <p className="text-[10px] text-on-surface-variant uppercase tracking-[0.3em] font-bold">Remaining in your vault</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-headline text-primary">{formatCurrency(stats.safeToSpend.daily).split('.')[0]}</p>
+                <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Per day limit</p>
+              </div>
             </div>
-            <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${stats.safeToSpend.percent}%` }}
-                className={`h-full ${stats.safeToSpend.percent > 90 ? 'bg-error' : 'bg-primary'} transition-all`}
-              />
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-end text-[10px] font-bold uppercase tracking-widest">
+                <span className="text-on-surface-variant">Consumption Pulse</span>
+                <span className={stats.safeToSpend.percent > 90 ? 'text-error' : 'text-primary'}>{stats.safeToSpend.percent.toFixed(0)}%</span>
+              </div>
+              <div className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${stats.safeToSpend.percent}%` }}
+                  className={`h-full ${stats.safeToSpend.percent > 90 ? 'bg-error' : 'bg-primary'} transition-all`}
+                />
+              </div>
             </div>
+
+            <p className="mt-6 text-[10px] text-on-surface-variant/60 italic leading-relaxed">
+              Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">{formatCurrency(stats.safeToSpend.daily).split('.')[0]}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
+            </p>
           </div>
-
-          <p className="mt-6 text-[10px] text-on-surface-variant/60 italic leading-relaxed">
-            Basé sur vos flux récurrents et vos objectifs d'épargne. Dépensez moins de <span className="text-primary font-bold">{formatCurrency(stats.safeToSpend.daily).split('.')[0]}</span> aujourd'hui pour rester sur la trajectoire de votre patrimoine.
-          </p>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section
+          onClick={() => onNavigate('growth')}
+          className="bg-surface-container-low p-8 rounded-3xl border border-dashed border-primary/20 flex flex-col items-center text-center space-y-4 cursor-pointer hover:bg-surface-container transition-all group"
+        >
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+            <Filter className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-headline text-xl text-on-surface">Budget Strategy Pending</p>
+            <p className="text-xs text-on-surface-variant max-w-[240px]">Votre stratégie d'investisseur est prête. [Définir un budget] pour débloquer votre premier bonus d'XP.</p>
+          </div>
+        </section>
+      )}
 
       {/* Active Portfolio Section */}
       <section className="space-y-4">
@@ -294,34 +309,49 @@ export default function Home({ onNavigate }: { onNavigate: (screen: 'home' | 'hi
             Details
           </span>
         </div>
-        <div className="bg-surface-container-low p-6 rounded-xl border border-outline-variant/5">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <p className="text-on-surface-variant text-[10px] uppercase tracking-widest mb-1">Total Invested Assets</p>
-              <h4 className="text-3xl font-headline">{formatCurrency(totalInvested)}</h4>
+        {savingsGoals.length > 0 ? (
+          <div className="bg-surface-container-low p-6 rounded-xl border border-outline-variant/5">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <p className="text-on-surface-variant text-[10px] uppercase tracking-widest mb-1">Total Invested Assets</p>
+                <h4 className="text-3xl font-headline">{formatCurrency(totalInvested)}</h4>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Daily Yield</p>
+                <p className="text-primary font-medium flex items-center justify-end gap-1">
+                  <TrendingUp className="w-4 h-4" />
+                  +{primaryCurrencySymbol} 0.00
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-[10px] text-on-surface-variant uppercase tracking-widest mb-1">Daily Yield</p>
-              <p className="text-primary font-medium flex items-center justify-end gap-1">
-                <TrendingUp className="w-4 h-4" />
-                +{primaryCurrencySymbol} 0.00
-              </p>
+            <div className="h-16 w-full flex items-end gap-1">
+              {savingsGoals.slice(0, 7).map((g, i) => (
+                <div
+                  key={i}
+                  className={`flex-1 rounded-t-sm bg-primary/20 hover:bg-primary/40 transition-colors cursor-help`}
+                  style={{ height: `${Math.max(10, (g.current / g.target) * 100)}%` }}
+                  title={g.title}
+                ></div>
+              ))}
+              {savingsGoals.length < 7 && Array.from({ length: 7 - savingsGoals.length }).map((_, i) => (
+                <div key={`empty-${i}`} className="flex-1 rounded-t-sm bg-surface-container-highest/30 h-[10%]"></div>
+              ))}
             </div>
           </div>
-          <div className="h-16 w-full flex items-end gap-1">
-            {savingsGoals.slice(0, 7).map((g, i) => (
-              <div 
-                key={i} 
-                className={`flex-1 rounded-t-sm bg-primary/20 hover:bg-primary/40 transition-colors cursor-help`} 
-                style={{ height: `${Math.max(10, (g.current / g.target) * 100)}%` }}
-                title={g.title}
-              ></div>
-            ))}
-            {savingsGoals.length < 7 && Array.from({ length: 7 - savingsGoals.length }).map((_, i) => (
-              <div key={`empty-${i}`} className="flex-1 rounded-t-sm bg-surface-container-highest/30 h-[10%]"></div>
-            ))}
+        ) : (
+          <div
+            onClick={() => onNavigate('growth')}
+            className="bg-surface-container-low p-8 rounded-2xl border border-dashed border-primary/20 flex flex-col items-center text-center space-y-4 cursor-pointer hover:bg-surface-container transition-all group"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <Target className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-headline text-lg text-on-surface">No Objectives Locked</p>
+              <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Initialize a Goal to track growth</p>
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* Weekly Missions */}

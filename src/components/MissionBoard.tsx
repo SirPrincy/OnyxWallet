@@ -22,23 +22,53 @@ import {
 } from 'lucide-react';
 import { useGamificationStore } from '../store/useGamificationStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useFinancialStore } from '../store/useFinancialStore';
 import { Mission } from '../types';
 import { ICON_MAP } from '../constants';
+import BudgetWizard from './BudgetWizard';
+import GoalWizard from './GoalWizard';
 
 export default function MissionBoard() {
   const missions = useGamificationStore(s => s.missions);
   const path = useGamificationStore(s => s.path);
   const updateMission = useGamificationStore(s => s.updateMission);
+  const syncGamification = useGamificationStore(s => s.syncGamification);
+  const upgradeToEliteCategories = useFinancialStore(s => s.upgradeToEliteCategories);
+  const currentUser = useAuthStore(s => s.currentUser);
+
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [showBudgetWizard, setShowBudgetWizard] = useState(false);
+  const [showGoalWizard, setShowGoalWizard] = useState(false);
 
   const activeMissions = missions.filter(m => m.status === 'active' && (!m.path || m.path === 'neutral' || m.path === path));
   const availableMissions = missions.filter(m => m.status === 'available' && (!m.path || m.path === 'neutral' || m.path === path));
   const completedMissions = missions.filter(m => m.status === 'completed');
 
   const handleAccept = async (mission: Mission) => {
+    if (mission.title === 'Budget Protocol') {
+      setShowBudgetWizard(true);
+      setSelectedMission(null);
+      return;
+    }
+    if (mission.title === 'Wealth Objective') {
+      setShowGoalWizard(true);
+      setSelectedMission(null);
+      return;
+    }
+
     // Mark as active
     await updateMission(mission.id, 0, mission.total, mission.level, mission.description, 'active');
     setSelectedMission(null);
+  };
+
+  const handleWizardComplete = async (type: 'budget' | 'goal') => {
+    const mission = missions.find(m => m.title === (type === 'budget' ? 'Budget Protocol' : 'Wealth Objective'));
+    if (mission && currentUser) {
+      await updateMission(mission.id, 1, 1, mission.level, mission.description, 'completed');
+      await syncGamification(currentUser.id, currentUser.currency, (lvl) => upgradeToEliteCategories(lvl, currentUser.id));
+    }
+    setShowBudgetWizard(false);
+    setShowGoalWizard(false);
   };
 
   return (
@@ -134,6 +164,38 @@ export default function MissionBoard() {
           })}
         </div>
       </section>
+
+      {/* Wizards */}
+      <AnimatePresence>
+        {showBudgetWizard && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background z-[200] overflow-y-auto"
+          >
+            <BudgetWizard onComplete={() => handleWizardComplete('budget')} />
+            <button
+              onClick={() => setShowBudgetWizard(false)}
+              className="absolute top-8 right-8 p-3 rounded-full bg-white/5 text-on-surface-variant"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </motion.div>
+        )}
+        {showGoalWizard && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background z-[200] overflow-y-auto"
+          >
+            <GoalWizard onComplete={() => handleWizardComplete('goal')} />
+            <button
+              onClick={() => setShowGoalWizard(false)}
+              className="absolute top-8 right-8 p-3 rounded-full bg-white/5 text-on-surface-variant"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mission Detail Modal */}
       <AnimatePresence>

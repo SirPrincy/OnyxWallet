@@ -134,6 +134,7 @@ export interface Profile {
   color: string;
   currency: string;
   path?: WealthPath;
+  isBiometricEnabled?: boolean;
   hourlyRate?: number;
   monthlySalary?: number;
   salaryDay?: number; // 1-31

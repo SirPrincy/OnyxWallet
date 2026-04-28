@@ -13,11 +13,15 @@ interface IdentityStepProps {
   setAvatarSeed: (seed: string) => void;
   profileColor: string;
   setProfileColor: (color: string) => void;
+  isBiometricAvailable: boolean;
+  isBiometricEnabled: boolean;
+  setIsBiometricEnabled: (enabled: boolean) => void;
 }
 
 export const IdentityStep: React.FC<IdentityStepProps> = ({
   name, setName, passcode, setPasscode, confirmPasscode, setConfirmPasscode,
-  avatarSeed, setAvatarSeed, profileColor, setProfileColor
+  avatarSeed, setAvatarSeed, profileColor, setProfileColor,
+  isBiometricAvailable, isBiometricEnabled, setIsBiometricEnabled
 }) => {
   return (
     <motion.div
@@ -99,6 +103,28 @@ export const IdentityStep: React.FC<IdentityStepProps> = ({
           </div>
           {confirmPasscode && confirmPasscode !== passcode && (
             <p className="text-[10px] text-red-500 font-bold uppercase tracking-widest text-center">Keys do not match</p>
+          )}
+
+          {isBiometricAvailable && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl"
+            >
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-on-surface">Biometric Unlock</p>
+                <p className="text-[10px] text-on-surface-variant uppercase tracking-widest">Use Fingerprint/FaceID</p>
+              </div>
+              <button
+                onClick={() => setIsBiometricEnabled(!isBiometricEnabled)}
+                className={`w-12 h-6 rounded-full transition-colors relative ${isBiometricEnabled ? 'bg-primary' : 'bg-white/10'}`}
+              >
+                <motion.div
+                  animate={{ x: isBiometricEnabled ? 26 : 2 }}
+                  className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-lg"
+                />
+              </button>
+            </motion.div>
           )}
         </div>
       </div>
