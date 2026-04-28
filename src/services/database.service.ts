@@ -187,6 +187,7 @@ class DatabaseService {
         color TEXT,
         currency TEXT DEFAULT 'USD',
         path TEXT DEFAULT 'neutral',
+        isBiometricEnabled INTEGER DEFAULT 0,
         monthlySalary REAL DEFAULT 0,
         salaryDay INTEGER DEFAULT 1,
         salarySource TEXT,
@@ -283,6 +284,9 @@ class DatabaseService {
         if (table === 'profiles') {
           if (res.values && !res.values.some((col: any) => col.name === 'path')) {
             await this.db.execute(`ALTER TABLE profiles ADD COLUMN path TEXT DEFAULT 'neutral'`);
+          }
+          if (res.values && !res.values.some((col: any) => col.name === 'isBiometricEnabled')) {
+            await this.db.execute(`ALTER TABLE profiles ADD COLUMN isBiometricEnabled INTEGER DEFAULT 0`);
           }
           if (res.values && !res.values.some((col: any) => col.name === 'currency')) {
             await this.db.execute(`ALTER TABLE profiles ADD COLUMN currency TEXT DEFAULT 'USD'`);

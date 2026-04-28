@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ChevronRight, 
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
+import { BiometricAuth } from 'capacitor-biometric-authentication';
 import { useAuthStore } from '../store/useAuthStore';
 import { useWalletStore } from '../store/useWalletStore';
 import { useGamificationStore } from '../store/useGamificationStore';
@@ -40,11 +42,21 @@ export default function Onboarding() {
   const [confirmPasscode, setConfirmPasscode] = useState('');
   const [avatarSeed, setAvatarSeed] = useState(Math.random().toString(36).substring(7));
   const [profileColor, setProfileColor] = useState('border-primary');
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(false);
+  const [isLocking, setIsLocking] = useState(false);
+
+  React.useEffect(() => {
+    BiometricAuth.isAvailable().then(available => {
+      setIsBiometricAvailable(available);
+    }).catch(() => setIsBiometricAvailable(false));
+  }, []);
 
   // Quiz state
   const [quizStep, setQuizStep] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<string[]>([]);
   const [recommendedPath, setRecommendedPath] = useState<string>('neutral');
+  const [activeQuizColor, setActiveQuizColor] = useState('from-primary/20');
 
   // Wallet state
   const [walletName, setWalletName] = useState('');
@@ -61,6 +73,20 @@ export default function Onboarding() {
   const handleQuizAnswer = (path: string) => {
     const nextAnswers = [...quizAnswers, path];
     setQuizAnswers(nextAnswers);
+
+    // Dynamic color shift based on answer
+    const pathColors: Record<string, string> = {
+      investor: 'from-emerald-500/20',
+      frugal: 'from-blue-500/20',
+      guardian: 'from-amber-500/20',
+      catalyst: 'from-rose-500/20',
+      alchemist: 'from-teal-500/20',
+      nomad: 'from-indigo-500/20',
+      legacy: 'from-purple-500/20'
+    };
+    if (pathColors[path]) {
+      setActiveQuizColor(pathColors[path]);
+    }
 
     if (quizStep < QUIZ_QUESTIONS.length - 1) {
       setQuizStep(quizStep + 1);
@@ -108,7 +134,13 @@ export default function Onboarding() {
         setSetupStep('identity');
       }
     } else if (setupStep === 'identity') {
-      if (name && passcode && passcode === confirmPasscode) setSetupStep('quiz');
+      if (name && passcode && passcode === confirmPasscode) {
+        setIsLocking(true);
+        setTimeout(() => {
+          setIsLocking(false);
+          setSetupStep('quiz');
+        }, 2000);
+      }
     } else if (setupStep === 'path-result') {
       setSetupStep('wallet');
     } else if (setupStep === 'wallet') {
@@ -124,6 +156,7 @@ export default function Onboarding() {
     const newProfile = {
       name,
       passcode,
+      isBiometricEnabled,
       role: 'Owner',
       tier: 'Bronze',
       status: 'Active',
@@ -205,14 +238,24 @@ export default function Onboarding() {
     <div className="fixed inset-0 z-[100] bg-background flex flex-col overflow-hidden font-sans">
       <div className="absolute inset-0 z-0">
         <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-            className={`absolute inset-0 bg-gradient-to-b ${STEPS[currentStep].color}`}
-          />
+          {setupStep === 'quiz' ? (
+            <motion.div
+              key="quiz-bg"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={`absolute inset-0 bg-gradient-to-b ${activeQuizColor} to-transparent`}
+            />
+          ) : (
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+              className={`absolute inset-0 bg-gradient-to-b ${STEPS[currentStep]?.color || 'from-primary/20 to-transparent'}`}
+            />
+          )}
         </AnimatePresence>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#131313_100%)] opacity-80" />
       </div>
@@ -250,13 +293,45 @@ export default function Onboarding() {
               variants={variants}
             />
           ) : setupStep === 'identity' ? (
-            <IdentityStep
-              name={name} setName={setName}
-              passcode={passcode} setPasscode={setPasscode}
-              confirmPasscode={confirmPasscode} setConfirmPasscode={setConfirmPasscode}
-              avatarSeed={avatarSeed} setAvatarSeed={setAvatarSeed}
-              profileColor={profileColor} setProfileColor={setProfileColor}
-            />
+            isLocking ? (
+              <motion.div
+                key="locking-vault"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.1 }}
+                className="flex flex-col items-center gap-6"
+              >
+                <div className="relative w-32 h-32 flex items-center justify-center">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, ease: "linear" }}
+                    className="absolute inset-0 border-4 border-dashed border-primary/30 rounded-full"
+                  />
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    <Lock className="w-16 h-16 text-primary" strokeWidth={1.5} />
+                  </motion.div>
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-headline italic text-on-surface">Securing Vault</h2>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-primary font-bold">Encrypting Local Database</p>
+                </div>
+              </motion.div>
+            ) : (
+              <IdentityStep
+                name={name} setName={setName}
+                passcode={passcode} setPasscode={setPasscode}
+                confirmPasscode={confirmPasscode} setConfirmPasscode={setConfirmPasscode}
+                avatarSeed={avatarSeed} setAvatarSeed={setAvatarSeed}
+                profileColor={profileColor} setProfileColor={setProfileColor}
+                isBiometricAvailable={isBiometricAvailable}
+                isBiometricEnabled={isBiometricEnabled}
+                setIsBiometricEnabled={setIsBiometricEnabled}
+              />
+            )
           ) : setupStep === 'quiz' ? (
             <QuizStep
               quizStep={quizStep}

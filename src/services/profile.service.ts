@@ -14,10 +14,11 @@ export class ProfileService {
     const profileToSave = { ...profile, id, passcode: hashedPasscode } as Profile;
     
     await databaseService.run(
-      'INSERT INTO profiles (id, name, passcode, role, tier, status, lastActive, image, color, currency, monthlySalary, salaryDay, salarySource, salaryWalletId, autoAddSalary, lastSalaryAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO profiles (id, name, passcode, role, tier, status, lastActive, image, color, currency, path, isBiometricEnabled, monthlySalary, salaryDay, salarySource, salaryWalletId, autoAddSalary, lastSalaryAdded) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         profileToSave.id, profileToSave.name, profileToSave.passcode, profileToSave.role, profileToSave.tier,
         profileToSave.status, profileToSave.lastActive, profileToSave.image, profileToSave.color, profileToSave.currency,
+        profileToSave.path || null, profileToSave.isBiometricEnabled ? 1 : 0,
         profileToSave.monthlySalary || 0, profileToSave.salaryDay || 1, profileToSave.salarySource || null,
         profileToSave.salaryWalletId || null, profileToSave.autoAddSalary ? 1 : 0, profileToSave.lastSalaryAdded || null
       ]
@@ -51,6 +52,9 @@ export class ProfileService {
     if (profile) {
       await settingsService.setSetting('onyx_current_user', profile);
       await settingsService.setSetting('is_onyx_authenticated', true);
+      if (profile.isBiometricEnabled !== undefined) {
+        await this.setBiometricEnabled(profile.isBiometricEnabled);
+      }
     } else {
       await settingsService.removeSetting('onyx_current_user');
       await settingsService.removeSetting('is_onyx_authenticated');
