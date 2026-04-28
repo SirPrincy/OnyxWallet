@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Profile } from '../types';
 import { Link } from '@tanstack/react-router';
+import { useGamificationStore } from '../store/useGamificationStore';
 
 interface NavigationDrawerProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ interface NavigationDrawerProps {
 }
 
 export default function NavigationDrawer({ isOpen, onClose, profile }: NavigationDrawerProps) {
+  const tierData = useGamificationStore(s => s.tierData);
   const menuItems = [
     { icon: Home, label: 'Home', to: '/' },
     { icon: User, label: 'My profile', to: '/profile' },
@@ -103,10 +105,10 @@ export default function NavigationDrawer({ isOpen, onClose, profile }: Navigatio
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span className="w-1 h-1 rounded-full bg-primary animate-pulse"></span>
-                    <p className="font-sans text-[8px] uppercase tracking-[0.2em] text-primary font-bold truncate">{profile?.role}</p>
+                    <p className="font-sans text-[8px] uppercase tracking-[0.2em] text-primary font-bold truncate">{tierData.tierName || 'Vault Member'}</p>
                   </div>
                   <div className="flex items-center gap-1.5">
-                     <p className="font-sans text-[8px] uppercase tracking-[0.1em] text-on-surface-variant/40 font-medium">{profile?.tier} Tier</p>
+                     <p className="font-sans text-[8px] uppercase tracking-[0.1em] text-on-surface-variant/40 font-medium">Level {tierData.level}</p>
                   </div>
                 </div>
               </div>
@@ -140,7 +142,7 @@ export default function NavigationDrawer({ isOpen, onClose, profile }: Navigatio
                   <span className="text-[10px] text-white/60 font-medium uppercase tracking-tight">{profile?.status || 'Active'}</span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-[8px] text-white/20 uppercase tracking-widest mb-0.5">Strategy</span>
+                  <span className="text-[8px] text-white/20 uppercase tracking-widest mb-0.5">Path</span>
                   <span className="text-[10px] text-primary font-bold uppercase tracking-tight italic">{profile?.path || 'Neutral'}</span>
                 </div>
               </div>
