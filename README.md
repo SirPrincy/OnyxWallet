@@ -10,14 +10,14 @@ View your app in AI Studio: https://ai.studio/apps/66b3493f-305b-43b2-b942-211fd
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
+**Prerequisites:**  Node.js, pnpm
 
 
 1. Install dependencies:
-   `npm install`
+   `pnpm install`
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
-   `npm run dev`
+   `pnpm dev`
 
 ## Android Build and Deployment (CLI)
 
@@ -31,10 +31,10 @@ You can build the application without installing Android Studio by using the com
 Run these commands from the project root:
 ```bash
 # 1. Build the web project
-npm run build
+pnpm build
 
 # 2. Sync changes with Capacitor
-npx cap sync android
+pnpm cap sync android
 
 # 3. Build the Android APK using the Gradle wrapper
 cd android
