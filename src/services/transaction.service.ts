@@ -1,6 +1,7 @@
 import { databaseService } from './database.service';
 import { Transaction } from '../types';
 import { walletService } from './wallet.service';
+import { Temporal } from '@js-temporal/polyfill';
 
 export class TransactionService {
   async getTransactions(profileId: string): Promise<Transaction[]> {
@@ -9,30 +10,33 @@ export class TransactionService {
   }
 
   async addTransaction(
-    newTx: Omit<Transaction, 'id' | 'timestamp' | 'date' | 'time'> & { date?: string; time?: string; timestamp?: number },
+    newTx: Omit<Transaction, 'id' | 'timestamp' | 'date' | 'time' | 'profileId'> & { date?: string; time?: string; timestamp?: number },
     profileId: string
   ): Promise<Transaction> {
     await using session = await databaseService.getSession();
 
-    const now = new Date();
     const id = crypto.randomUUID();
-    const timestamp = newTx.timestamp || now.getTime();
+    const nowInstant = Temporal.Now.instant();
+    const nowPlainDate = Temporal.Now.plainDateISO();
+    const timestamp = newTx.timestamp || nowInstant.epochMilliseconds;
     
-    // Formatting date as in original context
-    const formatDate = (dDate: string) => {
-      const today = new Date().toLocaleDateString();
-      const yesterday = new Date(Date.now() - 86400000).toLocaleDateString();
-      if (dDate === today) return 'Today';
-      if (dDate === yesterday) return 'Yesterday';
-      return new Date(dDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const formatDate = (date: Temporal.PlainDate) => {
+      const today = Temporal.Now.plainDateISO();
+      const yesterday = today.subtract({ days: 1 });
+
+      if (Temporal.PlainDate.compare(date, today) === 0) return 'Today';
+      if (Temporal.PlainDate.compare(date, yesterday) === 0) return 'Yesterday';
+
+      return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     };
 
     const fullTx: Transaction = {
       ...newTx,
       id,
       timestamp,
-      date: newTx.date || formatDate(now.toLocaleDateString()),
-      time: newTx.time || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+      profileId,
+      date: newTx.date || formatDate(nowPlainDate),
+      time: newTx.time || Temporal.Now.plainTimeISO().toLocaleString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
     };
 
     const statements: { statement: string, values?: any[] }[] = [];

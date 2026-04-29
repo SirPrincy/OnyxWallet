@@ -36,18 +36,15 @@ export class SalaryService {
   }
 
   getDaysUntilNextSalary(salaryDay: number): number {
-    const now = new Date();
-    const today = now.getDate();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    const now = Temporal.Now.plainDateISO();
+    let targetDate = Temporal.PlainDate.from({ year: now.year, month: now.month, day: salaryDay });
 
-    let targetDate = new Date(currentYear, currentMonth, salaryDay);
-    if (today > salaryDay) {
-      targetDate = new Date(currentYear, currentMonth + 1, salaryDay);
+    if (now.day > salaryDay) {
+      targetDate = targetDate.add({ months: 1 });
     }
 
-    const diffTime = targetDate.getTime() - now.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const duration = now.until(targetDate, { largestUnit: 'day' });
+    return duration.days;
   }
 }
 

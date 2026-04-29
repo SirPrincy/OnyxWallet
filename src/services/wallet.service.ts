@@ -11,9 +11,9 @@ export class WalletService {
     }));
   }
 
-  async addWallet(wallet: Omit<Wallet, 'id'>, profileId: string): Promise<Wallet> {
+  async addWallet(wallet: Omit<Wallet, 'id' | 'profileId'>, profileId: string): Promise<Wallet> {
     const id = crypto.randomUUID();
-    const newWallet = { ...wallet, id };
+    const newWallet: Wallet = { ...wallet, id, profileId };
     
     await databaseService.run(
       'INSERT INTO wallets (id, name, type, balance, currency, color, icon, lastFour, provider, isVisible, autoSavePercent, profileId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',

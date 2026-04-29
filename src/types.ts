@@ -16,6 +16,7 @@ export interface Transaction {
   liabilityId?: string;
   interestAmount?: number;
   goalId?: string;
+  profileId?: string;
 }
 
 export interface Mission {
@@ -32,6 +33,7 @@ export interface Mission {
   status: 'active' | 'completed' | 'locked' | 'available';
   unlockedAtLevel: number;
   path?: WealthPath;
+  profileId?: string;
 }
 
 export interface Budget {
@@ -40,6 +42,7 @@ export interface Budget {
   spent: number;
   limit: number;
   linkedWallets?: string[]; // IDs of linked wallets
+  profileId?: string;
 }
 
 export interface Achievement {
@@ -50,6 +53,7 @@ export interface Achievement {
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   description?: string;
   earnedDate?: string;
+  profileId?: string;
 }
 
 export interface Wallet {
@@ -63,6 +67,7 @@ export interface Wallet {
   lastFour?: string;
   provider?: string;
   isVisible: boolean;
+  profileId?: string;
 }
 
 export interface Liability {
@@ -76,6 +81,7 @@ export interface Liability {
   dueDate: string;
   provider: string;
   totalInterestPaid?: number;
+  profileId?: string;
 }
 
 export interface SavingsGoal {
@@ -93,6 +99,7 @@ export interface SavingsGoal {
   inflationRate?: number;
   autoAllocationPercent?: number;
   linkedWalletId?: string;
+  profileId?: string;
 }
 
 export interface GoalContribution {
@@ -111,6 +118,7 @@ export interface Category {
   color: string;
   type: 'income' | 'expense';
   subcategories: { name: string, icon: string }[];
+  profileId?: string;
 }
 
 export interface RecurringTransaction {
@@ -120,6 +128,7 @@ export interface RecurringTransaction {
   type: 'income' | 'expense';
   category: string;
   frequency: 'Monthly' | 'Quarterly' | 'Annually';
+  profileId?: string;
 }
 
 export interface Profile {

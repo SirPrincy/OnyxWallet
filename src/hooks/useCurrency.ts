@@ -13,9 +13,17 @@ export function useCurrency() {
   }, [profileCurrency, wallets]);
 
   const formatCurrency = (val: number, symbol?: string) => {
-    const parts = Math.abs(val).toFixed(2).split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-    return `${val < 0 ? '-' : ''}${symbol || primaryCurrencySymbol} ${parts.join('.')}`;
+    const formatter = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    const parts = formatter.formatToParts(Math.abs(val));
+    const formattedNumber = parts
+      .map(part => part.type === 'group' ? ' ' : part.value)
+      .join('');
+
+    return `${val < 0 ? '-' : ''}${symbol || primaryCurrencySymbol} ${formattedNumber}`;
   };
 
   return {

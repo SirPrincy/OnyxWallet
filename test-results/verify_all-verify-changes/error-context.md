@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: verify_premium.spec.ts >> verify premium semantics on home and drawer
-- Location: verify_premium.spec.ts:3:1
+- Name: verify_all.spec.ts >> verify changes
+- Location: verify_all.spec.ts:3:1
 
 # Error details
 
@@ -17,7 +17,7 @@ Error: browserType.launch: Executable doesn't exist at /home/jules/.cache/ms-pla
 ║ Looks like Playwright was just installed or updated.       ║
 ║ Please run the following command to download new browsers: ║
 ║                                                            ║
-║     npx playwright install                                 ║
+║     pnpm exec playwright install                           ║
 ║                                                            ║
 ║ <3 Playwright Team                                         ║
 ╚════════════════════════════════════════════════════════════╝
